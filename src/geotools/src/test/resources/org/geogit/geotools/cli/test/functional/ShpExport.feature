@@ -18,7 +18,7 @@ Feature: "shp export" command
   	Given I have a repository
       And I stage 6 features
      When I run the command "shp export WRONGTABLE Points.shp" 
-     Then the response should contain "The selected shapefile already exists. Use -o to overwrite"       
+     Then the response should contain "pathspec 'WRONGTABLE' did not match any valid path"       
   
   Scenario: Try exporting with mixed feature types
   	Given I have a repository
