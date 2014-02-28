@@ -48,12 +48,6 @@
     
     <!-- Test scope dependencies -->
     <dependency>
-      <groupId>org.ini4j</groupId>
-      <artifactId>ini4j</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.geogit</groupId>
       <artifactId>geogit-core</artifactId>
       <version>${project.version}</version>

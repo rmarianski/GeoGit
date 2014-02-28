@@ -9,8 +9,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -51,7 +51,8 @@ public abstract class INIFile {
         checkReload();
         for (Entry e : data) {
             Optional<String> result = e.get(section, key);
-            if (result.isPresent()) return result;
+            if (result.isPresent())
+                return result;
         }
         return Optional.absent();
     }
@@ -162,7 +163,7 @@ public abstract class INIFile {
         checkReload();
         boolean written = false;
         for (Entry e : data) {
-            
+
             written |= e.unset(section, key);
         }
         if (written) {
@@ -172,6 +173,7 @@ public abstract class INIFile {
 
     private final static class KeyAndValue {
         private String key, value;
+
         public KeyAndValue(String key, String value) {
             this.key = key;
             this.value = value;
@@ -192,14 +194,17 @@ public abstract class INIFile {
 
     private static abstract class Entry {
         public abstract void write(PrintWriter w);
+
         public Optional<String> get(String section, String key) {
             // No-op
             return Optional.absent();
         }
+
         public boolean set(String section, String key, String value) {
             // No-op
             return false;
         }
+
         public boolean unset(String section, String key) {
             return false;
         }
@@ -207,6 +212,7 @@ public abstract class INIFile {
 
     private static class Section extends Entry {
         private String header;
+
         private List<KeyAndValue> values;
 
         public Section(String header, List<KeyAndValue> values) {
@@ -326,9 +332,14 @@ public abstract class INIFile {
 
     // Note. If you're tweaking these be careful, throwing an exception in a
     // static initializer prevents the class from being loaded entirely.
-    private static Pattern SECTION_HEADER = Pattern.compile("^\\p{Space}*\\[([^\\[\\]]+)]\\p{Space}*$");
-    private static Pattern KEY_VALUE = Pattern.compile("^\\p{Space}*([^=\\p{Space}]+)\\p{Space}*=\\p{Space}*(.*)\\p{Space}*$");
+    private static Pattern SECTION_HEADER = Pattern
+            .compile("^\\p{Space}*\\[([^\\[\\]]+)]\\p{Space}*$");
+
+    private static Pattern KEY_VALUE = Pattern
+            .compile("^\\p{Space}*([^=\\p{Space}]+)\\p{Space}*=\\p{Space}*(.*)\\p{Space}*$");
+
     private static Pattern BLANK = Pattern.compile("^(\\p{Space}*)$");
+
     private static Pattern COMMENT = Pattern.compile("^\\p{Space}*#(.*)$");
 
     private void reload(File ini) throws IOException {
@@ -349,7 +360,8 @@ public abstract class INIFile {
                     }
                     sectionName = header.replaceAll("\\\\", ".");
                 } else if ((m = KEY_VALUE.matcher(line)).matches()) {
-                    if (sectionName != null) { // if we haven't encountered a section name yet, ignore the values
+                    if (sectionName != null) { // if we haven't encountered a section name yet,
+                                               // ignore the values
                         String key = m.group(1);
                         String value = m.group(2);
                         kvs.add(new KeyAndValue(key, value));
@@ -360,11 +372,11 @@ public abstract class INIFile {
                 } else if ((m = COMMENT.matcher(line)).matches()) {
                     String comment = m.group(1);
                     results.add(new Comment(comment));
-                } 
+                }
                 // If no pattern matches we have an invalid .ini file but we just drop those lines.
             }
             if (sectionName != null) {
-               results.add(new Section(sectionName, kvs));
+                results.add(new Section(sectionName, kvs));
             }
             data = results;
         } catch (IOException e) {
@@ -379,7 +391,8 @@ public abstract class INIFile {
     }
 
     private void write() throws IOException {
-        PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(iniFile()))));
+        PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(iniFile()))));
         try {
             for (Entry e : data) {
                 e.write(writer);
@@ -388,5 +401,17 @@ public abstract class INIFile {
             writer.flush();
             writer.close();
         }
+    }
+
+    public static INIFile forFile(final File iniFile) {
+        return new INIFile() {
+
+            private final File file = iniFile;
+
+            @Override
+            public File iniFile() {
+                return file;
+            }
+        };
     }
 }

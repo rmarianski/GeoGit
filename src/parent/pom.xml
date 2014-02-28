@@ -138,7 +138,6 @@
     <gt.version>9.0</gt.version>
     <guava.version>14.0.1</guava.version>
     <guice.version>3.0</guice.version>
-    <ini4j.version>0.5.2</ini4j.version>
     <jcommander.version>1.30</jcommander.version>
     <jettison.version>1.0.1</jettison.version>
     <jline.version>2.11</jline.version>
@@ -252,12 +251,6 @@
         <groupId>com.ning</groupId>
         <artifactId>compress-lzf</artifactId>
         <version>${compress-lzf.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.ini4j</groupId>
-        <artifactId>ini4j</artifactId>
-        <version>${ini4j.version}</version>
       </dependency>
 
       <dependency>

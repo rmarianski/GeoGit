@@ -4,94 +4,20 @@
  */
 package org.geogit.geotools.cli.test.functional;
 
-import java.io.File;
-import java.io.IOException;
+import org.geogit.test.integration.OnlineTestProperties;
 
-import org.ini4j.Wini;
+public class IniPGProperties extends OnlineTestProperties {
 
-import com.google.common.base.Optional;
+    private static final String[] DEFAULTS = {//
+    "database.host", "localhost",//
+            "database.port", "5432",//
+            "database.schema", "public",//
+            "database.database", "database",//
+            "database.user", "postgres",//
+            "database.password", "postgres"//
+    };
 
-public class IniPGProperties {
-
-    private class SectionOptionPair {
-        String section;
-
-        String option;
-
-        public SectionOptionPair(String key) {
-            final int index = key.indexOf('.');
-
-            if (index == -1) {
-                throw new RuntimeException("Section.key invalid!");
-            }
-
-            section = key.substring(0, index);
-            option = key.substring(index + 1);
-
-            if (section.length() == 0 || option.length() == 0) {
-                throw new RuntimeException("Section.key invalid!");
-            }
-        }
+    public IniPGProperties() {
+        super(".geogit-pg-tests.properties", DEFAULTS);
     }
-
-    private File config() {
-        File f = new File(System.getProperty("user.home"), ".geogit-pg-tests.properties");
-        try {
-            if (!f.exists()) {
-                f.createNewFile();
-
-                // Populate the file with default values
-                put("database.host", "localhost");
-                put("database.port", "5432");
-                put("database.schema", "public");
-                put("database.database", "database");
-                put("database.user", "postgres");
-                put("database.password", "postgres");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot write to the home directory.");
-        }
-        return f;
-    }
-
-    public <T> Optional<T> get(String key, Class<T> c) {
-        if (key == null) {
-            throw new RuntimeException("Section.key not provided to get.");
-        }
-
-        File configFile = config();
-
-        final SectionOptionPair pair = new SectionOptionPair(key);
-        try {
-            final Wini ini = new Wini(configFile);
-            T value = ini.get(pair.section, pair.option, c);
-
-            if (value == null)
-                return Optional.absent();
-
-            if (c == String.class && ((String) value).length() == 0)
-                return Optional.absent();
-
-            return Optional.of(value);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Config location invalid.");
-        }
-    }
-
-    public void put(String key, Object value) {
-        final SectionOptionPair pair = new SectionOptionPair(key);
-
-        File configFile = config();
-
-        try {
-            final Wini ini = new Wini(configFile);
-            ini.put(pair.section, pair.option, value);
-            ini.store();
-        } catch (Exception e) {
-            throw new RuntimeException("Config location invalid.");
-        }
-    }
-
 }
