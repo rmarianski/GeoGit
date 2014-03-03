@@ -11,19 +11,23 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+
 import org.geogit.api.Platform;
 import org.geogit.api.plumbing.ResolveGeogitDir;
 import org.geogit.api.porcelain.ConfigException;
 import org.geogit.api.porcelain.ConfigException.StatusCode;
 import org.geogit.storage.ConfigDatabase;
+
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 
 public class IniFileConfigDatabase implements ConfigDatabase {
     private Platform platform;
+
     private INIFile local;
+
     private INIFile global;
-    
+
     @Inject
     public IniFileConfigDatabase(final Platform platform) {
         this.platform = platform;
@@ -277,11 +281,16 @@ public class IniFileConfigDatabase implements ConfigDatabase {
     }
 
     private <T> T cast(Class<T> c, String s) {
+        if (String.class.equals(c)) {
+            return (T) s;
+        }
         if (c.equals(int.class)) {
             return (T) Integer.valueOf(s);
-        } else {
-            return c.cast(s);
         }
+        if (Boolean.class.equals(c)) {
+            return (T) Boolean.valueOf(s);
+        }
+        throw new IllegalArgumentException("Unsupported type: " + c);
     }
 
     private String stringify(Object o) {
@@ -293,9 +302,7 @@ public class IniFileConfigDatabase implements ConfigDatabase {
             throw new IllegalArgumentException("Config key may not be null.");
         }
         int splitAt = qualifiedKey.lastIndexOf(".");
-        return new String[] {
-            qualifiedKey.substring(0, splitAt),
-            qualifiedKey.substring(splitAt + 1)
-        };
+        return new String[] { qualifiedKey.substring(0, splitAt),
+                qualifiedKey.substring(splitAt + 1) };
     }
 }
