@@ -10,9 +10,9 @@
   <name>GeoGit</name>
 
  <scm>
-  <connection>scm:git:git@github.com:opengeo/GeoGit.git</connection>
-  <developerConnection>scm:git:[fetch=]git://github.com/opengeo/GeoGit.git[push=]git@github.com:opengeo/GeoGit.git</developerConnection>
-  <url>https://github.com/opengeo/GeoGit</url>
+  <connection>scm:git:git@github.com:boundlessgeo/GeoGit.git</connection>
+  <developerConnection>scm:git:[fetch=]git://github.com/boundlessgeo/GeoGit.git[push=]git@github.com:boundlessgeo/GeoGit.git</developerConnection>
+  <url>https://github.com/boundlessgeo/GeoGit</url>
  </scm>
 
   <!--
@@ -87,9 +87,9 @@
       <layout>default</layout>
     </repository>
     <repository>
-      <id>opengeo</id>
-      <name>OpenGeo Maven Repository</name>
-      <url>http://repo.opengeo.org/</url>
+      <id>boundlessgeo</id>
+      <name>Boundlessgeo Maven Repository</name>
+      <url>http://repo.boundlessgeo.com/</url>
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
@@ -412,9 +412,9 @@
 
   <distributionManagement>
     <repository>
-      <id>opengeo</id>
-      <name>OpenGeo Maven Repository</name>
-      <url>dav:http://repo.opengeo.org</url>
+      <id>boundlessgeo</id>
+      <name>Boundlessgeo Maven Repository</name>
+      <url>dav:http://repo.boundlessgeo.com</url>
       <uniqueVersion>false</uniqueVersion>
     </repository>
   </distributionManagement>
