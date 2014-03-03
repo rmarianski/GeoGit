@@ -115,16 +115,20 @@ public class CloneOp extends AbstractGeoGitOp<Void> {
                     deduplicationService);
 
             Preconditions.checkState(remoteRepo.isPresent(), "Failed to connect to the remote.");
+            IRemoteRepo remoteRepoInstance = remoteRepo.get();
             try {
-                remoteRepo.get().open();
+                remoteRepoInstance.open();
             } catch (IOException e) {
                 Throwables.propagate(e);
             }
-            depth = remoteRepo.get().getDepth();
             try {
-                remoteRepo.get().close();
-            } catch (IOException e) {
-                Throwables.propagate(e);
+                depth = remoteRepoInstance.getDepth();
+            } finally {
+                try {
+                    remoteRepoInstance.close();
+                } catch (IOException e) {
+                    Throwables.propagate(e);
+                }
             }
         }
 
