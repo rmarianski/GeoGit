@@ -214,62 +214,66 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
             Optional<IRemoteRepo> remoteRepo = getRemoteRepo(remote, deduplicationService);
 
             Preconditions.checkState(remoteRepo.isPresent(), "Failed to connect to the remote.");
+            IRemoteRepo remoteRepoInstance = remoteRepo.get();
             try {
-                remoteRepo.get().open();
+                remoteRepoInstance.open();
             } catch (IOException e) {
                 Throwables.propagate(e);
             }
-            int refCount = 0;
-            for (ChangedRef ref : needUpdate) {
-                if (ref.getType() != ChangeTypes.REMOVED_REF) {
-                    refCount++;
-                    subProgress.progress((refCount * 100.f) / needUpdate.size());
+            try {
+                int refCount = 0;
+                for (ChangedRef ref : needUpdate) {
+                    if (ref.getType() != ChangeTypes.REMOVED_REF) {
+                        refCount++;
+                        subProgress.progress((refCount * 100.f) / needUpdate.size());
 
-                    Optional<Integer> newFetchLimit = depth;
-                    // If we haven't specified a depth, but this is a shallow repository, set the
-                    // fetch limit to the current repository depth.
-                    if (!newFetchLimit.isPresent() && repoDepth.isPresent()
-                            && ref.getType() == ChangeTypes.ADDED_REF) {
-                        newFetchLimit = repoDepth;
-                    }
-                    // Fetch updated data from this ref
-                    remoteRepo.get().fetchNewData(ref.getNewRef(), newFetchLimit);
-
-                    if (repoDepth.isPresent()) {
-                        // Update the repository depth if it is deeper than before.
-                        int newDepth = localRepository.getGraphDatabase().getDepth(
-                                ref.getNewRef().getObjectId());
-
-                        if (newDepth > repoDepth.get()) {
-                            command(ConfigOp.class).setAction(ConfigAction.CONFIG_SET)
-                                    .setScope(ConfigScope.LOCAL)
-                                    .setName(Repository.DEPTH_CONFIG_KEY)
-                                    .setValue(Integer.toString(newDepth)).call();
-                            repoDepth = Optional.of(newDepth);
+                        Optional<Integer> newFetchLimit = depth;
+                        // If we haven't specified a depth, but this is a shallow repository, set
+                        // the
+                        // fetch limit to the current repository depth.
+                        if (!newFetchLimit.isPresent() && repoDepth.isPresent()
+                                && ref.getType() == ChangeTypes.ADDED_REF) {
+                            newFetchLimit = repoDepth;
                         }
+                        // Fetch updated data from this ref
+                        remoteRepoInstance.fetchNewData(ref.getNewRef(), newFetchLimit);
+
+                        if (repoDepth.isPresent()) {
+                            // Update the repository depth if it is deeper than before.
+                            int newDepth = localRepository.getGraphDatabase().getDepth(
+                                    ref.getNewRef().getObjectId());
+
+                            if (newDepth > repoDepth.get()) {
+                                command(ConfigOp.class).setAction(ConfigAction.CONFIG_SET)
+                                        .setScope(ConfigScope.LOCAL)
+                                        .setName(Repository.DEPTH_CONFIG_KEY)
+                                        .setValue(Integer.toString(newDepth)).call();
+                                repoDepth = Optional.of(newDepth);
+                            }
+                        }
+
+                        // Update the ref
+                        Ref updatedRef = updateLocalRef(ref.getNewRef(), remote, localRemoteRefs);
+                        ref.setNewRef(updatedRef);
                     }
-
-                    // Update the ref
-                    Ref updatedRef = updateLocalRef(ref.getNewRef(), remote, localRemoteRefs);
-                    ref.setNewRef(updatedRef);
                 }
-            }
 
-            if (needUpdate.size() > 0) {
-                result.getChangedRefs().put(remote.getFetchURL(), needUpdate);
-            }
+                if (needUpdate.size() > 0) {
+                    result.getChangedRefs().put(remote.getFetchURL(), needUpdate);
+                }
 
-            // Update HEAD ref
-            if (!remote.getMapped()) {
-                Ref remoteHead = remoteRepo.get().headRef();
+                // Update HEAD ref
+                if (!remote.getMapped()) {
+                    Ref remoteHead = remoteRepoInstance.headRef();
 
-                updateLocalRef(remoteHead, remote, localRemoteRefs);
-            }
-
-            try {
-                remoteRepo.get().close();
-            } catch (IOException e) {
-                Throwables.propagate(e);
+                    updateLocalRef(remoteHead, remote, localRemoteRefs);
+                }
+            } finally {
+                try {
+                    remoteRepoInstance.close();
+                } catch (IOException e) {
+                    Throwables.propagate(e);
+                }
             }
             subProgress.complete();
         }
