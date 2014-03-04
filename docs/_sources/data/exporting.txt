@@ -3,14 +3,14 @@
 Exporting from a GeoGit repository
 ===================================
 
-Data can also be exported from the GeoGit repository, allowing full synchronization with external applications that cannot use the native format of the GeoGit working tree. 
+Data can also be exported from the GeoGit repository, allowing full synchronization with external applications that cannot use the native format of the GeoGit working tree.
 This also allows to export changes that have been incorporated into the working tree from an external repository, making then available to applications, and making them aware of edits done remotely.
 
-GeoGit supports the same formats for exporting than it does for importing. That is, shapefiles, PostGIS databases and Spatialite. To export from a GeoGit repository, the following syntax is used
+GeoGit supports the same formats for exporting than it does for importing. That is, GeoJSON, shapefiles, PostGIS/SQL Server/Oracle databases and Spatialite. To export from a GeoGit repository, the following syntax is used
 
 ::
 
-	$ geogit <shp|pg|sl> export <path_to_export> <destination> [-overwrite] [--defaulttype] [--featuretype]
+	$ geogit <shp|geojson|pg|sqlserver|oracle|sl> export <path_to_export> <destination> [-overwrite] [--defaulttype] [--featuretype]
 
 
 The ``destination`` option is the filepath in the case of exporting to a shapefile, or the table name in case of exporting to a database. In both cases, the element designated by the ``destination`` parameter should not exist. If it exists, GeoGit will not perform the export operation. If you want GeoGit to overwrite, you must explicitly tell it to do so, by using the ``--overwrite`` option.
@@ -63,7 +63,7 @@ Here is a quick summary with examples of all the option that can be used when a 
 	::
 
 		$ geogit shp export Points Points.shp --alter --featuretype 0a3ebd6a
-	
+
 
 
 

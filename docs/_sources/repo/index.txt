@@ -19,3 +19,4 @@ This section will discuss working with GeoGit repositories.
    hooks
    partialcloning
    commandaliases
+   logging

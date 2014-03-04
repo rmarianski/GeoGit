@@ -1,3 +1,4 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -5,7 +6,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>geogit-init documentation &mdash; GeoGit 0.7 Man Pages</title>
+  <title>geogit-init documentation &mdash; GeoGit 0.7.0 Man Pages</title>
   <link rel="stylesheet" href="_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -16,13 +17,13 @@
   <link rel="stylesheet" href="_static/offcanvas.css" type="text/css" />
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.7',
+        URL_ROOT:    '#',
+        VERSION:     '0.7.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
-      <link rel="top" title="GeoGit 0.7 Man Pages" href="index.html" />
+      <link rel="top" title="GeoGit 0.7.0 Man Pages" href="index.html" />
 </head>
 <body class="init">
     <div id="blacktop"></div>
@@ -75,7 +76,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="index.html">GeoGit 0.7 Man Pages</a> &raquo;</li>
+  <li><a href="index.html">GeoGit 0.7.0 Man Pages</a> &raquo;</li>
   <li>geogit-init documentation</li>
 </ul>
 <ul id="relatedlinks" class="selfclear">
@@ -88,7 +89,7 @@
 <span id="geogit-init"></span><h1>geogit-init documentation<a class="headerlink" href="#geogit-init-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="synopsis">
 <h2>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
-<p>geogit init [&lt;directory&gt;]</p>
+<p>geogit init [&lt;directory&gt;] [&#8211;config &lt;config_param&gt; &lt;config_value&gt; [&lt;config_param&gt; &lt;config_value&gt; ...]]</p>
 </div>
 <div class="section" id="description">
 <h2>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
@@ -96,6 +97,33 @@
 </div>
 <div class="section" id="options">
 <h2>OPTIONS<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--config</span></kbd></td>
+<td><p class="first">&lt;config_param&gt;=&lt;config_value&gt;[,&lt;config_param&gt;=&lt;config_value&gt;...]              Sets a configuration parameter used to init the repository. Configuration parameters mostly refer to the storage options for the differents elements of the repository. The following parameters are available:</p>
+<ul class="last simple">
+<li>storage.graph : sets the storage to use for the graph database. Valid values are &#8216;tinkergraph&#8217;, &#8216;mongodb&#8217; and &#8216;neo4j&#8217;</li>
+<li>storage.objects : sets the storage to use for the objects database.  Valid values are &#8216;bdbje&#8217; and &#8216;mongodb&#8217;</li>
+<li>storage.staging : sets the storage to use for the staging database. Valid values are &#8216;bdbje&#8217; and &#8216;mongodb&#8217;</li>
+<li>storage.refs : sets the storage to use for references. Currently the only supported value is &#8216;file&#8217;</li>
+</ul>
+</td></tr>
+</tbody>
+</table>
+<p>When specifying a given storage for a parameter, a version must also be supplied with another param/value pair. The following parameters and values are supported.</p>
+<blockquote>
+<div><ul class="simple">
+<li>bdbje.version 0.1</li>
+<li>tinkergraph.version 0.1</li>
+<li>mongodb.version 0.1</li>
+<li>neo4j.version 0.1</li>
+<li>file.version 1.0</li>
+</ul>
+</div></blockquote>
+<p>The mongodb storage backend accepts additional parameters &#8220;mongodb.uri&#8221; and &#8220;mongodb.database&#8221; to specify connection parameters for the MongoDB server.</p>
 </div>
 <div class="section" id="see-also">
 <h2>SEE ALSO<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h2>

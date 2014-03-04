@@ -1,3 +1,4 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -5,7 +6,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>Using GeoGit with OpenStreetMap data &mdash; GeoGit 0.6 User Manual</title>
+  <title>Using GeoGit with OpenStreetMap data &mdash; GeoGit 0.7.0 User Manual</title>
   <link rel="stylesheet" href="../_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="../_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -17,12 +18,12 @@
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6',
+        VERSION:     '0.7.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
-      <link rel="top" title="GeoGit 0.6 User Manual" href="../index.html" />
+      <link rel="top" title="GeoGit 0.7.0 User Manual" href="../index.html" />
       <link rel="up" title="Other ways to interact with GeoGit" href="index.html" />
       <link rel="prev" title="Web-Api Documentation" href="web-api.html" />
 </head>
@@ -77,7 +78,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="../index.html">GeoGit 0.6 User Manual</a> &raquo;</li>
+  <li><a href="../index.html">GeoGit 0.7.0 User Manual</a> &raquo;</li>
   <li><a href="index.html" accesskey="U">Other ways to interact with GeoGit</a> &raquo;</li>
   <li>Using GeoGit with OpenStreetMap data</li>
 </ul>
@@ -231,6 +232,7 @@ out meta;</pre>
 <div class="highlight-python"><pre>$ geogit osm create-changeset -f changeset.xml</pre>
 </div>
 <p>Only the <tt class="docutils literal"><span class="pre">node</span></tt> and <tt class="docutils literal"><span class="pre">way</span></tt> trees are compared to find the differences between the specified commits. Changes in other trees will be ignored, and no changeset entries will be created based on them.</p>
+<p>The changeset command accepts an addtional parameter <tt class="docutils literal"><span class="pre">--id</span></tt>. In case the OSM trees contain modified or new feature which do not have a changeset id assigned (because they haven&#8217;t been already uploaded to the OSM planet), they will have a negative changeset id to indicate that. If you pass an Id (which you have to retrieve manually from the OSM planet), GeoGit will use it to replace those negative Ids. This way, you will get a changeset file that is already prepared to be uploaded and contributed to OSM.</p>
 </div>
 <div class="section" id="data-mapping">
 <h2>Data mapping<a class="headerlink" href="#data-mapping" title="Permalink to this headline">¶</a></h2>
@@ -264,6 +266,7 @@ out meta;</pre>
 <li><tt class="docutils literal"><span class="pre">filter</span></tt> is a set of tags and values, which define the entities to use for the tree. All entities which have any of the specified values for any of the given tags will be used. And empty filter will cause all entities to be used.</li>
 <li><tt class="docutils literal"><span class="pre">exclude</span></tt> is a set of tags and values used to exclude certain elements. Those elements that contain any of the specified values for the specified tags, will not be mapped, even if they pass the filter set by the <tt class="docutils literal"><span class="pre">filter</span></tt> element. This field can be ignored and not added to the JSON definition, so no exclusion filter is added. Examples in this document do not use this field.</li>
 <li><tt class="docutils literal"><span class="pre">fields</span></tt> is a set of tags and destination column names and types.</li>
+<li><tt class="docutils literal"><span class="pre">defaultFields</span></tt> is a list of default fields to be added from the original OSM feature, without transformation. It is an optional entry and can be ommitted.</li>
 </ul>
 <p>The following mapping will copy all ways to a feature type that only contains the geometry of the way:</p>
 <div class="highlight-python"><pre>  {"rules":[
@@ -321,8 +324,62 @@ out meta;</pre>
 <li><tt class="docutils literal"><span class="pre">STRING</span></tt></li>
 <li><tt class="docutils literal"><span class="pre">DATE</span></tt></li>
 </ul>
-<p>Each tree has only one geometry type, so the geometry type you choose to write out will act as an implicit filter: if you use a field of type <tt class="docutils literal"><span class="pre">POINT</span></tt>, only nodes will be read; if you use a field of type <tt class="docutils literal"><span class="pre">LINESTRING</span></tt> or <tt class="docutils literal"><span class="pre">POLYGON</span></tt>, only ways will be read. When you use a field of type <tt class="docutils literal"><span class="pre">POLYGON</span></tt> all ways will be read and automatically closed, is it is important to define the criteria for a way to be suitable for creating a polygon, such as, for instance, requiring the <tt class="docutils literal"><span class="pre">area=yes</span></tt> or <tt class="docutils literal"><span class="pre">building=yes</span></tt> tag/value pair.</p>
+<p>Each tree has only one geometry type, so the geometry type you choose to write out will act as an implicit filter: if you use a field of type <tt class="docutils literal"><span class="pre">POINT</span></tt>, only nodes will be read; if you use a field of type <tt class="docutils literal"><span class="pre">LINESTRING</span></tt> or <tt class="docutils literal"><span class="pre">POLYGON</span></tt>, only ways will be read. When you use a field of type <tt class="docutils literal"><span class="pre">POLYGON</span></tt> all ways will be read and automatically closed. In case you want to be more restrictive about how to create a polygon, you can use the <tt class="docutils literal"><span class="pre">filter</span></tt> entry to define the criteria for a way to be suitable for creating a polygon, such as, for instance, requiring the <tt class="docutils literal"><span class="pre">area=yes</span></tt> or <tt class="docutils literal"><span class="pre">building=yes</span></tt> tag/value pair.</p>
+<p>An additional <tt class="docutils literal"><span class="pre">geom```tag</span> <span class="pre">can</span> <span class="pre">be</span> <span class="pre">used</span> <span class="pre">with</span> <span class="pre">two</span> <span class="pre">possible</span> <span class="pre">values:</span> <span class="pre">``open</span></tt> and <tt class="docutils literal"><span class="pre">closed</span></tt>. Instead of looking for an OSM tag named <tt class="docutils literal"><span class="pre">geom</span></tt>, this will appply the filter to the geometry itself. If the value used is <tt class="docutils literal"><span class="pre">open</span></tt> then only open lines will be used to create the destination geometry (usually a line in this case). If <tt class="docutils literal"><span class="pre">closed</span></tt> is used, only those ways with the end point identical to the start point will be transformed, and the remaining ones ignored.</p>
+<p>Notice that, although only one of the above values can be used, it has to be put in a list, as it happens with other tag values in the <tt class="docutils literal"><span class="pre">filter</span></tt> entry. Here is an example that shows how to restrict the ways used to create polygons to just those that have a closed linestring.</p>
+<div class="highlight-python"><pre>      {"rules":[
+  {
+    "name":"buildings",
+    "filter":{
+      "geom":["closed"],
+      "building":["residential","house","garage","detached","terrace","apartments"],
+      "aeroway":["terminal"]
+    },
+    "fields":{
+      "geom":{"name":"way","type":"POLYGON"},
+      "building":{"name":"building", "type":"STRING"},
+      "aeroway":{"name":"aeroway", "type":"STRING"}
+    }
+  }
+}</pre>
+</div>
 <p>Apart from the fields that you add to the feature type in your mapping definition, GeoGit will always add an <tt class="docutils literal"><span class="pre">id</span></tt> field with the OSM Id of the entity. This is used to track the Id and allow for unmapping, as we will later see. In the case of ways, another field is added, <tt class="docutils literal"><span class="pre">nodes</span></tt>, which contains the Id&#8217;s of nodes that belong to the way. You should avoid using <tt class="docutils literal"><span class="pre">id</span></tt> or <tt class="docutils literal"><span class="pre">nodes</span></tt> as names of your fields, as that might cause problems.</p>
+<p>You can also add fields from the original OSM feature without doing any transformation. To do so, add the names of the fields to add in a list in the <tt class="docutils literal"><span class="pre">defaultFields</span></tt> entry.</p>
+<p>The following fields are available. Notice that the names are case-sensitive an have to be in lower case.</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">timestamp</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">changeset</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">tags</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">user</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">visible</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">version</span></tt></li>
+</ul>
+<p>Here&#8217;s an example of using the <tt class="docutils literal"><span class="pre">defaultFields</span></tt> entry in the JSON definition. This mapping will add the fields containing the changeset and timestamp of each feature, copying the corresponding value in the original OSM feature, without any transformation.</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div>{&#8220;rules&#8221;:[</div></blockquote>
+<dl class="docutils">
+<dt>{</dt>
+<dd><p class="first">&#8220;name&#8221;:&#8221;buildings&#8221;,
+&#8220;filter&#8221;:{</p>
+<blockquote>
+<div>&#8220;building&#8221;:[&#8220;residential&#8221;,&#8221;house&#8221;,&#8221;garage&#8221;,&#8221;detached&#8221;,&#8221;terrace&#8221;,&#8221;apartments&#8221;],
+&#8220;aeroway&#8221;:[&#8220;terminal&#8221;]</div></blockquote>
+<p>},
+&#8220;fields&#8221;:{</p>
+<blockquote>
+<div>&#8220;geom&#8221;:{&#8220;name&#8221;:&#8221;way&#8221;,&#8221;type&#8221;:&#8221;POLYGON&#8221;},
+&#8220;building&#8221;:{&#8220;name&#8221;:&#8221;building&#8221;, &#8220;type&#8221;:&#8221;STRING&#8221;},
+&#8220;aeroway&#8221;:{&#8220;name&#8221;:&#8221;aeroway&#8221;, &#8220;type&#8221;:&#8221;STRING&#8221;}</div></blockquote>
+<p class="last">},
+&#8220;defaultFields&#8221;:[&#8220;timestamp&#8221;, &#8220;changeset&#8221;]</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">[Explain this better and in more in detail]</p>
@@ -536,39 +593,6 @@ visible: true</pre>
 </div>
 </div>
 </div>
-<div class="section" id="ideas-issues-for-future-development">
-<h1>IDEAS &amp; ISSUES FOR FUTURE DEVELOPMENT<a class="headerlink" href="#ideas-issues-for-future-development" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="problems-to-solve-things-to-consider-about-osm-commands-in-geogit">
-<h2>Problems to solve / Things to consider  about OSM commands in GeoGit<a class="headerlink" href="#problems-to-solve-things-to-consider-about-osm-commands-in-geogit" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="updating">
-<h3>1. Updating<a class="headerlink" href="#updating" title="Permalink to this headline">¶</a></h3>
-<p>The current update command just re-downloads with the last filter, but is not a smart download, and downloads everything. The <a class="reference external" href="http://wiki.openstreetmap.org/wiki/Overpass_API">Overpass API</a> allows to fetch only features newer than a given data, but that cannot be used if there are deletions, since it does not report deleted elements.</p>
-<p>The OSM API allows to download history, including deletions, but does not support filters.</p>
-<p>Ideally, a mix of both functionalities would be needed for geogit to work optimally</p>
-</div>
-<div class="section" id="unmapping-of-ways">
-<h3>2. Unmapping of ways<a class="headerlink" href="#unmapping-of-ways" title="Permalink to this headline">¶</a></h3>
-<p>When a way is unmapped, its geometry is used to re-create the list of nodes. The best way would be to take the coords of the nodes and check if a node exist in each coordinate, and if so, take the node id, otherwise, add a new node. This is, however, not possible now, since it would not be efficient. GeoGit has no spatial indexing, and searching a feature by its coordinates is not an available operation.</p>
-<p>The current implementation just retrieves the nodes that belonged to the way in the last version, and check the current geometry against them. This is fine if all new nodes are actually new, but if the way uses a node that it did not use before but that exists already, that node will not be used (since there is no way of retrieving the id of the node in that coord), and a new one in that same position is added.</p>
-</div>
-<div class="section" id="updating-new-entities">
-<h3>3. Updating new entities<a class="headerlink" href="#updating-new-entities" title="Permalink to this headline">¶</a></h3>
-<p>When a new node is added (whether by the user, who created it in something like JOSM, or by an unmap operation), new entities get a negative ID, as it seems customary in OSM before commiting them. Once submitted, they get a valid ID, and when later updating, the Id&#8217;s will not match, so GeoGit will not replace them, leaving both versions.</p>
-<p>This is, in fact, not a problem now, since the update operation just deletes and updates everything (see (1)), but once we get a more efficient update strategy, this problem will surface.</p>
-</div>
-</div>
-<div class="section" id="osm-paths">
-<h2>OSM paths<a class="headerlink" href="#osm-paths" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">[This is just an idea, not implemented yet. Is it a good idea??]</p>
-</div>
-<p>The default paths for OSM data are <tt class="docutils literal"><span class="pre">way</span></tt> and <tt class="docutils literal"><span class="pre">node</span></tt>. they should contain just OSM data imported using the corresponding GeoGit commands. To use those paths for different data and avoid problem with OSM commands, the default paths can be changed using the <tt class="docutils literal"><span class="pre">config</span></tt> command. Default paths are kept in the <tt class="docutils literal"><span class="pre">osm.nodepath</span></tt> and <tt class="docutils literal"><span class="pre">osm.waypath</span></tt> config parameters, which can be configured as shown in the example below.</p>
-<div class="highlight-python"><pre>$ geogit config osm.nodepath osmnode
-$ geogit config osm.waypath osmway</pre>
-</div>
-</div>
-</div>
 
 
       <div class="selfclear pagination-nav">
@@ -605,16 +629,6 @@ $ geogit config osm.waypath osmway</pre>
 <li><a class="reference internal" href="#data-mapping">Data mapping</a></li>
 <li><a class="reference internal" href="#data-unmapping">Data unmapping</a></li>
 <li><a class="reference internal" href="#an-osm-workflow-using-geogit">An OSM workflow using GeoGit</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#ideas-issues-for-future-development">IDEAS &amp; ISSUES FOR FUTURE DEVELOPMENT</a><ul>
-<li><a class="reference internal" href="#problems-to-solve-things-to-consider-about-osm-commands-in-geogit">Problems to solve / Things to consider  about OSM commands in GeoGit</a><ul>
-<li><a class="reference internal" href="#updating">1. Updating</a></li>
-<li><a class="reference internal" href="#unmapping-of-ways">2. Unmapping of ways</a></li>
-<li><a class="reference internal" href="#updating-new-entities">3. Updating new entities</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#osm-paths">OSM paths</a></li>
 </ul>
 </li>
 </ul>

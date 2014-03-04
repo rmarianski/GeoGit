@@ -1,3 +1,4 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -5,7 +6,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>Exporting from a GeoGit repository &mdash; GeoGit 0.6 User Manual</title>
+  <title>Exporting from a GeoGit repository &mdash; GeoGit 0.7.0 User Manual</title>
   <link rel="stylesheet" href="../_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="../_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -17,12 +18,12 @@
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6',
+        VERSION:     '0.7.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
-      <link rel="top" title="GeoGit 0.6 User Manual" href="../index.html" />
+      <link rel="top" title="GeoGit 0.7.0 User Manual" href="../index.html" />
       <link rel="up" title="Data and commits" href="index.html" />
       <link rel="next" title="Exploring your history" href="history.html" />
       <link rel="prev" title="Showing differences" href="diffs.html" />
@@ -78,7 +79,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="../index.html">GeoGit 0.6 User Manual</a> &raquo;</li>
+  <li><a href="../index.html">GeoGit 0.7.0 User Manual</a> &raquo;</li>
   <li><a href="index.html" accesskey="U">Data and commits</a> &raquo;</li>
   <li>Exporting from a GeoGit repository</li>
 </ul>
@@ -98,8 +99,8 @@
 <span id="exporting"></span><h1>Exporting from a GeoGit repository<a class="headerlink" href="#exporting-from-a-geogit-repository" title="Permalink to this headline">¶</a></h1>
 <p>Data can also be exported from the GeoGit repository, allowing full synchronization with external applications that cannot use the native format of the GeoGit working tree.
 This also allows to export changes that have been incorporated into the working tree from an external repository, making then available to applications, and making them aware of edits done remotely.</p>
-<p>GeoGit supports the same formats for exporting than it does for importing. That is, shapefiles, PostGIS databases and Spatialite. To export from a GeoGit repository, the following syntax is used</p>
-<div class="highlight-python"><pre>$ geogit &lt;shp|pg|sl&gt; export &lt;path_to_export&gt; &lt;destination&gt; [-overwrite] [--defaulttype] [--featuretype]</pre>
+<p>GeoGit supports the same formats for exporting than it does for importing. That is, GeoJSON, shapefiles, PostGIS/SQL Server/Oracle databases and Spatialite. To export from a GeoGit repository, the following syntax is used</p>
+<div class="highlight-python"><pre>$ geogit &lt;shp|geojson|pg|sqlserver|oracle|sl&gt; export &lt;path_to_export&gt; &lt;destination&gt; [-overwrite] [--defaulttype] [--featuretype]</pre>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">destination</span></tt> option is the filepath in the case of exporting to a shapefile, or the table name in case of exporting to a database. In both cases, the element designated by the <tt class="docutils literal"><span class="pre">destination</span></tt> parameter should not exist. If it exists, GeoGit will not perform the export operation. If you want GeoGit to overwrite, you must explicitly tell it to do so, by using the <tt class="docutils literal"><span class="pre">--overwrite</span></tt> option.</p>
 <p>The <tt class="docutils literal"><span class="pre">path_to_export</span></tt> refers by default to the working tree. Thus, the path <tt class="docutils literal"><span class="pre">roads</span></tt> refers to the full reference <tt class="docutils literal"><span class="pre">WORK_HEAD:roads</span></tt>. Data can be exported from a given commit or a different reference, by using a full reference instead of just a path. For instance, the following line will export the <tt class="docutils literal"><span class="pre">roads</span></tt> path from the current HEAD of the repository, to a shapefile.</p>

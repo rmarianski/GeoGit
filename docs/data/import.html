@@ -1,3 +1,4 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -5,7 +6,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>Import data &mdash; GeoGit 0.6 User Manual</title>
+  <title>Import data &mdash; GeoGit 0.7.0 User Manual</title>
   <link rel="stylesheet" href="../_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="../_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -17,12 +18,12 @@
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.6',
+        VERSION:     '0.7.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
-      <link rel="top" title="GeoGit 0.6 User Manual" href="../index.html" />
+      <link rel="top" title="GeoGit 0.7.0 User Manual" href="../index.html" />
       <link rel="up" title="Data and commits" href="index.html" />
       <link rel="next" title="Creating and applying patches" href="patches.html" />
       <link rel="prev" title="Exploring your history" href="history.html" />
@@ -78,7 +79,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="../index.html">GeoGit 0.6 User Manual</a> &raquo;</li>
+  <li><a href="../index.html">GeoGit 0.7.0 User Manual</a> &raquo;</li>
   <li><a href="index.html" accesskey="U">Data and commits</a> &raquo;</li>
   <li>Import data</li>
 </ul>
@@ -102,11 +103,11 @@
 <p class="last">As we already mentioned, the working tree of GeoGit is not the filesystem. That means that, to make data available to GeoGit so it can be added to the index and commited , you cannot just copy the file to be versioned into a repository folder or create it there. It&#8217;s necessary to import your data into the working tree, so it gets stored in the native format used by GeoGit. This adds an extra step if compared to VCS&#8217;s oriented to work with source code files, but allows GeoGit to have a more powerful handling of spatial data.</p>
 </div>
 <p>Importing data into the working tree of a GeoGit repository is done using GeoGit commands which read a given data source and add all or part of its content to the repository. Data can also be exported from the repository into common formats that can be then used in other applications such as a desktop GIS. That provides the necessary tools to work against a GeoGit repository and make it independent of the tools used to actually edit the data.</p>
-<p>Currently, data can be imported/exported from/to shapefiles, PostGIS databases SQLServer databased and SpatiaLite databases. Depending on the type of data source, a different command should be used. For these supported data sources, the general syntax is as follows:</p>
-<div class="highlight-python"><pre>$ geogit &lt;shp|pg|sl|sqlserver&gt; &lt;import|export&gt; &lt;specific_parameters&gt;</pre>
+<p>Currently, data can be imported/exported from/to GeoJSON, shapefiles, and PostGIS, SQLServer, Oracle Spatial and SpatiaLite databases. Depending on the type of data source, a different command should be used. For these supported data sources, the general syntax is as follows:</p>
+<div class="highlight-python"><pre>$ geogit &lt;shp|geojson|pg|sl|sqlserver|oracle&gt; &lt;import|export&gt; &lt;specific_parameters&gt;</pre>
 </div>
 <p>In the case     of importing data, the following syntax is used</p>
-<div class="highlight-python"><pre>$ geogit &lt;shp|pg|sl|sqlserver&gt; import &lt;source&gt;[-d &lt;destination_path&gt;] [--no-overwrite] &lt;specific_parameters&gt;</pre>
+<div class="highlight-python"><pre>$ geogit &lt;shp|geojson|pg|sl|sqlserver|oracle&gt; import &lt;source&gt;[-d &lt;destination_path&gt;] [--no-overwrite] &lt;specific_parameters&gt;</pre>
 </div>
 <p>Data can be imported in a given path defined using the <tt class="docutils literal"><span class="pre">-d</span></tt> option. If it is not used, the destination path will be defined automatically based on the data source. For instance, in the case of using a shapefile, the destination path is defined using the name of the shapefile.</p>
 <p>The <tt class="docutils literal"><span class="pre">source</span></tt> argument is the filepath of the file to import, in case of using shapefiles, or the name of the table to import in case of importing from a PostGIS database.</p>

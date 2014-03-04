@@ -1,7 +1,7 @@
 The GeoGit Console
 ====================
 
-GeoGit is a command-line application that is run callin commands in the form ``geogit <command> [options]``. Each time you call it with a sentence like that, GeoGit has to be initialized. If your session involves running several commands, a better option is to run the geogit console, which lets you run a set of commands, initializing GeoGit just once at the begining of the session.
+GeoGit is a command-line application that is run by calling commands in the form ``geogit <command> [options]``. Each time you call it with a sentence like that, GeoGit has to be initialized. If your session involves running several commands, a better option is to run the geogit console, which lets you run a set of commands, initializing GeoGit just once at the begining of the session.
 
 To start the GeoGit console, type ``geogit-console``
 
@@ -39,7 +39,7 @@ As when using the GeoGit console in its interactive mode, the command calls in t
 	add
 	commit -m "First commit"
 
-.. note:: If you use GeoGit on Windows and you create a batch file to call several GeoGit commands using the normal ``geogit```script (not ``geogit-console``), notice that the ``geogit`` command is itself a batch process. To be able to run more than a single GeoGit command, make each call in your batch file using the ``call`` command. For instance, this will not work (it will only execute the first line):
+.. note:: If you use GeoGit on Windows and you create a batch file to call several GeoGit commands using the normal ``geogit`` script (not ``geogit-console``), notice that the ``geogit`` command is itself a batch process. To be able to run more than a single GeoGit command, make each call in your batch file using the ``call`` command. For instance, this will not work (it will only execute the first line):
 
 	::	
 		geogit import shp myfile.shp

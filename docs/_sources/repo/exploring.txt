@@ -43,7 +43,7 @@ Recursive list:
 
 .. code-block:: console
 
-   geogit -r -t
+   geogit ls -r -t
 
 .. code-block:: console
 

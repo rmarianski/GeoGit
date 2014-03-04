@@ -47,15 +47,13 @@ Now your GeoGit repository is ready to manage and version your geospatial data. 
 Sample data
 -----------
 
-Download the following archive and extract it into the repository created in the previous step:
-
-`Tutorial sample data <https://raw.github.com/opengeo/GeoGit/0.5.0/doc/manual/sample_data/quickstart_data.zip>`_
-
-.. todo:: Link somewhere else other than GitHub.
+:download:`Download the tutorial sample data <../tutorial_data.zip>`
 
 This archive contains multiple directories, named ``snapshot1`` through ``snapshot5``. Each directory contains a single shapefile, that all contain slight variations. For the purposes of this tutorial, each shapefile will be considered a "snapshot" of the data in time. We will use these snapshots to simulate the creation and editing of the data in GeoGit.
 
 .. todo:: Perhaps more details about the differences between the five shapefiles.
+
+Extract the archive into the repository directory created in the previous step.
 
 Importing data
 --------------
