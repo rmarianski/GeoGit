@@ -4,12 +4,16 @@
  */
 package org.geogit.repository;
 
+import javax.annotation.Nullable;
+
 import org.geogit.api.Bucket;
 import org.geogit.api.Node;
+import org.geogit.api.RevFeature;
 import org.geogit.api.RevTree;
 import org.geotools.geometry.jts.JTS;
 import org.opengis.geometry.BoundingBox;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
@@ -82,6 +86,20 @@ public class SpatialOps {
                 for (int i = 0; i < trees.size(); i++) {
                     trees.get(i).expand(env);
                 }
+            }
+        }
+        return env;
+    }
+
+    @Nullable
+    public static Envelope boundsOf(RevFeature feat) {
+        Envelope env = null;
+        for (Optional<Object> opt : feat.getValues()) {
+            if (opt.isPresent() && opt.get() instanceof Geometry) {
+                if (env == null) {
+                    env = new Envelope();
+                }
+                env.expandToInclude(((Geometry) opt.get()).getEnvelopeInternal());
             }
         }
         return env;
