@@ -19,6 +19,8 @@
    <module>blueprints</module>
    <module>bdbje</module>
    <module>mongo</module>
+   <!--
    <module>neo4j</module>
+   -->
   </modules>
 </project>
