@@ -18,6 +18,8 @@
   <modules>
    <module>api</module>
    <module>app</module>
+   <!--
    <module>geoserver</module>
+   -->
   </modules>
 </project>
