@@ -23,4 +23,11 @@ public interface CommandContext {
      */
     void setResponseContent(CommandResponse responseContent);
 
+    /**
+     * Sets the response for the context.
+     * 
+     * @param responseContent the command response
+     */
+    void setResponseContent(StreamResponse responseContent);
+
 }

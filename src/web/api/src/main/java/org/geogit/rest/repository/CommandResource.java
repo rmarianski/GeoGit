@@ -26,6 +26,7 @@ import org.geogit.web.api.CommandResponse;
 import org.geogit.web.api.CommandSpecException;
 import org.geogit.web.api.ParameterSet;
 import org.geogit.web.api.ResponseWriter;
+import org.geogit.web.api.StreamResponse;
 import org.geogit.web.api.WebAPICommand;
 import org.restlet.Context;
 import org.restlet.data.Form;
@@ -145,6 +146,8 @@ public class CommandResource extends Resource {
                 retval = MediaType.APPLICATION_XML;
             } else if (requested.equalsIgnoreCase("json")) {
                 retval = MediaType.APPLICATION_JSON;
+            } else if (requested.equalsIgnoreCase("csv")) {
+                retval = new MediaType("text/csv", "Comma-separated Values");
             } else {
                 throw new RestletException("Invalid output_format '" + requested + "'",
                         org.restlet.data.Status.CLIENT_ERROR_BAD_REQUEST);
@@ -155,7 +158,9 @@ public class CommandResource extends Resource {
 
     static class RestletContext implements CommandContext {
 
-        CommandResponse responseContent;
+        CommandResponse responseContent = null;
+
+        StreamResponse streamContent = null;
 
         final GeoGIT geogit;
 
@@ -169,12 +174,20 @@ public class CommandResource extends Resource {
         }
 
         Representation getRepresentation(MediaType format, String callback) {
+            if (streamContent != null) {
+                return new StreamWriterRepresentation(format, streamContent);
+            }
             return new JettisonRepresentation(format, responseContent, callback);
         }
 
         @Override
         public void setResponseContent(CommandResponse responseContent) {
             this.responseContent = responseContent;
+        }
+
+        @Override
+        public void setResponseContent(StreamResponse responseContent) {
+            this.streamContent = responseContent;
         }
     }
 
@@ -225,6 +238,25 @@ public class CommandResource extends Resource {
             }
             if (callback != null) {
                 writer.write(");");
+            }
+        }
+    }
+
+    static class StreamWriterRepresentation extends WriterRepresentation {
+
+        final StreamResponse impl;
+
+        public StreamWriterRepresentation(MediaType mediaType, StreamResponse impl) {
+            super(mediaType);
+            this.impl = impl;
+        }
+
+        @Override
+        public void write(Writer writer) throws IOException {
+            try {
+                impl.write(writer);
+            } catch (Exception e) {
+                throw new IOException(e);
             }
         }
     }

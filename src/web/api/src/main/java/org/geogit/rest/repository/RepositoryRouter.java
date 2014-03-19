@@ -18,6 +18,5 @@ public class RepositoryRouter extends Router {
         attach("/filteredchanges", new FilteredChangesResource());
         attach("/applychanges", new ApplyChangesResource());
         attach("/mergefeature", MergeFeatureResource.class);
-        attach("/exportcsv", ExportCSV.class);
     }
 }

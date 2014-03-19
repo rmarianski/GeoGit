@@ -53,7 +53,7 @@ import org.geogit.api.porcelain.ValueAndCommit;
 import org.geogit.storage.text.TextValueSerializer;
 import org.geogit.web.api.commands.BranchWebOp;
 import org.geogit.web.api.commands.Commit;
-import org.geogit.web.api.commands.Log.CommitSummary;
+import org.geogit.web.api.commands.Log.CommitWithChangeCounts;
 import org.geogit.web.api.commands.LsTree;
 import org.geogit.web.api.commands.RefParseWeb;
 import org.geogit.web.api.commands.RemoteWebOp;
@@ -343,12 +343,12 @@ public class ResponseWriter {
         }
     }
 
-    public void writeSummarizedCommits(Iterator<CommitSummary> entries, int elementsPerPage)
-            throws XMLStreamException {
+    public void writeCommitsWithChangeCounts(Iterator<CommitWithChangeCounts> entries,
+            int elementsPerPage) throws XMLStreamException {
         int counter = 0;
 
         while (entries.hasNext() && counter < elementsPerPage) {
-            CommitSummary entry = entries.next();
+            CommitWithChangeCounts entry = entries.next();
 
             writeCommit(entry.getCommit(), "commit", entry.getAdds(), entry.getModifies(),
                     entry.getRemoves());
