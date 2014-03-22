@@ -23,7 +23,6 @@ import org.geogit.storage.fs.FileRefDatabase;
 import org.geogit.storage.mongo.MongoGraphDatabase;
 import org.geogit.storage.mongo.MongoObjectDatabase;
 import org.geogit.storage.mongo.MongoStagingDatabase;
-import org.geogit.storage.neo4j.Neo4JGraphDatabase;
 import org.geogit.storage.sqlite.SQLiteStorage;
 import org.geogit.storage.sqlite.XerialGraphDatabase;
 import org.geogit.storage.sqlite.XerialObjectDatabase;
@@ -107,10 +106,6 @@ public class CLIInjectorBuilder extends InjectorBuilder {
             graphPlugins //
                     .addBinding(new VersionedFormat("mongodb", "0.1")) //
                     .to(MongoGraphDatabase.class) //
-                    .in(Scopes.SINGLETON);
-            graphPlugins //
-                    .addBinding(new VersionedFormat("neo4j", "0.1")) //
-                    .to(Neo4JGraphDatabase.class) //
                     .in(Scopes.SINGLETON);
             graphPlugins //
                     .addBinding(
