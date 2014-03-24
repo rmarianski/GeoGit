@@ -91,8 +91,6 @@ public class GeogitConsole {
     }
 
     private void run(final InputStream in, final OutputStream out) throws IOException {
-        System.err.println("INTERACTIVE: " + interactive);
-
         final Terminal terminal;
         if (interactive) {
             terminal = null;/* let jline select an appropriate one */
