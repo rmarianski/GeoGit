@@ -155,6 +155,7 @@
     <xmlunit.version>1.3</xmlunit.version>
     
     <test.maxHeapSize>512M</test.maxHeapSize>
+    <test.tmpDir>${project.build.directory}</test.tmpDir> <!-- use the provided tmp dir for tests, defaults to project's target/ directory -->
     <maven.build.timestamp.format>dd-MMM-yyyy HH:mm</maven.build.timestamp.format>
     <build.timestamp>${maven.build.timestamp}</build.timestamp>
     <online.skip.pattern>**/*OnlineTest.java</online.skip.pattern>
@@ -482,6 +483,10 @@
           </excludes>
           <forkMode>pertest</forkMode>
           <argLine>-Xms256m -Xmx512m</argLine>
+          <workingDirectory>${project.build.directory}</workingDirectory>
+          <systemPropertyVariables>
+            <java.io.tmpdir>${test.tmpDir}</java.io.tmpdir>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
       <plugin>
