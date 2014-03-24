@@ -35,11 +35,11 @@ OPTIONS
 
 --until <until_commit>				Shows only commits until the specified 'until' commit
 
---author <name>						Show only commits by authors with names maching the passed regular expression
+--author <name>						Show only commits by authors with names matching the passed regular expression
 
---committer <name>					Return only commits by committer with names maching the passed regular expression
+--committer <name>					Return only commits by committer with names matching the passed regular expression
     
---oneline							Print only commit id and message on a single line per commit"
+--oneline							Print only commit id and message on a single line per commit
     
 --raw								Show raw contents for commits
     
@@ -60,7 +60,8 @@ OPTIONS
 --abbrev-commit						Show abbreviate commit IDs
     
 --decoration						Show reference names
-    
+
+--utc                                                   Show date/time in UTC instead of localised time
 
 
 SEE ALSO

@@ -8,7 +8,7 @@ Feature: "commit" command
     Given I have a repository
      And I have staged "points1"     
      And I run the command "commit -t 2010-04-22T19:53:23Z -m msg"
-    When I run the command "log"
+    When I run the command "log --utc"
     Then the response should contain "2010-04-22"
     
   Scenario: Try to commit with timestamp in millisecs

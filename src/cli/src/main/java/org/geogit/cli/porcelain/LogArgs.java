@@ -89,5 +89,9 @@ public class LogArgs {
     @Parameter(names = "--decoration", description = "Show reference names")
     @Nullable
     public boolean decoration;
+    
+    @Parameter(names = "--utc", description = "Show date/time in UTC")
+    @Nullable
+    public boolean utcDateFormat;
 
 }

@@ -289,8 +289,11 @@ public class Log extends AbstractCommand implements CLICommand {
                     .newline();
 
             final long timestamp = commit.getAuthor().getTimestamp();
-            final int timeZoneOffset = commit.getAuthor().getTimeZoneOffset();
 
+            int timeZoneOffset = commit.getAuthor().getTimeZoneOffset();
+            if (args.utcDateFormat) {
+                timeZoneOffset = 0;
+            }
             String friendlyString = estimateSince(now, timestamp);
             DATE_FORMAT.getCalendar().getTimeZone().setRawOffset(timeZoneOffset);
             String formattedDate = DATE_FORMAT.format(timestamp);
