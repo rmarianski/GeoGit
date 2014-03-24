@@ -4,9 +4,9 @@ Exporting from a GeoGit repository
 ===================================
 
 Data can also be exported from the GeoGit repository, allowing full synchronization with external applications that cannot use the native format of the GeoGit working tree.
-This also allows to export changes that have been incorporated into the working tree from an external repository, making then available to applications, and making them aware of edits done remotely.
+This also allows to export changes that have been incorporated into the working tree from an external repository, making those changes available to applications, and making them aware of edits done remotely.
 
-GeoGit supports the same formats for exporting than it does for importing. That is, GeoJSON, shapefiles, PostGIS/SQL Server/Oracle databases and Spatialite. To export from a GeoGit repository, the following syntax is used
+GeoGit supports the same formats for exporting that it does for importing. That is, GeoJSON, shapefiles, PostGIS/SQL Server/Oracle databases and Spatialite. To export from a GeoGit repository, the following syntax is used
 
 ::
 
