@@ -98,7 +98,7 @@ All commits that you do now will be contain that author information. Individual 
 Setting up PostGIS
 --------------------
 
-A database is required to work with PostGIS. We will create a new database named ``workshop`` that we will use for storing all the data used in this workshop.
+A database is required to work with PostGIS. We will create a new database named ``geogit-ethiopia`` that we will use for storing all the data used in this workshop.
 
 The database can be created from the *pgAdmin II* utility. Open *pgAdmin III*
 
@@ -132,19 +132,29 @@ Right-click on the *Databases* item and select *New Database*.
 
 Fill in the *New Database* form as shown below and click *OK*.
 
-
 - *Name*: ``geogit-ethiopia``
 - *Owner*: ``geogit``
-- *Encoding*: ``UTF8``
-- *Template* ``template_postgis`` (``postgis_21_sample`` in case you have installed PostGIS manually and not as part of OpenGeo Suite)
 
-.. figure:: ../img/pgadmin_03.png
+.. figure:: ../img/create_pg_database.png
 
-The template and encoding are specified on the *Definition* panel.
+Select the new ``workshop`` database and open it up to display the tree of objects. You’ll see the ``public`` schema.
 
-.. figure:: ../img/pgadmin_03a.png
+.. figure:: ../img/workshop_db.png
 
-The tabe is now created and we can already add data to it and create new tables in it.
+Click on the SQL query button indicated below (or go to Tools > Query Tool).
+
+.. figure:: ../img/sql_query.png
+
+Enter the following query into the query text field to load the PostGIS spatial extension:
+
+::
+
+    CREATE EXTENSION postgis;
+
+Click the Play button in the toolbar (or press F5) to *Execute the query.*
+
+
+The database is now created and we can already add data to it and create new tables in it.
 
 Preparing and importing the data 
 **********************************
