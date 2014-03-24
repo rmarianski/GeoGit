@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 
 import org.geogit.test.integration.RepositoryTestCase;
 import org.geotools.data.DataStore;
@@ -71,12 +70,15 @@ public class GeoGitDataStoreFactoryTest extends RepositoryTestCase {
 
     @Test
     public void testCanProcess() {
+        final File workingDir = repositoryTempFolder.getRoot();
+
         Map<String, Serializable> params = ImmutableMap.of();
         assertFalse(factory.canProcess(params));
-        params = ImmutableMap.of(REPOSITORY.key, (Serializable) "target/shouldntExist");
+        params = ImmutableMap.of(REPOSITORY.key,
+                (Serializable) (workingDir.getName() + "/shouldntExist"));
         assertFalse(factory.canProcess(params));
 
-        params = ImmutableMap.of(REPOSITORY.key, (Serializable) "target");
+        params = ImmutableMap.of(REPOSITORY.key, (Serializable) workingDir.getAbsolutePath());
         assertTrue(factory.canProcess(params));
 
         params = ImmutableMap.of(REPOSITORY.key, (Serializable) repoDirectory.getPath());
@@ -93,7 +95,9 @@ public class GeoGitDataStoreFactoryTest extends RepositoryTestCase {
     public void testCreateDataStoreNonExistentDirectory() {
         Map<String, Serializable> params;
 
-        params = ImmutableMap.of(REPOSITORY.key, (Serializable) "target/shouldntExist");
+        File root = repositoryTempFolder.getRoot();
+        params = ImmutableMap
+                .of(REPOSITORY.key, (Serializable) (root.getName() + "/shouldntExist"));
         try {
             factory.createDataStore(params);
             fail("Expectd IOE on non existing directory");
@@ -106,8 +110,7 @@ public class GeoGitDataStoreFactoryTest extends RepositoryTestCase {
     public void testCreateDataStoreNotARepositoryDir() {
         Map<String, Serializable> params;
 
-        File f = new File("target", "someDir");
-        f.mkdir();
+        File f = repositoryTempFolder.newFolder("someDir");
         params = ImmutableMap.of(REPOSITORY.key, (Serializable) f);
         try {
             factory.createDataStore(params);
@@ -132,8 +135,7 @@ public class GeoGitDataStoreFactoryTest extends RepositoryTestCase {
     public void testCreateNewDataStore() throws IOException {
         Map<String, Serializable> params;
 
-        String newRepoDir = new File("target", "datastore" + new Random().nextInt())
-                .getAbsolutePath();
+        String newRepoDir = repositoryTempFolder.newFolder("datastore").getAbsolutePath();
 
         params = ImmutableMap.of(REPOSITORY.key, (Serializable) newRepoDir);
 
@@ -144,8 +146,7 @@ public class GeoGitDataStoreFactoryTest extends RepositoryTestCase {
 
     @Test
     public void testCreateOption() throws Exception {
-        String newRepoDir = new File("target", "datastore" + new Random().nextInt())
-                .getAbsolutePath();
+        String newRepoDir = repositoryTempFolder.newFolder("datastore").getAbsolutePath();
 
         Map<String, Serializable> params = ImmutableMap.of(REPOSITORY.key,
                 (Serializable) newRepoDir, CREATE.key, true);
@@ -157,8 +158,7 @@ public class GeoGitDataStoreFactoryTest extends RepositoryTestCase {
 
     @Test
     public void testCreateOptionDirectoryExists() throws Exception {
-        File newRepoDir = new File("target", "datastore" + new Random().nextInt());
-        newRepoDir.mkdirs();
+        File newRepoDir = repositoryTempFolder.newFolder("datastore");
 
         Map<String, Serializable> params = ImmutableMap.of(REPOSITORY.key,
                 (Serializable) newRepoDir, CREATE.key, true);

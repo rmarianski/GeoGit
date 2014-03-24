@@ -83,7 +83,7 @@ public class DiffIndex extends AbstractGeoGitOp<Iterator<DiffEntry>> implements
         final String oldVersion = Optional.fromNullable(refSpec).or(Ref.HEAD);
         final Optional<ObjectId> rootTreeId;
         rootTreeId = command(ResolveTreeish.class).setTreeish(oldVersion).call();
-        Preconditions.checkArgument(rootTreeId.isPresent(), "refSpec did not resolve to a tree");
+        Preconditions.checkArgument(rootTreeId.isPresent(), "refSpec %s did not resolve to a tree", oldVersion);
 
         final RevTree rootTree;
         if (rootTreeId.get().isNull()) {

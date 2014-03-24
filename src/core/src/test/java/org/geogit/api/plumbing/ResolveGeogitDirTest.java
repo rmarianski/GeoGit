@@ -13,17 +13,22 @@ import java.io.File;
 import java.net.URL;
 
 import org.geogit.api.Platform;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  *
  */
 public class ResolveGeogitDirTest {
 
+    @Rule
+    public TemporaryFolder tmpFolder = new TemporaryFolder();
+
     @Test
     public void test() throws Exception {
 
-        File workingDir = new File("target", "mockWorkingDir");
+        File workingDir = tmpFolder.newFolder("fakeWorkingDir");
         File fakeRepo = new File(workingDir, ".geogit");
         fakeRepo.mkdirs();
 
@@ -40,7 +45,7 @@ public class ResolveGeogitDirTest {
         resolvedRepoDir = new ResolveGeogitDir(platform).call().get();
         assertEquals(fakeRepo.toURI().toURL(), resolvedRepoDir);
 
-        when(platform.pwd()).thenReturn(new File("target"));
+        when(platform.pwd()).thenReturn(tmpFolder.getRoot());
         assertFalse(new ResolveGeogitDir(platform).call().isPresent());
 
     }

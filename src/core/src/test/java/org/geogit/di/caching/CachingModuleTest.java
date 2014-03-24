@@ -35,7 +35,9 @@ import org.geogit.test.integration.RepositoryTestCase;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.google.common.base.Throwables;
@@ -62,6 +64,9 @@ public class CachingModuleTest {
 
     private static final RevObject s1 = obj("s1"), s2 = obj("s2"), s3 = ft("s3");
 
+    @Rule
+    public TemporaryFolder tmpFolder = new TemporaryFolder();
+
     @Before
     public void setUp() throws Exception {
         odbCache = mock(Cache.class);
@@ -73,7 +78,8 @@ public class CachingModuleTest {
         final StagingDatabaseCacheFactory indexCacheFac = mock(StagingDatabaseCacheFactory.class);
         when(indexCacheFac.get()).thenReturn(indexCache);
 
-        final Platform platform = new TestPlatform(new File("target"));
+        File workingDirectory = tmpFolder.getRoot();
+        final Platform platform = new TestPlatform(workingDirectory);
 
         Module module = new AbstractModule() {
 
@@ -166,5 +172,5 @@ public class CachingModuleTest {
         actual = index.get(s3.getId());
         assertNotSame(s3, actual);
         assertEquals(s3, actual);
-}
+    }
 }
