@@ -109,6 +109,8 @@ public class GeogitCLI {
 
     private Hints hints = READ_WRITE;
 
+    private boolean progressListenerDisabled;
+
     /**
      * Construct a GeogitCLI with the given console reader.
      * 
@@ -139,6 +141,10 @@ public class GeogitCLI {
     public void setPlatform(Platform platform) {
         checkNotNull(platform);
         this.platform = platform;
+    }
+
+    public void disableProgressListener() {
+        this.progressListenerDisabled = true;
     }
 
     /**
@@ -794,7 +800,10 @@ public class GeogitCLI {
      */
     public synchronized ProgressListener getProgressListener() {
         if (this.progressListener == null) {
-
+            if (progressListenerDisabled) {
+                this.progressListener = new DefaultProgressListener();
+                return this.progressListener;
+            }
             this.progressListener = new DefaultProgressListener() {
 
                 private final Platform platform = getPlatform();

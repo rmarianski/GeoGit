@@ -6,6 +6,7 @@
 package org.geogit.cli;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import jline.Terminal;
+import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import jline.console.completer.AggregateCompleter;
 import jline.console.completer.ArgumentCompleter;
@@ -29,16 +31,17 @@ import org.geogit.repository.Hints;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterDescription;
-import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
-import com.google.common.io.Files;
 
 /**
  * Provides the ability to execute several commands in succession without re-initializing GeoGit or
  * the command line interface.
  */
 public class GeogitConsole {
+
+    private boolean interactive;
+
     /**
      * Entry point for the Geogit console.
      * 
@@ -66,46 +69,15 @@ public class GeogitConsole {
             System.out.println("The specified batch file does not exist");
             return;
         }
-        List<String> lines = Files.readLines(file, Charsets.UTF_8);
 
-        InputStream in = System.in;
-        OutputStream out = System.out;
-        ConsoleReader consoleReader = new ConsoleReader(in, out);
-        consoleReader.setAutoprintThreshold(20);
-        consoleReader.setPaginationEnabled(true);
-        // needed for CTRL+C not to let the console broken
-        consoleReader.getTerminal().setEchoEnabled(true);
-
-        final GeogitCLI cli = new GeogitCLI(consoleReader);
-        cli.tryConfigureLogging();
-        GeogitCLI.addShutdownHook(cli);
-
+        // take the input from the console with its input stream directly from the file
+        InputStream in = new FileInputStream(file);
         try {
-            for (String line : lines) {
-                if (line.trim().length() == 0) {
-                    continue;
-                }
-                if (line.trim().startsWith("#")) {// comment
-                    continue;
-                }
-                String[] args = ArgumentTokenizer.tokenize(line);
-                cli.execute(args);
-            }
-
+            interactive = false;
+            run(in, System.out);
         } finally {
-            Terminal terminal = consoleReader.getTerminal();
-            try {
-                cli.close();
-            } finally {
-                try {
-                    terminal.restore();
-                    consoleReader.shutdown();
-                } catch (Exception e) {
-                    throw Throwables.propagate(e);
-                }
-            }
+            in.close();
         }
-
     }
 
     /**
@@ -113,19 +85,61 @@ public class GeogitConsole {
      * 
      */
     private void run() throws IOException {
+        // interactive will be false if stdin/stdout is redirected
+        interactive = null != System.console();
+        run(System.in, System.out);
+    }
 
-        InputStream in = System.in;
-        OutputStream out = System.out;
-        ConsoleReader consoleReader = new ConsoleReader(in, out);
+    private void run(final InputStream in, final OutputStream out) throws IOException {
+        System.err.println("INTERACTIVE: " + interactive);
+
+        final Terminal terminal;
+        if (interactive) {
+            terminal = null;/* let jline select an appropriate one */
+        } else {
+            // no colors in output
+            terminal = new UnsupportedTerminal();
+        }
+        ConsoleReader consoleReader = new ConsoleReader(in, out, terminal);
         consoleReader.setAutoprintThreshold(20);
-        consoleReader.setPaginationEnabled(true);
-        consoleReader.setHistoryEnabled(true);
+        consoleReader.setPaginationEnabled(interactive);
+        consoleReader.setHistoryEnabled(interactive);
         // needed for CTRL+C not to let the console broken
-        consoleReader.getTerminal().setEchoEnabled(true);
+        consoleReader.getTerminal().setEchoEnabled(interactive);
 
         final GeogitCLI cli = new GeogitCLI(consoleReader);
         cli.tryConfigureLogging();
+        if (interactive) {
+            addCommandCompleter(consoleReader, cli);
+        } else {
+            // no progress percent in output
+            cli.disableProgressListener();
+        }
 
+        GeogitCLI.addShutdownHook(cli);
+
+        setPrompt(cli);
+        cli.close();
+
+        try {
+            runInternal(cli);
+        } finally {
+            try {
+                cli.close();
+            } finally {
+                try {
+                    if (interactive) {
+                        terminal.restore();
+                    }
+                    consoleReader.shutdown();
+                } catch (Exception e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        }
+    }
+
+    private void addCommandCompleter(ConsoleReader consoleReader, final GeogitCLI cli) {
         final JCommander globalCommandParser = cli.newCommandParser();
 
         final Map<String, JCommander> commands = globalCommandParser.getCommands();
@@ -153,27 +167,6 @@ public class GeogitConsole {
 
         Completer completer = new AggregateCompleter(completers);
         consoleReader.addCompleter(completer);
-
-        GeogitCLI.addShutdownHook(cli);
-
-        setPrompt(cli);
-        cli.close();
-
-        try {
-            runInternal(cli);
-        } finally {
-            Terminal terminal = consoleReader.getTerminal();
-            try {
-                cli.close();
-            } finally {
-                try {
-                    terminal.restore();
-                    consoleReader.shutdown();
-                } catch (Exception e) {
-                    throw Throwables.propagate(e);
-                }
-            }
-        }
     }
 
     /**
@@ -182,7 +175,9 @@ public class GeogitConsole {
      * @throws IOException
      */
     private void setPrompt(GeogitCLI cli) throws IOException {
-
+        if (!interactive) {
+            return;
+        }
         String currentDir = new File(".").getCanonicalPath();
         String currentHead = "";
         GeoGIT geogit;
@@ -220,21 +215,27 @@ public class GeogitConsole {
         while (true) {
             String line = consoleReader.readLine();
             if (line == null) {
+                // EOF / CTRL-D
                 return;
             }
             if (line.trim().length() == 0) {
                 continue;
             }
+            if (line.trim().startsWith("#")) {// comment
+                continue;
+            }
 
             String[] args = ArgumentTokenizer.tokenize(line);
 
-            if (args != null && args.length == 1 && "exit".equals(args[0])) {
-                return;
-            }
-            if (args != null && args.length == 1 && "clear".equals(args[0])) {
-                consoleReader.clearScreen();
-                consoleReader.redrawLine();
-                continue;
+            if (interactive && args != null && args.length == 1) {
+                if ("exit".equals(args[0])) {
+                    return;
+                }
+                if ("clear".equals(args[0])) {
+                    consoleReader.clearScreen();
+                    consoleReader.redrawLine();
+                    continue;
+                }
             }
 
             cli.execute(args);
