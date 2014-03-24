@@ -54,7 +54,7 @@ public class RevTreeBuilderTest extends RepositoryTestCase {
         testResultingTreeSize(100);
         testResultingTreeSize(987);
         testResultingTreeSize(56789);
-        testResultingTreeSize(1234567);
+        // testResultingTreeSize(1234567);
     }
 
     private void testResultingTreeSize(int numEntries) {
