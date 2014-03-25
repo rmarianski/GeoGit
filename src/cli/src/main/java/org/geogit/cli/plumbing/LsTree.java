@@ -12,8 +12,11 @@ import java.util.List;
 import jline.console.ConsoleReader;
 
 import org.geogit.api.NodeRef;
+import org.geogit.api.RevObject.TYPE;
+import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.LsTreeOp;
 import org.geogit.api.plumbing.LsTreeOp.Strategy;
+import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.cli.AbstractCommand;
 import org.geogit.cli.CLICommand;
 import org.geogit.cli.GeogitCLI;
@@ -24,6 +27,7 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Envelope;
 
 /**
  *
@@ -44,11 +48,11 @@ public class LsTree extends AbstractCommand implements CLICommand {
     @Parameter(names = { "-r" }, description = "Recurse into sub-trees.")
     private boolean recursive;
 
-    @Parameter(names = { "-v", "--verbose" }, description = "Verbose output, include metadata, object id, and object type among object path.")
+    @Parameter(names = { "-v", "--verbose" }, description = "Verbose output, include metadata, object id, and object type along with object path.")
     private boolean verbose;
 
     @Override
-    public void runInternal(GeogitCLI cli) throws IOException {
+    public void runInternal(final GeogitCLI cli) throws IOException {
         String ref;
         if (refList.isEmpty()) {
             ref = null;
@@ -78,13 +82,27 @@ public class LsTree extends AbstractCommand implements CLICommand {
 
             @Override
             public CharSequence apply(NodeRef input) {
-                if (!verbose) {
-                    return input.path();
-                }
                 StringBuilder sb = new StringBuilder();
-                sb.append(input.getMetadataId().toString()).append(' ')
-                        .append(input.getType().toString().toLowerCase()).append(' ')
-                        .append(input.objectId().toString()).append(' ').append(input.path());
+                if (!verbose) {
+                    sb.append(input.path());
+                } else {
+                    Envelope env = new Envelope();
+                    input.getNode().expand(env);
+                    StringBuilder sbenv = new StringBuilder();
+                    sbenv.append(Double.toString(env.getMinX())).append(";")
+                            .append(Double.toString(env.getMaxX())).append(";")
+                            .append(Double.toString(env.getMinY())).append(";")
+                            .append(Double.toString(env.getMaxY()));
+                    sb.append(input.getMetadataId().toString()).append(' ')
+                            .append(input.getType().toString().toLowerCase()).append(' ')
+                            .append(input.objectId().toString()).append(' ').append(input.path())
+                            .append(' ').append(sbenv);
+                    if (input.getType().equals(TYPE.TREE)) {
+                        RevTree tree = cli.getGeogit().command(RevObjectParse.class)
+                                .setObjectId(input.objectId()).call(RevTree.class).get();
+                        sb.append(' ').append(tree.size()).append(' ').append(tree.numTrees());
+                    }
+                }
                 return sb;
             }
         };

@@ -38,7 +38,8 @@ Scenario: Show a verbose list of trees in the root tree non-recursively
       And I have staged "lines1"
      When I run the command "ls-tree -t -v"
      Then the response should contain "tree"
-     Then the response should not contain "Points/Points.1"       
+      And the response should contain "Points 1.0;2.0;1.0;2.0 2"
+      And the response should not contain "Points/Points.1"             
 
 Scenario: Show a verbose list of features in the root tree recursively, not including children
     Given I have a repository
