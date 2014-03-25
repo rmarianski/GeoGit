@@ -98,6 +98,8 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
      */
     private boolean alter;
 
+    private boolean usePaging = true;
+
     /**
      * Constructs a new {@code ImportOp} operation.
      */
@@ -112,7 +114,6 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
      * 
      * @return RevTree the new working tree
      */
-    @SuppressWarnings("deprecation")
     @Override
     public RevTree call() {
 
@@ -174,6 +175,9 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
 
             featureSource = new ForceTypeAndFidFeatureSource<FeatureType, Feature>(featureSource,
                     featureType, fidPrefix);
+            if (!usePaging) {
+                ((ForceTypeAndFidFeatureSource) featureSource).setForbidSorting(true);
+            }
 
             ProgressListener taskProgress = subProgress(100.f / typeNames.length);
             if (overwrite) {
@@ -564,8 +568,8 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
     }
 
     /**
-     * Sets the name to use for the geometry descriptor. If not provided, the geometry name from
-     * the source schema will be used.
+     * Sets the name to use for the geometry descriptor. If not provided, the geometry name from the
+     * source schema will be used.
      * 
      * @param geomName
      */
@@ -573,5 +577,10 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
         this.geomName = geomName;
         return this;
 
+    }
+
+    public ImportOp setUsePaging(boolean usePaging) {
+        this.usePaging = usePaging;
+        return this;
     }
 }

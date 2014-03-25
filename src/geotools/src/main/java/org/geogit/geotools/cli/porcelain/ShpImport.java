@@ -94,9 +94,15 @@ public class ShpImport extends AbstractShpCommand implements CLICommand {
                 cli.getConsole().println("Importing from shapefile " + shp);
 
                 ProgressListener progressListener = cli.getProgressListener();
-                cli.getGeogit().command(ImportOp.class).setAll(true).setTable(null).setAlter(alter)
-                        .setOverwrite(!add).setDestinationPath(destTable).setDataStore(dataStore)
-                        .setFidAttribute(fidAttribute).setProgressListener(progressListener).call();
+                ImportOp command = cli.getGeogit().command(ImportOp.class).setAll(true)
+                        .setTable(null).setAlter(alter).setOverwrite(!add)
+                        .setDestinationPath(destTable).setDataStore(dataStore)
+                        .setFidAttribute(fidAttribute);
+
+                // force the import not to use paging due to a bug in the shapefile datastore
+                command.setUsePaging(false);
+                
+                command.setProgressListener(progressListener).call();
 
                 cli.getConsole().println(shp + " imported successfully.");
             } catch (GeoToolsOpException e) {

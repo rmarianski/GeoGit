@@ -549,7 +549,6 @@ public class WorkingTree {
         } else {
             final int total = collectionSize.intValue();
             partitionSize = total / nTasks;
-            lastTaskPartitionSize = partitionSize + (total % nTasks);
             bulkOpListener = new BulkOpListener() {
                 int inserted = 0;
 
@@ -563,11 +562,11 @@ public class WorkingTree {
 
         List<Future<Integer>> results = Lists.newArrayList();
         for (int i = 0; i < nTasks; i++) {
-            int offset = i * partitionSize;
-            int limit = partitionSize;
+            Integer offset = nTasks == 1 ? null : i * partitionSize;
+            Integer limit = nTasks == 1 ? null : partitionSize;
             if (i == nTasks - 1) {
-                limit = lastTaskPartitionSize;// let the last task take any remaining
-                                              // feature
+                limit = null;// let the last task take any remaining
+                             // feature
             }
             results.add(executorService.submit(new BlobInsertTask(source, offset, limit,
                     bulkOpListener, builder)));
@@ -582,15 +581,15 @@ public class WorkingTree {
         @SuppressWarnings("rawtypes")
         private FeatureSource source;
 
-        private int offset;
+        private Integer offset;
 
-        private int limit;
+        private Integer limit;
 
         private RevTreeBuilder2 builder;
 
-        private BlobInsertTask(@SuppressWarnings("rawtypes") FeatureSource source, int offset,
-                int limit, BulkOpListener listener, RevTreeBuilder2 builder) {
-
+        private BlobInsertTask(@SuppressWarnings("rawtypes") FeatureSource source,
+                @Nullable Integer offset, @Nullable Integer limit, BulkOpListener listener,
+                RevTreeBuilder2 builder) {
             this.source = source;
             this.offset = offset;
             this.limit = limit;
@@ -606,7 +605,7 @@ public class WorkingTree {
             CoordinateSequenceFactory coordSeq = new PackedCoordinateSequenceFactory();
             query.getHints().add(new Hints(Hints.JTS_COORDINATE_SEQUENCE_FACTORY, coordSeq));
             query.setStartIndex(offset);
-            if (limit > 0) {
+            if (limit != null && limit.intValue() > 0) {
                 query.setMaxFeatures(limit);
             }
             FeatureCollection collection = source.getFeatures(query);
