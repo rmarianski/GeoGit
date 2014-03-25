@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.geogit.api.GeoGIT;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -32,12 +34,17 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.opengis.feature.Feature;
+import org.opengis.feature.GeometryAttribute;
+import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 
 /**
@@ -114,9 +121,12 @@ public class ShpExportDiff extends AbstractShpCommand implements CLICommand {
         }
         final SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
 
+        Function<Feature, Optional<Feature>> function = getTransformingFunction(dataStore
+                .getSchema());
+
         ExportDiffOp op = cli.getGeogit().command(ExportDiffOp.class).setFeatureStore(featureStore)
                 .setPath(path).setOldRef(commitOld).setNewRef(commitNew).setUseOld(old)
-                .setTransactional(false);
+                .setTransactional(false).setFeatureTypeConversionFunction(function);
         try {
             op.setProgressListener(cli.getProgressListener()).call();
         } catch (IllegalArgumentException iae) {
@@ -134,6 +144,31 @@ public class ShpExportDiff extends AbstractShpCommand implements CLICommand {
         }
         cli.getConsole().println(path + " exported successfully to " + shapefile);
 
+    }
+
+    private Function<Feature, Optional<Feature>> getTransformingFunction(
+            final SimpleFeatureType featureType) {
+        Function<Feature, Optional<Feature>> function = new Function<Feature, Optional<Feature>>() {
+
+            @Override
+            @Nullable
+            public Optional<Feature> apply(@Nullable Feature feature) {
+                SimpleFeatureBuilder builder = new SimpleFeatureBuilder(featureType);
+                for (Property property : feature.getProperties()) {
+                    if (property instanceof GeometryAttribute) {
+                        builder.set(featureType.getGeometryDescriptor().getName(),
+                                property.getValue());
+                    } else {
+                        builder.set(property.getName(), property.getValue());
+                    }
+                }
+                Feature modifiedFeature = builder.buildFeature(feature.getIdentifier().getID());
+                return Optional.fromNullable(modifiedFeature);
+            }
+
+        };
+
+        return function;
     }
 
     private SimpleFeatureType getFeatureType(String path, GeogitCLI cli) {

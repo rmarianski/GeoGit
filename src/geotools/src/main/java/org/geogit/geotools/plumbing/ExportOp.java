@@ -19,6 +19,7 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.FeatureBuilder;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
+import org.geogit.api.ProgressListener;
 import org.geogit.api.RevFeature;
 import org.geogit.api.RevFeatureType;
 import org.geogit.api.RevObject;
@@ -43,7 +44,6 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.PropertyDescriptor;
-import org.geogit.api.ProgressListener;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -474,7 +474,7 @@ public class ExportOp extends AbstractGeoGitOp<SimpleFeatureStore> {
      * It is up to the user performing the export to ensure that the function actually generates
      * valid features for the current FeatureStore.
      * 
-     * If no function is explicitly set, and identity function is used, and Features are not
+     * If no function is explicitly set, an identity function is used, and Features are not
      * converted.
      * 
      * This function can be used as a filter as well. If the returned object is Optional.absent, no
