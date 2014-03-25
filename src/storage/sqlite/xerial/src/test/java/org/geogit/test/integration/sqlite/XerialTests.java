@@ -7,6 +7,7 @@ package org.geogit.test.integration.sqlite;
 import org.geogit.api.Platform;
 import org.geogit.api.TestPlatform;
 import org.geogit.di.GeogitModule;
+import org.geogit.storage.sqlite.Xerial;
 import org.geogit.storage.sqlite.XerialSQLiteModule;
 
 import com.google.inject.AbstractModule;
@@ -30,6 +31,7 @@ public class XerialTests {
                 new XerialSQLiteModule(), new AbstractModule() {
                     @Override
                     protected void configure() {
+                        Xerial.turnSynchronizationOff();
                         bind(Platform.class).toInstance(platform);
                     }
                 }));
