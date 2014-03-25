@@ -474,7 +474,7 @@ public class ExportOp extends AbstractGeoGitOp<SimpleFeatureStore> {
      * It is up to the user performing the export to ensure that the function actually generates
      * valid features for the current FeatureStore.
      * 
-     * If no function is explicitly set, and identity function is used, and Features are not
+     * If no function is explicitly set, an identity function is used, and Features are not
      * converted.
      * 
      * This function can be used as a filter as well. If the returned object is Optional.absent, no

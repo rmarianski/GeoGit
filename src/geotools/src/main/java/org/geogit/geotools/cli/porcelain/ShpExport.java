@@ -38,10 +38,15 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.opengis.feature.Feature;
+import org.opengis.feature.GeometryAttribute;
+import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 
 /**
@@ -134,9 +139,14 @@ public class ShpExport extends AbstractShpCommand implements CLICommand {
         if (!(featureSource instanceof SimpleFeatureStore)) {
             throw new CommandFailedException("Could not create feature store.");
         }
+
+        Function<Feature, Optional<Feature>> function = getTransformingFunction(dataStore
+                .getSchema());
+
         final SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
         ExportOp op = cli.getGeogit().command(ExportOp.class).setFeatureStore(featureStore)
-                .setPath(path).setFilterFeatureTypeId(featureTypeId).setAlter(alter);
+                .setPath(path).setFilterFeatureTypeId(featureTypeId).setAlter(alter)
+                .setFeatureTypeConversionFunction(function);
         // shapefile transactions are memory bound, so avoid them
         op.setTransactional(false);
         if (defaultType) {
@@ -160,6 +170,31 @@ public class ShpExport extends AbstractShpCommand implements CLICommand {
         }
         cli.getConsole().println(path + " exported successfully to " + shapefile);
 
+    }
+
+    private Function<Feature, Optional<Feature>> getTransformingFunction(
+            final SimpleFeatureType featureType) {
+        Function<Feature, Optional<Feature>> function = new Function<Feature, Optional<Feature>>() {
+
+            @Override
+            @Nullable
+            public Optional<Feature> apply(@Nullable Feature feature) {
+                SimpleFeatureBuilder builder = new SimpleFeatureBuilder(featureType);
+                for (Property property : feature.getProperties()) {
+                    if (property instanceof GeometryAttribute) {
+                        builder.set(featureType.getGeometryDescriptor().getName(),
+                                property.getValue());
+                    } else {
+                        builder.set(property.getName(), property.getValue());
+                    }
+                }
+                Feature modifiedFeature = builder.buildFeature(feature.getIdentifier().getID());
+                return Optional.fromNullable(modifiedFeature);
+            }
+
+        };
+
+        return function;
     }
 
     private SimpleFeatureType getFeatureType(String path, GeogitCLI cli) {

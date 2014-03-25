@@ -127,7 +127,18 @@ public class ExportDiffOp extends AbstractGeoGitOp<SimpleFeatureStore> {
                 final Iterator<SimpleFeature> plainFeatures = getFeatures(diffs, old, database,
                         defaultMetadataId, progressListener);
 
-                return new DelegateFeatureIterator<SimpleFeature>(plainFeatures);
+                Iterator<Optional<Feature>> transformed = Iterators.transform(plainFeatures,
+                        ExportDiffOp.this.function);
+
+                Iterator<SimpleFeature> filtered = Iterators.filter(Iterators.transform(
+                        transformed, new Function<Optional<Feature>, SimpleFeature>() {
+                            @Override
+                            public SimpleFeature apply(Optional<Feature> input) {
+                                return (SimpleFeature) (input.isPresent() ? input.get() : null);
+                            }
+                        }), Predicates.notNull());
+
+                return new DelegateFeatureIterator<SimpleFeature>(filtered);
             }
         };
 
@@ -283,6 +294,30 @@ public class ExportDiffOp extends AbstractGeoGitOp<SimpleFeatureStore> {
      */
     public ExportDiffOp setPath(String path) {
         this.path = path;
+        return this;
+    }
+
+    /**
+     * Sets the function to use for creating a valid Feature that has the FeatureType of the output
+     * FeatureStore, based on the actual FeatureType of the Features to export.
+     * 
+     * The Export operation assumes that the feature returned by this function are valid to be added
+     * to the current FeatureSource, and, therefore, performs no checking of FeatureType matching.
+     * It is up to the user performing the export to ensure that the function actually generates
+     * valid features for the current FeatureStore.
+     * 
+     * If no function is explicitly set, an identity function is used, and Features are not
+     * converted.
+     * 
+     * This function can be used as a filter as well. If the returned object is Optional.absent, no
+     * feature will be added
+     * 
+     * @param function
+     * @return {@code this}
+     */
+    public ExportDiffOp setFeatureTypeConversionFunction(
+            Function<Feature, Optional<Feature>> function) {
+        this.function = function == null ? IDENTITY : function;
         return this;
     }
 
