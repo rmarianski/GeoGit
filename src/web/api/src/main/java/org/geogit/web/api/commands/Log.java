@@ -4,7 +4,6 @@
  */
 package org.geogit.web.api.commands;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -168,6 +167,17 @@ public class Log extends AbstractWebAPICommand {
     }
 
     /**
+     * Mutator for the countChanges variable. This is deprecated, use setCountChanges instead.
+     * 
+     * @param countChanges - if true, each commit will include a count of each change type compared
+     *        to its first parent
+     */
+    @Deprecated
+    public void setSummarize(boolean countChanges) {
+        setCountChanges(countChanges);
+    }
+
+    /**
      * Mutator for the countChanges variable
      * 
      * @param countChanges - if true, each commit will include a count of each change type compared
@@ -301,13 +311,18 @@ public class Log extends AbstractWebAPICommand {
                 }
             });
         } else if (summary) {
-            context.setResponseContent(new StreamResponse() {
+            if (paths != null && paths.size() > 0) {
+                context.setResponseContent(new StreamResponse() {
 
-                @Override
-                public void write(Writer out) throws Exception {
-                    writeCSV(context.getGeoGIT(), out, log);
-                }
-            });
+                    @Override
+                    public void write(Writer out) throws Exception {
+                        writeCSV(context.getGeoGIT(), out, log);
+                    }
+                });
+            } else {
+                throw new CommandSpecException(
+                        "You must specify a feature type path when getting a summary.");
+            }
         } else {
             final boolean rangeLog = returnRange;
             context.setResponseContent(new CommandResponse() {
@@ -322,14 +337,11 @@ public class Log extends AbstractWebAPICommand {
 
     }
 
-    private void writeCSV(GeoGIT geogit, Writer out, Iterator<RevCommit> log) throws IOException {
+    private void writeCSV(GeoGIT geogit, Writer out, Iterator<RevCommit> log) throws Exception {
         String response = "ChangeType,CommitId,Parent CommitIds,Author Name,Author Email,Author Commit Time,Committer Name,Committer Email,Committer Commit Time,Commit Message";
         out.write(response);
         response = "";
-        String path = "";
-        if (paths != null && paths.size() > 0) {
-            path = paths.get(0);
-        }
+        String path = paths.get(0);
         // This is the feature type object
         Optional<NodeRef> ref = geogit.command(FindTreeChild.class).setChildPath(path)
                 .setParent(geogit.getRepository().getWorkingTree().getTree()).call();

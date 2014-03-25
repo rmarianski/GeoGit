@@ -45,9 +45,14 @@ import com.google.common.base.Preconditions;
  */
 public class CommandResource extends Resource {
 
+    private static final MediaType CSV_MEDIA_TYPE = new MediaType("text/csv",
+            "Comma-separated Values");
+
     private static final Variant JSON = new Variant(MediaType.APPLICATION_JSON);
 
     private static final Variant XML = new Variant(MediaType.APPLICATION_XML);
+
+    private static final Variant CSV = new Variant(CSV_MEDIA_TYPE);
 
     @Override
     public void init(Context context, Request request, Response response) {
@@ -55,6 +60,7 @@ public class CommandResource extends Resource {
         List<Variant> variants = getVariants();
         variants.add(XML);
         variants.add(JSON);
+        variants.add(CSV);
     }
 
     @Override
@@ -66,6 +72,9 @@ public class CommandResource extends Resource {
         }
         if ("json".equals(extension)) {
             return JSON;
+        }
+        if ("csv".equals(extension)) {
+            return CSV;
         }
         return super.getPreferredVariant();
     }
@@ -113,8 +122,12 @@ public class CommandResource extends Resource {
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, "CommandSpecException", ex);
         }
+        if (format == CSV_MEDIA_TYPE) {
+            return new StreamWriterRepresentation(format, StreamResponse.error(ex.getMessage()));
+        }
         return new JettisonRepresentation(format, CommandResponse.error(ex.getMessage()),
                 getJSONPCallback());
+
     }
 
     private Representation formatUnexpectedException(Exception ex, MediaType format) {
@@ -130,6 +143,9 @@ public class CommandResource extends Resource {
             }
         }
         logger.log(Level.SEVERE, "Unexpected exception : " + uuid, ex);
+        if (format == CSV_MEDIA_TYPE) {
+            return new StreamWriterRepresentation(format, StreamResponse.error(stack));
+        }
         return new JettisonRepresentation(format, CommandResponse.error(stack), getJSONPCallback());
     }
 
@@ -147,7 +163,7 @@ public class CommandResource extends Resource {
             } else if (requested.equalsIgnoreCase("json")) {
                 retval = MediaType.APPLICATION_JSON;
             } else if (requested.equalsIgnoreCase("csv")) {
-                retval = new MediaType("text/csv", "Comma-separated Values");
+                retval = CSV_MEDIA_TYPE;
             } else {
                 throw new RestletException("Invalid output_format '" + requested + "'",
                         org.restlet.data.Status.CLIENT_ERROR_BAD_REQUEST);
@@ -175,7 +191,15 @@ public class CommandResource extends Resource {
 
         Representation getRepresentation(MediaType format, String callback) {
             if (streamContent != null) {
+                if (format != CSV_MEDIA_TYPE) {
+                    throw new CommandSpecException(
+                            "Unsupported Media Type: This response is only compatible with text/csv.");
+                }
                 return new StreamWriterRepresentation(format, streamContent);
+            }
+            if (format != MediaType.APPLICATION_JSON && format != MediaType.APPLICATION_XML) {
+                throw new CommandSpecException(
+                        "Unsupported Media Type: This response is only compatible with application/json and application/xml.");
             }
             return new JettisonRepresentation(format, responseContent, callback);
         }

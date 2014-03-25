@@ -170,6 +170,7 @@ public class CommandBuilder {
         command.setCountChanges(Boolean.valueOf(options.getFirstValue("countChanges", "false")));
         command.setReturnRange(Boolean.valueOf(options.getFirstValue("returnRange", "false")));
         command.setSummary(Boolean.valueOf(options.getFirstValue("summary", "false")));
+        command.setSummarize(Boolean.valueOf(options.getFirstValue("summarize", "false")));
         return command;
     }
 
