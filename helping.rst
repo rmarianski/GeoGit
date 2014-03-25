@@ -8,19 +8,19 @@ Whether you can code or not, there are many ways in which you can contribute to 
 Communication
 --------------
 
-In all cases, communication with the GeoGit community and team is crucial, so make sure that you know the main ways to get in contact with other GeoGit users and developers
+In all cases, communication with the GeoGit community and team is crucial, so make sure that you know the main ways to get in contact with other GeoGit users and developers.
 
 Discussion takes place on our `geogit google group <https://groups.google.com/a/opengeo.org/group/geogit/>`_. Please join and introduce yourself, we'd love to help, and to figure out ways for you to get involved.
 
 There is also a GeoGit IRC channel on `freenode <http://freenode.net/>`_ (`#geogit <irc://irc.freenode.net/geoserver>`_). GeoGit developers can usually be found there.
 
-You can (and should) use the above for all GeoGit-related subjects, so other people are away of your work with GeoGit and can help you and eventually handle your contributions to the project efficiently.
+You can (and should) use the above for all GeoGit-related subjects, so other people are aware of your work with GeoGit and can help you and eventually handle your contributions to the project efficiently.
 
 
 Testing
 ----------
 
-If you are an user, testing is the best and most simple way of helping us improve GeoGit. Use GeoGit with your own datasets, and if you find something that can be improved or doesn't work as expected, `open a new issue <https://github.com/opengeo/GeoGit/issues/new>`_. Please, check first that the same problem has not been reported by another user, to avoid duplicated issues. 
+If you are a user, testing is the best and most simple way of helping us improve GeoGit. Use GeoGit with your own datasets, and if you find something that can be improved or doesn't work as expected, `open a new issue <https://github.com/opengeo/GeoGit/issues/new>`_. Please, check first that the same problem has not been reported by another user, to avoid duplicated issues. 
 
 Documenting
 ------------
