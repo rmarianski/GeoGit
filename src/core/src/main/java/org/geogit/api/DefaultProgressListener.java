@@ -39,53 +39,64 @@ public class DefaultProgressListener implements ProgressListener {
      */
     protected float maxProgress;
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     public void setDescription(String description) {
         this.description = description;
     }
 
+    @Override
     public void started() {
         // do nothing
     }
 
+    @Override
     public void setProgress(float progress) {
         this.progress = progress;
     }
 
+    @Override
     public float getProgress() {
         return progress;
     }
 
+    @Override
     public void complete() {
         this.completed = true;
     }
 
+    @Override
     public boolean isCompleted() {
         return this.completed;
     }
 
+    @Override
     public void dispose() {
         // do nothing
     }
 
+    @Override
     public void cancel() {
         this.canceled = true;
     }
 
+    @Override
     public boolean isCanceled() {
         return canceled;
     }
 
+    @Override
     public void setMaxProgress(float maxProgress) {
         this.maxProgress = maxProgress;
 
     }
 
+    @Override
     public float getMaxProgress() {
         return this.maxProgress;
     }
-
 }

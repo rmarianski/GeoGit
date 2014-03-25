@@ -32,21 +32,30 @@ public class SubProgressListener extends DefaultProgressListener {
         this.scale = this.amount / max;
     }
 
+    @Override
     public void started() {
         super.progress = 0.0f;
     }
 
+    @Override
     public void complete() {
         parentProgressListener.setProgress(start + amount);
         progress = getMaxProgress();
     }
 
+    @Override
     public float getProgress() {
         return progress;
     }
 
-    public void progress(float progress) {
+    @Override
+    public void setProgress(float progress) {
         this.progress = progress;
         parentProgressListener.setProgress(start + (scale * progress));
+    }
+
+    @Override
+    public void setDescription(String description) {
+        parentProgressListener.setDescription(description);
     }
 }

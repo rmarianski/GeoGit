@@ -826,6 +826,7 @@ public class GeogitCLI {
                     lastRun = -(delayNanos + 1);
                 }
 
+                @Override
                 public void setDescription(String s) {
                     try {
                         console.println();

@@ -60,6 +60,11 @@ public interface ProgressListener {
     void complete();
 
     /**
+     * @return {@code true} if {@link #complete()} has been called
+     */
+    public boolean isCompleted();
+
+    /**
      * Releases any resources used by this listener.
      */
     void dispose();
