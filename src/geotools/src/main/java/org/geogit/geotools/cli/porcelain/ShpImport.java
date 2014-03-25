@@ -8,6 +8,7 @@ package org.geogit.geotools.cli.porcelain;
 import java.io.IOException;
 import java.util.List;
 
+import org.geogit.api.ProgressListener;
 import org.geogit.cli.CLICommand;
 import org.geogit.cli.CommandFailedException;
 import org.geogit.cli.GeogitCLI;
@@ -17,7 +18,6 @@ import org.geogit.geotools.plumbing.GeoToolsOpException;
 import org.geogit.geotools.plumbing.ImportOp;
 import org.geotools.data.DataStore;
 import org.opengis.feature.type.AttributeDescriptor;
-import org.geogit.api.ProgressListener;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -94,9 +94,15 @@ public class ShpImport extends AbstractShpCommand implements CLICommand {
                 cli.getConsole().println("Importing from shapefile " + shp);
 
                 ProgressListener progressListener = cli.getProgressListener();
-                cli.getGeogit().command(ImportOp.class).setAll(true).setTable(null).setAlter(alter)
-                        .setOverwrite(!add).setDestinationPath(destTable).setDataStore(dataStore)
-                        .setFidAttribute(fidAttribute).setProgressListener(progressListener).call();
+                ImportOp command = cli.getGeogit().command(ImportOp.class).setAll(true)
+                        .setTable(null).setAlter(alter).setOverwrite(!add)
+                        .setDestinationPath(destTable).setDataStore(dataStore)
+                        .setFidAttribute(fidAttribute);
+
+                // force the import not to use paging due to a bug in the shapefile datastore
+                command.setUsePaging(false);
+                
+                command.setProgressListener(progressListener).call();
 
                 cli.getConsole().println(shp + " imported successfully.");
             } catch (GeoToolsOpException e) {

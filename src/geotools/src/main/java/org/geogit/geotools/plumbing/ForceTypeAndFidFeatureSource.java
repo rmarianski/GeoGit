@@ -9,6 +9,7 @@ import org.geogit.api.data.ForwardingFeatureIterator;
 import org.geogit.api.data.ForwardingFeatureSource;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
+import org.geotools.data.QueryCapabilities;
 import org.geotools.feature.DecoratingFeature;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -18,6 +19,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.identity.FeatureId;
+import org.opengis.filter.sort.SortBy;
 
 class ForceTypeAndFidFeatureSource<T extends FeatureType, F extends Feature> extends
         ForwardingFeatureSource<T, F> {
@@ -26,12 +28,51 @@ class ForceTypeAndFidFeatureSource<T extends FeatureType, F extends Feature> ext
 
     private String fidPrefix;
 
+    private boolean forbidSorting;
+
     public ForceTypeAndFidFeatureSource(final FeatureSource<T, F> source, final T forceType,
             final String fidPrefix) {
 
         super(source);
         this.forceType = forceType;
         this.fidPrefix = fidPrefix;
+    }
+
+    /**
+     * @param forbidSorting flag for {@link #getQueryCapabilities()} to return false on
+     *        isOffsetSupported() to work around malfunctioning geotools datastores from
+     */
+    public void setForbidSorting(boolean forbidSorting) {
+        this.forbidSorting = forbidSorting;
+    }
+
+    @Override
+    public QueryCapabilities getQueryCapabilities() {
+        final QueryCapabilities capabilities = super.getQueryCapabilities();
+        if (!forbidSorting) {
+            return capabilities;
+        }
+        return new QueryCapabilities() {
+            @Override
+            public boolean isOffsetSupported() {
+                return false;
+            }
+
+            @Override
+            public boolean supportsSorting(SortBy[] sortAttributes) {
+                return false;
+            }
+
+            @Override
+            public boolean isReliableFIDSupported() {
+                return capabilities.isReliableFIDSupported();
+            }
+
+            @Override
+            public boolean isUseProvidedFIDSupported() {
+                return capabilities.isUseProvidedFIDSupported();
+            }
+        };
     }
 
     @Override

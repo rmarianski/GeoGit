@@ -25,6 +25,7 @@ import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
+import org.geogit.api.ProgressListener;
 import org.geogit.api.Ref;
 import org.geogit.api.RevFeature;
 import org.geogit.api.RevFeatureBuilder;
@@ -61,7 +62,6 @@ import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 import org.opengis.geometry.BoundingBox;
-import org.geogit.api.ProgressListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -540,7 +540,6 @@ public class WorkingTree {
             final @Nullable Long collectionSize, int nTasks, RevTreeBuilder2 builder) {
 
         int partitionSize = 0;
-        int lastTaskPartitionSize = 0;
         BulkOpListener bulkOpListener;
         if (collectionSize == null) {
             nTasks = 1;
@@ -549,7 +548,6 @@ public class WorkingTree {
         } else {
             final int total = collectionSize.intValue();
             partitionSize = total / nTasks;
-            lastTaskPartitionSize = partitionSize + (total % nTasks);
             bulkOpListener = new BulkOpListener() {
                 int inserted = 0;
 
@@ -563,11 +561,11 @@ public class WorkingTree {
 
         List<Future<Integer>> results = Lists.newArrayList();
         for (int i = 0; i < nTasks; i++) {
-            int offset = i * partitionSize;
-            int limit = partitionSize;
+            Integer offset = nTasks == 1 ? null : i * partitionSize;
+            Integer limit = nTasks == 1 ? null : partitionSize;
             if (i == nTasks - 1) {
-                limit = lastTaskPartitionSize;// let the last task take any remaining
-                                              // feature
+                limit = null;// let the last task take any remaining
+                             // feature
             }
             results.add(executorService.submit(new BlobInsertTask(source, offset, limit,
                     bulkOpListener, builder)));
@@ -582,15 +580,15 @@ public class WorkingTree {
         @SuppressWarnings("rawtypes")
         private FeatureSource source;
 
-        private int offset;
+        private Integer offset;
 
-        private int limit;
+        private Integer limit;
 
         private RevTreeBuilder2 builder;
 
-        private BlobInsertTask(@SuppressWarnings("rawtypes") FeatureSource source, int offset,
-                int limit, BulkOpListener listener, RevTreeBuilder2 builder) {
-
+        private BlobInsertTask(@SuppressWarnings("rawtypes") FeatureSource source,
+                @Nullable Integer offset, @Nullable Integer limit, BulkOpListener listener,
+                RevTreeBuilder2 builder) {
             this.source = source;
             this.offset = offset;
             this.limit = limit;
@@ -606,7 +604,7 @@ public class WorkingTree {
             CoordinateSequenceFactory coordSeq = new PackedCoordinateSequenceFactory();
             query.getHints().add(new Hints(Hints.JTS_COORDINATE_SEQUENCE_FACTORY, coordSeq));
             query.setStartIndex(offset);
-            if (limit > 0) {
+            if (limit != null && limit.intValue() > 0) {
                 query.setMaxFeatures(limit);
             }
             FeatureCollection collection = source.getFeatures(query);
