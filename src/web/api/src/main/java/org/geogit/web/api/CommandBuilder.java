@@ -167,8 +167,10 @@ public class CommandBuilder {
         command.setElementsPerPage(parseInt(options, "show", 30));
         command.setFirstParentOnly(Boolean.valueOf(options
                 .getFirstValue("firstParentOnly", "false")));
-        command.setSummarize(Boolean.valueOf(options.getFirstValue("summarize", "false")));
+        command.setCountChanges(Boolean.valueOf(options.getFirstValue("countChanges", "false")));
         command.setReturnRange(Boolean.valueOf(options.getFirstValue("returnRange", "false")));
+        command.setSummary(Boolean.valueOf(options.getFirstValue("summary", "false")));
+        command.setSummarize(Boolean.valueOf(options.getFirstValue("summarize", "false")));
         return command;
     }
 
@@ -480,8 +482,8 @@ public class CommandBuilder {
         command.setPath(options.getFirstValue("path", null));
         return command;
     }
-    
-     static BlameWebOp buildBlame(ParameterSet options) {
+
+    static BlameWebOp buildBlame(ParameterSet options) {
         BlameWebOp command = new BlameWebOp();
         command.setCommit(options.getFirstValue("commit", null));
         command.setPath(options.getFirstValue("path", null));
