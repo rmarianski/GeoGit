@@ -24,6 +24,7 @@ import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject;
+import org.geogit.api.RevTag;
 import org.geogit.api.porcelain.SynchronizationException;
 import org.geogit.repository.Repository;
 import org.geogit.storage.DeduplicationService;
@@ -332,6 +333,7 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
             connection.setDoInput(true);
             out = connection.getOutputStream();
             writer = new OutputStreamWriter(out);
+            gson.toJson(message, System.out);
             gson.toJson(message, writer);
             writer.flush();
         } catch (IOException e) {
@@ -354,6 +356,11 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
                     want.remove(commit.getId());
                     have.removeAll(commit.getParentIds());
                     have.add(commit.getId());
+                } else if (object instanceof RevTag) {
+                    RevTag tag = (RevTag) object;
+                    want.remove(tag.getId());
+                    have.remove(tag.getCommitId());
+                    have.add(tag.getId());
                 }
                 return null;
             }

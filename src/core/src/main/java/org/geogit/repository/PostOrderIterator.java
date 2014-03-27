@@ -16,6 +16,7 @@ import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject;
+import org.geogit.api.RevTag;
 import org.geogit.api.RevTree;
 import org.geogit.storage.Deduplicator;
 import org.geogit.storage.ObjectDatabase;
@@ -185,6 +186,20 @@ public class PostOrderIterator extends AbstractIterator<RevObject> {
             if (object instanceof RevCommit) {
                 final RevCommit commit = (RevCommit) object;
                 successors.addAll(commit.getParentIds());
+            }
+        }
+
+        @Override
+        public boolean previsit(ObjectId id) {
+            return true;
+        }
+    };
+
+    private final static Successors TAG_COMMIT = new Successors() {
+        public void findSuccessors(final RevObject object, final List<ObjectId> successors) {
+            if (object instanceof RevTag) {
+                final RevTag tag = (RevTag) object;
+                successors.add(tag.getCommitId());
             }
         }
 
@@ -377,6 +392,7 @@ public class PostOrderIterator extends AbstractIterator<RevObject> {
      * A traversal policy for visiting all reachable nodes without deduplication
      */
     private final static Successors ALL_SUCCESSORS = combine( //
+            TAG_COMMIT, //
             COMMIT_PARENTS, //
             COMMIT_TREE, //
             TREE_BUCKETS, //

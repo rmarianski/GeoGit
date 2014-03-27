@@ -301,22 +301,25 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
     }
 
     private Ref updateLocalRef(Ref remoteRef, Remote remote, ImmutableSet<Ref> localRemoteRefs) {
-        final String refName = Ref.REMOTES_PREFIX + remote.getName() + "/" + remoteRef.localName();
+        final String refName;
+        if (remoteRef.getName().startsWith(Ref.TAGS_PREFIX)) {
+            refName = remoteRef.getName();
+        } else {
+            refName = Ref.REMOTES_PREFIX + remote.getName() + "/" + remoteRef.localName();
+        }
         Ref updatedRef = remoteRef;
         if (remoteRef instanceof SymRef) {
             String targetBranch = Ref.localName(((SymRef) remoteRef).getTarget());
             String newTarget = Ref.REMOTES_PREFIX + remote.getName() + "/" + targetBranch;
             command(UpdateSymRef.class).setName(refName).setNewValue(newTarget).call();
         } else {
+            ObjectId effectiveId = remoteRef.getObjectId();
+
             if (remote.getMapped() && !localRepository.commitExists(remoteRef.getObjectId())) {
-                ObjectId mappedId = localRepository.getGraphDatabase().getMapping(
-                        remoteRef.getObjectId());
-                command(UpdateRef.class).setName(refName).setNewValue(mappedId).call();
-                updatedRef = new Ref(remoteRef.getName(), mappedId);
-            } else {
-                command(UpdateRef.class).setName(refName).setNewValue(remoteRef.getObjectId())
-                        .call();
+                effectiveId = localRepository.getGraphDatabase().getMapping(effectiveId);
+                updatedRef = new Ref(remoteRef.getName(), effectiveId);
             }
+            command(UpdateRef.class).setName(refName).setNewValue(effectiveId).call();
         }
         return updatedRef;
     }

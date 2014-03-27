@@ -14,9 +14,11 @@ import java.util.List;
 
 import org.geogit.api.GeoGIT;
 import org.geogit.api.Ref;
+import org.geogit.api.RevTag;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.RefParse;
 import org.geogit.api.porcelain.BranchListOp;
+import org.geogit.api.porcelain.TagListOp;
 import org.restlet.Context;
 import org.restlet.data.Form;
 import org.restlet.data.MediaType;
@@ -64,6 +66,7 @@ public class ManifestResource extends Resource {
             boolean remotes = Boolean.valueOf(options.getFirstValue("remotes", "false"));
 
             ImmutableList<Ref> refs = ggit.command(BranchListOp.class).setRemotes(remotes).call();
+            ImmutableList<RevTag> tags = ggit.command(TagListOp.class).call();
 
             // Print out HEAD first
             final Ref currentHead = ggit.command(RefParse.class).setName(Ref.HEAD).call().get();
@@ -81,6 +84,14 @@ public class ManifestResource extends Resource {
                 w.write(ref.getName());
                 w.write(" ");
                 w.write(ref.getObjectId().toString());
+                w.write("\n");
+            }
+            // Print out the tags
+            for (RevTag tag : tags) {
+                w.write("refs/tags/");
+                w.write(tag.getName());
+                w.write(" ");
+                w.write(tag.getId().toString());
                 w.write("\n");
             }
             w.flush();

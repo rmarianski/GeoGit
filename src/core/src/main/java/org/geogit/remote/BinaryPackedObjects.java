@@ -22,6 +22,7 @@ import org.geogit.api.RevCommit;
 import org.geogit.api.RevFeature;
 import org.geogit.api.RevFeatureType;
 import org.geogit.api.RevObject;
+import org.geogit.api.RevTag;
 import org.geogit.api.RevTree;
 import org.geogit.repository.PostOrderIterator;
 import org.geogit.storage.Deduplicator;
@@ -38,6 +39,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 
 public final class BinaryPackedObjects {
+    private final ObjectWriter<RevTag> tagWriter;
+
     private final ObjectWriter<RevCommit> commitWriter;
 
     private final ObjectWriter<RevTree> treeWriter;
@@ -55,6 +58,7 @@ public final class BinaryPackedObjects {
     public BinaryPackedObjects(ObjectDatabase database) {
         this.database = database;
         final ObjectSerializingFactory factory = new DataStreamSerializationFactory();
+        this.tagWriter = factory.createObjectWriter(RevObject.TYPE.TAG);
         this.commitWriter = factory.createObjectWriter(RevObject.TYPE.COMMIT);
         this.treeWriter = factory.createObjectWriter(RevObject.TYPE.TREE);
         this.featureTypeWriter = factory.createObjectWriter(RevObject.TYPE.FEATURETYPE);
@@ -89,7 +93,9 @@ public final class BinaryPackedObjects {
             RevObject object = objects.next();
 
             out.write(object.getId().getRawValue());
-            if (object instanceof RevCommit) {
+            if (object instanceof RevTag) {
+                tagWriter.write((RevTag) object, out);
+            } else if (object instanceof RevCommit) {
                 commitWriter.write((RevCommit) object, out);
                 commitsSent++;
             } else if (object instanceof RevTree) {
