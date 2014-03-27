@@ -277,22 +277,26 @@ public class Log extends AbstractWebAPICommand {
                     if (input.getParentIds().size() > 0) {
                         parent = input.getParentIds().get(0);
                     }
-                    final Iterator<DiffEntry> diff = geogit.command(DiffOp.class)
-                            .setOldVersion(parent).setNewVersion(input.getId())
-                            .setFilter(pathFilter).call();
-
                     int added = 0;
                     int modified = 0;
                     int removed = 0;
 
-                    while (diff.hasNext()) {
-                        DiffEntry entry = diff.next();
-                        if (entry.changeType() == DiffEntry.ChangeType.ADDED) {
-                            added++;
-                        } else if (entry.changeType() == DiffEntry.ChangeType.MODIFIED) {
-                            modified++;
-                        } else {
-                            removed++;
+                    // If it's a shallow clone, the commit may not exist
+                    if (parent.equals(ObjectId.NULL)
+                            || geogit.getIndex().getDatabase().exists(parent)) {
+                        final Iterator<DiffEntry> diff = geogit.command(DiffOp.class)
+                                .setOldVersion(parent).setNewVersion(input.getId())
+                                .setFilter(pathFilter).call();
+
+                        while (diff.hasNext()) {
+                            DiffEntry entry = diff.next();
+                            if (entry.changeType() == DiffEntry.ChangeType.ADDED) {
+                                added++;
+                            } else if (entry.changeType() == DiffEntry.ChangeType.MODIFIED) {
+                                modified++;
+                            } else {
+                                removed++;
+                            }
                         }
                     }
 
