@@ -171,7 +171,6 @@ public abstract class RemoteRepositoryTestCase {
         }
 
         setup = true;
-        Logging.ALL.forceMonolineConsoleOutput();
         doSetUp();
     }
 

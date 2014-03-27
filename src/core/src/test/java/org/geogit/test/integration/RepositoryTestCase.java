@@ -149,7 +149,6 @@ public abstract class RepositoryTestCase extends Assert {
         }
 
         setup = true;
-        Logging.ALL.forceMonolineConsoleOutput();
         doSetUp();
     }
 
