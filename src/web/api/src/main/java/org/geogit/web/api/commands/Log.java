@@ -4,23 +4,39 @@
  */
 package org.geogit.web.api.commands;
 
+import java.io.Writer;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import org.geogit.api.CommandLocator;
+import org.geogit.api.GeoGIT;
+import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
+import org.geogit.api.RevFeature;
+import org.geogit.api.RevFeatureType;
+import org.geogit.api.RevObject;
+import org.geogit.api.plumbing.FindTreeChild;
 import org.geogit.api.plumbing.ParseTimestamp;
+import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.api.plumbing.RevParse;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.porcelain.DiffOp;
 import org.geogit.api.porcelain.LogOp;
+import org.geogit.storage.FieldType;
 import org.geogit.web.api.AbstractWebAPICommand;
 import org.geogit.web.api.CommandContext;
 import org.geogit.web.api.CommandResponse;
+import org.geogit.web.api.CommandSpecException;
 import org.geogit.web.api.ResponseWriter;
+import org.geogit.web.api.StreamResponse;
 import org.geotools.util.Range;
+import org.opengis.feature.type.PropertyDescriptor;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -54,9 +70,11 @@ public class Log extends AbstractWebAPICommand {
 
     boolean firstParentOnly;
 
-    boolean summarize = false;
+    boolean countChanges = false;
 
     boolean returnRange = false;
+
+    boolean summary = false;
 
     /**
      * Mutator for the limit variable
@@ -149,13 +167,33 @@ public class Log extends AbstractWebAPICommand {
     }
 
     /**
-     * Mutator for the summarize variable
+     * Mutator for the countChanges variable. This is deprecated, use setCountChanges instead.
      * 
-     * @param summarize - if true, each commit will include a summary of changes from its first
-     *        parent
+     * @param countChanges - if true, each commit will include a count of each change type compared
+     *        to its first parent
      */
-    public void setSummarize(boolean summarize) {
-        this.summarize = summarize;
+    @Deprecated
+    public void setSummarize(boolean countChanges) {
+        setCountChanges(countChanges);
+    }
+
+    /**
+     * Mutator for the countChanges variable
+     * 
+     * @param countChanges - if true, each commit will include a count of each change type compared
+     *        to its first parent
+     */
+    public void setCountChanges(boolean countChanges) {
+        this.countChanges = countChanges;
+    }
+
+    /**
+     * Mutator for the summary variable
+     * 
+     * @param summary - if true, return all changes from each commit
+     */
+    public void setSummary(boolean summary) {
+        this.summary = summary;
     }
 
     /**
@@ -176,7 +214,7 @@ public class Log extends AbstractWebAPICommand {
      * @throws IllegalArgumentException
      */
     @Override
-    public void run(CommandContext context) {
+    public void run(final CommandContext context) {
         final CommandLocator geogit = this.getCommandLocator(context);
 
         LogOp op = geogit.command(LogOp.class).setFirstParentOnly(firstParentOnly);
@@ -224,17 +262,17 @@ public class Log extends AbstractWebAPICommand {
 
         Iterators.advance(log, page * elementsPerPage);
 
-        if (summarize) {
+        if (countChanges) {
             final String pathFilter;
             if (paths != null && !paths.isEmpty()) {
                 pathFilter = paths.get(0);
             } else {
                 pathFilter = null;
             }
-            Function<RevCommit, CommitSummary> summaryFunctor = new Function<RevCommit, CommitSummary>() {
+            Function<RevCommit, CommitWithChangeCounts> changeCountFunctor = new Function<RevCommit, CommitWithChangeCounts>() {
 
                 @Override
-                public CommitSummary apply(RevCommit input) {
+                public CommitWithChangeCounts apply(RevCommit input) {
                     ObjectId parent = ObjectId.NULL;
                     if (input.getParentIds().size() > 0) {
                         parent = input.getParentIds().get(0);
@@ -258,19 +296,33 @@ public class Log extends AbstractWebAPICommand {
                         }
                     }
 
-                    return new CommitSummary(input, added, modified, removed);
+                    return new CommitWithChangeCounts(input, added, modified, removed);
                 }
             };
 
-            final Iterator<CommitSummary> summarizedLog = Iterators.transform(log, summaryFunctor);
+            final Iterator<CommitWithChangeCounts> summarizedLog = Iterators.transform(log,
+                    changeCountFunctor);
             context.setResponseContent(new CommandResponse() {
                 @Override
                 public void write(ResponseWriter out) throws Exception {
                     out.start();
-                    out.writeSummarizedCommits(summarizedLog, elementsPerPage);
+                    out.writeCommitsWithChangeCounts(summarizedLog, elementsPerPage);
                     out.finish();
                 }
             });
+        } else if (summary) {
+            if (paths != null && paths.size() > 0) {
+                context.setResponseContent(new StreamResponse() {
+
+                    @Override
+                    public void write(Writer out) throws Exception {
+                        writeCSV(context.getGeoGIT(), out, log);
+                    }
+                });
+            } else {
+                throw new CommandSpecException(
+                        "You must specify a feature type path when getting a summary.");
+            }
         } else {
             final boolean rangeLog = returnRange;
             context.setResponseContent(new CommandResponse() {
@@ -285,7 +337,130 @@ public class Log extends AbstractWebAPICommand {
 
     }
 
-    public class CommitSummary {
+    private void writeCSV(GeoGIT geogit, Writer out, Iterator<RevCommit> log) throws Exception {
+        String response = "ChangeType,CommitId,Parent CommitIds,Author Name,Author Email,Author Commit Time,Committer Name,Committer Email,Committer Commit Time,Commit Message";
+        out.write(response);
+        response = "";
+        String path = paths.get(0);
+        // This is the feature type object
+        Optional<NodeRef> ref = geogit.command(FindTreeChild.class).setChildPath(path)
+                .setParent(geogit.getRepository().getWorkingTree().getTree()).call();
+        Optional<RevObject> type = Optional.absent();
+        if (ref.isPresent()) {
+            type = geogit.command(RevObjectParse.class)
+                    .setRefSpec(ref.get().getMetadataId().toString()).call();
+        } else {
+            throw new CommandSpecException("Couldn't resolve the given path.");
+        }
+        if (type.isPresent() && type.get() instanceof RevFeatureType) {
+            RevFeatureType featureType = (RevFeatureType) type.get();
+            Collection<PropertyDescriptor> attribs = featureType.type().getDescriptors();
+            int attributeLength = attribs.size();
+            for (PropertyDescriptor attrib : attribs) {
+                response += "," + escapeCsv(attrib.getName().toString());
+            }
+            response += '\n';
+            out.write(response);
+            response = "";
+            RevCommit commit = null;
+
+            while (log.hasNext()) {
+                commit = log.next();
+                String parentId = commit.getParentIds().size() >= 1 ? commit.getParentIds().get(0)
+                        .toString() : ObjectId.NULL.toString();
+                Iterator<DiffEntry> diff = geogit.command(DiffOp.class).setOldVersion(parentId)
+                        .setNewVersion(commit.getId().toString()).setFilter(path).call();
+                while (diff.hasNext()) {
+                    DiffEntry entry = diff.next();
+                    response += entry.changeType().toString() + ",";
+                    response += commit.getId().toString() + ",";
+                    response += parentId;
+                    if (commit.getParentIds().size() > 1) {
+                        for (int index = 1; index < commit.getParentIds().size(); index++) {
+                            response += " " + commit.getParentIds().get(index).toString();
+                        }
+                    }
+                    response += ",";
+                    if (commit.getAuthor().getName().isPresent()) {
+                        response += escapeCsv(commit.getAuthor().getName().get());
+                    }
+                    response += ",";
+                    if (commit.getAuthor().getEmail().isPresent()) {
+                        response += escapeCsv(commit.getAuthor().getEmail().get());
+                    }
+                    response += ","
+                            + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss z").format(new Date(commit
+                                    .getAuthor().getTimestamp())) + ",";
+                    if (commit.getCommitter().getName().isPresent()) {
+                        response += escapeCsv(commit.getCommitter().getName().get());
+                    }
+                    response += ",";
+                    if (commit.getCommitter().getEmail().isPresent()) {
+                        response += escapeCsv(commit.getCommitter().getEmail().get());
+                    }
+                    response += ","
+                            + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss z").format(new Date(commit
+                                    .getCommitter().getTimestamp())) + ",";
+                    String message = escapeCsv(commit.getMessage());
+                    response += message;
+                    if (entry.newObjectId() == ObjectId.NULL) {
+                        // Feature was removed so we need to fill out blank attribute values
+                        for (int index = 0; index < attributeLength; index++) {
+                            response += ",";
+                        }
+                    } else {
+                        // Feature was added or modified so we need to write out the
+                        // attribute
+                        // values from the feature
+                        Optional<RevObject> feature = geogit.command(RevObjectParse.class)
+                                .setObjectId(entry.newObjectId()).call();
+                        RevFeature revFeature = (RevFeature) feature.get();
+                        List<Optional<Object>> values = revFeature.getValues();
+                        for (int index = 0; index < values.size(); index++) {
+                            Optional<Object> value = values.get(index);
+                            PropertyDescriptor attrib = (PropertyDescriptor) attribs.toArray()[index];
+                            String stringValue = "";
+                            if (value.isPresent()) {
+                                FieldType attributeType = FieldType.forBinding(attrib.getType()
+                                        .getBinding());
+                                switch (attributeType) {
+                                case DATE:
+                                    stringValue = new SimpleDateFormat("MM/dd/yyyy z")
+                                            .format((java.sql.Date) value.get());
+                                    break;
+                                case DATETIME:
+                                    stringValue = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss z")
+                                            .format((Date) value.get());
+                                    break;
+                                case TIME:
+                                    stringValue = new SimpleDateFormat("HH:mm:ss z")
+                                            .format((Time) value.get());
+                                    break;
+                                case TIMESTAMP:
+                                    stringValue = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss z")
+                                            .format((Timestamp) value.get());
+                                    break;
+                                default:
+                                    stringValue = escapeCsv(value.get().toString());
+                                }
+                                response += "," + stringValue;
+                            } else {
+                                response += ",";
+                            }
+                        }
+                    }
+                    response += '\n';
+                    out.write(response);
+                    response = "";
+                }
+            }
+        } else {
+            // Couldn't resolve FeatureType
+            throw new CommandSpecException("Couldn't resolve the given path to a feature type.");
+        }
+    }
+
+    public class CommitWithChangeCounts {
         private final RevCommit commit;
 
         private final int adds;
@@ -294,7 +469,7 @@ public class Log extends AbstractWebAPICommand {
 
         private final int removes;
 
-        public CommitSummary(RevCommit commit, int adds, int modifies, int removes) {
+        public CommitWithChangeCounts(RevCommit commit, int adds, int modifies, int removes) {
             this.commit = commit;
             this.adds = adds;
             this.modifies = modifies;
@@ -316,5 +491,14 @@ public class Log extends AbstractWebAPICommand {
         public int getRemoves() {
             return removes;
         }
+    }
+
+    private String escapeCsv(String input) {
+        String returnStr = input.replace("\"", "\"\"");
+        if (input.contains("\"") || input.contains(",") || input.contains("\n")
+                || input.contains("\r")) {
+            returnStr = "\"" + returnStr + "\"";
+        }
+        return returnStr;
     }
 }

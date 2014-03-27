@@ -26,6 +26,7 @@ import org.geogit.web.api.CommandResponse;
 import org.geogit.web.api.CommandSpecException;
 import org.geogit.web.api.ParameterSet;
 import org.geogit.web.api.ResponseWriter;
+import org.geogit.web.api.StreamResponse;
 import org.geogit.web.api.WebAPICommand;
 import org.restlet.Context;
 import org.restlet.data.Form;
@@ -44,9 +45,14 @@ import com.google.common.base.Preconditions;
  */
 public class CommandResource extends Resource {
 
+    private static final MediaType CSV_MEDIA_TYPE = new MediaType("text/csv",
+            "Comma-separated Values");
+
     private static final Variant JSON = new Variant(MediaType.APPLICATION_JSON);
 
     private static final Variant XML = new Variant(MediaType.APPLICATION_XML);
+
+    private static final Variant CSV = new Variant(CSV_MEDIA_TYPE);
 
     @Override
     public void init(Context context, Request request, Response response) {
@@ -54,6 +60,7 @@ public class CommandResource extends Resource {
         List<Variant> variants = getVariants();
         variants.add(XML);
         variants.add(JSON);
+        variants.add(CSV);
     }
 
     @Override
@@ -65,6 +72,9 @@ public class CommandResource extends Resource {
         }
         if ("json".equals(extension)) {
             return JSON;
+        }
+        if ("csv".equals(extension)) {
+            return CSV;
         }
         return super.getPreferredVariant();
     }
@@ -112,8 +122,12 @@ public class CommandResource extends Resource {
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, "CommandSpecException", ex);
         }
+        if (format == CSV_MEDIA_TYPE) {
+            return new StreamWriterRepresentation(format, StreamResponse.error(ex.getMessage()));
+        }
         return new JettisonRepresentation(format, CommandResponse.error(ex.getMessage()),
                 getJSONPCallback());
+
     }
 
     private Representation formatUnexpectedException(Exception ex, MediaType format) {
@@ -129,6 +143,9 @@ public class CommandResource extends Resource {
             }
         }
         logger.log(Level.SEVERE, "Unexpected exception : " + uuid, ex);
+        if (format == CSV_MEDIA_TYPE) {
+            return new StreamWriterRepresentation(format, StreamResponse.error(stack));
+        }
         return new JettisonRepresentation(format, CommandResponse.error(stack), getJSONPCallback());
     }
 
@@ -145,6 +162,8 @@ public class CommandResource extends Resource {
                 retval = MediaType.APPLICATION_XML;
             } else if (requested.equalsIgnoreCase("json")) {
                 retval = MediaType.APPLICATION_JSON;
+            } else if (requested.equalsIgnoreCase("csv")) {
+                retval = CSV_MEDIA_TYPE;
             } else {
                 throw new RestletException("Invalid output_format '" + requested + "'",
                         org.restlet.data.Status.CLIENT_ERROR_BAD_REQUEST);
@@ -155,7 +174,9 @@ public class CommandResource extends Resource {
 
     static class RestletContext implements CommandContext {
 
-        CommandResponse responseContent;
+        CommandResponse responseContent = null;
+
+        StreamResponse streamContent = null;
 
         final GeoGIT geogit;
 
@@ -169,12 +190,28 @@ public class CommandResource extends Resource {
         }
 
         Representation getRepresentation(MediaType format, String callback) {
+            if (streamContent != null) {
+                if (format != CSV_MEDIA_TYPE) {
+                    throw new CommandSpecException(
+                            "Unsupported Media Type: This response is only compatible with text/csv.");
+                }
+                return new StreamWriterRepresentation(format, streamContent);
+            }
+            if (format != MediaType.APPLICATION_JSON && format != MediaType.APPLICATION_XML) {
+                throw new CommandSpecException(
+                        "Unsupported Media Type: This response is only compatible with application/json and application/xml.");
+            }
             return new JettisonRepresentation(format, responseContent, callback);
         }
 
         @Override
         public void setResponseContent(CommandResponse responseContent) {
             this.responseContent = responseContent;
+        }
+
+        @Override
+        public void setResponseContent(StreamResponse responseContent) {
+            this.streamContent = responseContent;
         }
     }
 
@@ -225,6 +262,25 @@ public class CommandResource extends Resource {
             }
             if (callback != null) {
                 writer.write(");");
+            }
+        }
+    }
+
+    static class StreamWriterRepresentation extends WriterRepresentation {
+
+        final StreamResponse impl;
+
+        public StreamWriterRepresentation(MediaType mediaType, StreamResponse impl) {
+            super(mediaType);
+            this.impl = impl;
+        }
+
+        @Override
+        public void write(Writer writer) throws IOException {
+            try {
+                impl.write(writer);
+            } catch (Exception e) {
+                throw new IOException(e);
             }
         }
     }
