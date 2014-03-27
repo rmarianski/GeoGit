@@ -57,9 +57,9 @@ import com.google.common.collect.Lists;
  * Multiple instances of this kind of data store may be created against the same repository,
  * possibly working against different {@link #setHead(String) heads}.
  * <p>
- * A head is any commit in GeoGit.  If a head has a branch pointing at it then
- * the store allows transactions, otherwise no data modifications may be made.
- *
+ * A head is any commit in GeoGit. If a head has a branch pointing at it then the store allows
+ * transactions, otherwise no data modifications may be made.
+ * 
  * A branch in Geogit is a separate line of history that may or may not share a common ancestor with
  * another branch. In the later case the branch is called "orphan" and by convention the default
  * branch is called "master", which is created when the geogit repo is first initialized, but does
@@ -113,19 +113,20 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
     /**
      * Instructs the datastore to operate against the specified refspec, or against the checked out
      * branch, whatever it is, if the argument is {@code null}.
-     *
+     * 
      * Editing capabilities are disabled if the refspec is not a local branch.
      * 
      * @param refspec the name of the branch to work against, or {@code null} to default to the
      *        currently checked out branch
      * @see #getConfiguredBranch()
      * @see #getOrFigureOutBranch()
-     * @throws IllegalArgumentException if {@code refspec} is not null and no such commit exists
-     *         in the repository
+     * @throws IllegalArgumentException if {@code refspec} is not null and no such commit exists in
+     *         the repository
      */
     public void setHead(@Nullable final String refspec) throws IllegalArgumentException {
         if (refspec != null) {
-            Optional<ObjectId> rev = getCommandLocator(null).command(RevParse.class).setRefSpec(refspec).call();
+            Optional<ObjectId> rev = getCommandLocator(null).command(RevParse.class)
+                    .setRefSpec(refspec).call();
             if (!rev.isPresent()) {
                 throw new IllegalArgumentException("Bad ref spec: " + refspec);
             }
@@ -137,7 +138,8 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
                 allowTransactions = false;
             }
         } else {
-            allowTransactions = true; // when no branch name is set we assume we should make transactions against the current HEAD
+            allowTransactions = true; // when no branch name is set we assume we should make
+                                      // transactions against the current HEAD
         }
         this.refspec = refspec;
     }
@@ -171,8 +173,8 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
     }
 
     /**
-     * @return the configured refspec of the commit this datastore works against, or {@code null} if no
-     *         head in particular has been set, meaning the data store works against whatever the
+     * @return the configured refspec of the commit this datastore works against, or {@code null} if
+     *         no head in particular has been set, meaning the data store works against whatever the
      *         currently checked out branch is.
      */
     @Nullable
@@ -327,7 +329,8 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
     @Override
     public void createSchema(SimpleFeatureType featureType) throws IOException {
         if (!allowTransactions) {
-            throw new IllegalStateException("Configured head " + refspec + " is not a branch; transactions are not supported.");
+            throw new IllegalStateException("Configured head " + refspec
+                    + " is not a branch; transactions are not supported.");
         }
         GeogitTransaction tx = getCommandLocator(null).command(TransactionBegin.class).call();
         boolean abort = false;
@@ -353,5 +356,21 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
                 tx.abort();
             }
         }
+    }
+
+    // Deliberately leaving the @Override annotation commented out so that the class builds
+    // both against GeoTools 10.x and 11.x (as the method was added to DataStore in 11.x)
+    // @Override
+    public void removeSchema(Name name) throws IOException {
+        throw new UnsupportedOperationException(
+                "removeSchema not yet supported by geogit DataStore");
+    }
+
+    // Deliberately leaving the @Override annotation commented out so that the class builds
+    // both against GeoTools 10.x and 11.x (as the method was added to DataStore in 11.x)
+    // @Override
+    public void removeSchema(String name) throws IOException {
+        throw new UnsupportedOperationException(
+                "removeSchema not yet supported by geogit DataStore");
     }
 }
