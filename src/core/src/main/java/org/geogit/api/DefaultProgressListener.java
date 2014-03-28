@@ -37,7 +37,7 @@ public class DefaultProgressListener implements ProgressListener {
      * 
      * By default, it has a value of 100, so it assumes that the progress value is a percent value
      */
-    protected float maxProgress;
+    protected float maxProgress = 100f;
 
     @Override
     public String getDescription() {
