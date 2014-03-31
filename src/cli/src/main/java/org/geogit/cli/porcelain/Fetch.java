@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import jline.console.ConsoleReader;
 
+import org.geogit.api.Ref;
 import org.geogit.api.porcelain.FetchOp;
 import org.geogit.api.porcelain.FetchResult;
 import org.geogit.api.porcelain.FetchResult.ChangedRef;
@@ -115,7 +116,8 @@ public class Fetch extends AbstractCommand implements CLICommand {
                                 + "     " + ref.getOldRef().localName() + " -> "
                                 + ref.getOldRef().getName();
                     } else if (ref.getType() == ChangeTypes.ADDED_REF) {
-                        line = " * [new branch]     " + ref.getNewRef().localName() + " -> "
+                        String reftype = (ref.getNewRef().getName().startsWith(Ref.TAGS_PREFIX)) ? "tag" : "branch";
+                        line = " * [new " + reftype + "]     " + ref.getNewRef().localName() + " -> "
                                 + ref.getNewRef().getName();
                     } else if (ref.getType() == ChangeTypes.REMOVED_REF) {
                         line = " x [deleted]        (none) -> " + ref.getOldRef().getName();

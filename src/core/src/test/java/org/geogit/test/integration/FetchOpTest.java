@@ -23,6 +23,7 @@ import org.geogit.api.porcelain.CloneOp;
 import org.geogit.api.porcelain.CommitOp;
 import org.geogit.api.porcelain.FetchOp;
 import org.geogit.api.porcelain.LogOp;
+import org.geogit.api.porcelain.TagCreateOp;
 import org.geogit.remote.RemoteRepositoryTestCase;
 import org.junit.Rule;
 import org.junit.Test;
@@ -91,6 +92,12 @@ public class FetchOpTest extends RemoteRepositoryTestCase {
         insertAndAdd(remoteGeogit.geogit, lines2);
         commit = remoteGeogit.geogit.command(CommitOp.class).call();
         expectedMaster.addFirst(commit);
+
+        remoteGeogit.geogit.command(TagCreateOp.class) //
+            .setMessage("TestTag") //
+            .setCommitId(commit.getId()) //
+            .setName("test") //
+            .call();
 
         // Make sure master has all of the commits
         logs = remoteGeogit.geogit.command(LogOp.class).call();
@@ -505,5 +512,4 @@ public class FetchOpTest extends RemoteRepositoryTestCase {
 
         assertTrue(missing.isPresent());
     }
-
 }

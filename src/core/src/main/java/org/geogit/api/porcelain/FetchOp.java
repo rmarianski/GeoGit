@@ -15,6 +15,7 @@ import org.geogit.api.Ref;
 import org.geogit.api.Remote;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.LsRemote;
+import org.geogit.api.plumbing.RefParse;
 import org.geogit.api.plumbing.UpdateRef;
 import org.geogit.api.plumbing.UpdateSymRef;
 import org.geogit.api.porcelain.ConfigOp.ConfigAction;
@@ -41,7 +42,6 @@ import com.google.inject.Inject;
 /**
  * Fetches named heads or tags from one or more other repositories, along with the objects necessary
  * to complete them.
- * 
  */
 public class FetchOp extends AbstractGeoGitOp<FetchResult> {
 
@@ -182,7 +182,7 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
             ProgressListener subProgress = this.subProgress(100.f / remotes.size());
             subProgress.started();
             final ImmutableSet<Ref> remoteRemoteRefs = command(LsRemote.class).setRemote(
-                    Suppliers.ofInstance(Optional.of(remote))).call();
+                    Suppliers.ofInstance(Optional.of(remote))).retrieveTags(!remote.getMapped() && !repoDepth.isPresent()).call();
             final ImmutableSet<Ref> localRemoteRefs = command(LsRemote.class)
                     .retrieveLocalRefs(true).setRemote(Suppliers.ofInstance(Optional.of(remote)))
                     .call();
@@ -195,6 +195,9 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
             if (prune) {
                 // Delete local refs that aren't in the remote
                 List<Ref> locals = new ArrayList<Ref>();
+                // only branches, not tags, appear in the remoteRemoteRefs list so we will not catch
+                // any tags in this check.  However, we do not track which remote originally
+                // provided a tag so it makes sense not to prune them anyway.
                 for (Ref remoteRef : remoteRemoteRefs) {
                     Optional<Ref> localRef = findLocal(remoteRef, localRemoteRefs);
                     if (localRef.isPresent()) {
@@ -241,8 +244,13 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
 
                         if (repoDepth.isPresent()) {
                             // Update the repository depth if it is deeper than before.
-                            int newDepth = localRepository.getGraphDatabase().getDepth(
-                                    ref.getNewRef().getObjectId());
+                            int newDepth;
+                            try {
+                                newDepth = localRepository.getGraphDatabase().getDepth(
+                                        ref.getNewRef().getObjectId());
+                            } catch (IllegalStateException e) {
+                                throw new RuntimeException(ref.toString(), e);
+                            }
 
                             if (newDepth > repoDepth.get()) {
                                 command(ConfigOp.class).setAction(ConfigAction.CONFIG_SET)
@@ -372,11 +380,15 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
      *        {@code refs/remotes/<remote name>/} namespace
      */
     private Optional<Ref> findLocal(Ref remoteRef, ImmutableSet<Ref> localRemoteRefs) {
-        for (Ref localRef : localRemoteRefs) {
-            if (localRef.localName().equals(remoteRef.localName())) {
-                return Optional.of(localRef);
+        if (remoteRef.getName().startsWith(Ref.TAGS_PREFIX)) {
+            return command(RefParse.class).setName(remoteRef.getName()).call();
+        } else {
+            for (Ref localRef : localRemoteRefs) {
+                if (localRef.localName().equals(remoteRef.localName())) {
+                    return Optional.of(localRef);
+                }
             }
+            return Optional.absent();
         }
-        return Optional.absent();
     }
 }
