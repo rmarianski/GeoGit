@@ -56,6 +56,7 @@ import org.geogit.api.plumbing.diff.Patch;
 import org.geogit.api.plumbing.diff.PatchSerializer;
 import org.geogit.api.porcelain.MergeConflictsException;
 import org.geogit.api.porcelain.MergeOp;
+import org.geogit.api.porcelain.TagCreateOp;
 import org.geogit.repository.Hints;
 import org.geogit.repository.WorkingTree;
 import org.junit.rules.TemporaryFolder;
@@ -192,6 +193,16 @@ public class DefaultStepDefinitions {
         assertEquals(refValue.get().getObjectId(), ObjectId.NULL);
     }
 
+    @Given("^I have a remote tag called \"([^\"]*)\"$")
+    public void i_have_a_remote_tag_called(String expected) throws Throwable {
+        geogitCLI.getGeogit(Hints.readWrite()) //
+                .command(TagCreateOp.class) //
+                .setName(expected) //
+                .setMessage("Tagged " + expected) //
+                .setCommitId(ObjectId.NULL) //
+                .call();
+    }
+
     @Given("^I have an unconfigured repository$")
     public void I_have_an_unconfigured_repository() throws Throwable {
         setUpDirectories();
@@ -293,6 +304,42 @@ public class DefaultStepDefinitions {
         runCommand(true, "commit -m Commit4");
         insertAndAdd(lines2);
         runCommand(true, "commit -m Commit5");
+
+        platform.setWorkingDir(currDir);
+        setupGeogit();
+    }
+
+    @Given("^there is a remote repository with a tag named \"([^\"]*)\"$")
+    public void there_is_a_remote_repository_with_a_tag_named(String tagName) throws Throwable {
+        I_am_in_an_empty_directory();
+
+        final File currDir = platform.pwd();
+
+        List<String> output = runAndParseCommand(true, "init", "remoterepo");
+
+        assertEquals(output.toString(), 1, output.size());
+        assertNotNull(output.get(0));
+        assertTrue(output.get(0), output.get(0).startsWith("Initialized"));
+
+        final File remoteRepo = new File(currDir, "remoterepo");
+        GlobalState.remoteRepo = remoteRepo;
+        platform.setWorkingDir(remoteRepo);
+        setupGeogit();
+        runCommand(true, "config", "--global", "user.name", "John Doe");
+        runCommand(true, "config", "--global", "user.email", "JohnDoe@example.com");
+        insertAndAdd(points1);
+        runCommand(true, "commit -m Commit1");
+        runCommand(true, "branch -c branch1");
+        insertAndAdd(points2);
+        runCommand(true, "commit -m Commit2");
+        insertAndAdd(points3);
+        runCommand(true, "commit -m Commit3");
+        runCommand(true, "checkout master");
+        insertAndAdd(lines1);
+        runCommand(true, "commit -m Commit4");
+        insertAndAdd(lines2);
+        runCommand(true, "commit -m Commit5");
+        runCommand(true, "tag " + tagName + " -m Created_" + tagName + "");
 
         platform.setWorkingDir(currDir);
         setupGeogit();

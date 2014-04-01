@@ -182,7 +182,7 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
             ProgressListener subProgress = this.subProgress(100.f / remotes.size());
             subProgress.started();
             final ImmutableSet<Ref> remoteRemoteRefs = command(LsRemote.class).setRemote(
-                    Suppliers.ofInstance(Optional.of(remote))).retrieveTags(!remote.getMapped() && !repoDepth.isPresent()).call();
+                    Suppliers.ofInstance(Optional.of(remote))).retrieveTags(!remote.getMapped() && (!repoDepth.isPresent() || fullDepth)).call();
             final ImmutableSet<Ref> localRemoteRefs = command(LsRemote.class)
                     .retrieveLocalRefs(true).setRemote(Suppliers.ofInstance(Optional.of(remote)))
                     .call();
@@ -242,7 +242,7 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
                         // Fetch updated data from this ref
                         remoteRepoInstance.fetchNewData(ref.getNewRef(), newFetchLimit);
 
-                        if (repoDepth.isPresent()) {
+                        if (repoDepth.isPresent() && !fullDepth) {
                             // Update the repository depth if it is deeper than before.
                             int newDepth;
                             try {

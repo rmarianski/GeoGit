@@ -68,3 +68,10 @@ Feature: "fetch" command
       And the response should contain "origin/branch1"
       And the response should not contain "origin/branch2"
       And the response should contain "origin/HEAD"
+
+  Scenario: Try to fetch a tag
+    Given I am in an empty directory
+      And there is a remote repository with a tag named "example"
+     When I run the command "clone remoterepo localrepo"
+      And I run the command "tag"
+     Then the response should contain "example"
