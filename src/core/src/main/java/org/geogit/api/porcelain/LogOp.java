@@ -5,20 +5,25 @@
 package org.geogit.api.porcelain;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.geogit.api.AbstractGeoGitOp;
+import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
+import org.geogit.api.RevTree;
+import org.geogit.api.plumbing.FindTreeChild;
 import org.geogit.api.plumbing.RevParse;
-import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.di.CanRunDuringConflict;
 import org.geogit.repository.Repository;
 import org.geogit.storage.GraphDatabase;
@@ -27,7 +32,6 @@ import org.geotools.util.Range;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
@@ -489,11 +493,13 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
 
         private final Range<Long> timeRange;
 
-        private final Set<String> paths;
+        private final Map<String, ObjectId> paths;
 
         private Pattern author;
 
         private Pattern committer;
+
+        private FindTreeChild findTreeChild;
 
         /**
          * Constructs a new {@code LogFilter} with the given parameters.
@@ -511,9 +517,20 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
             Preconditions.checkNotNull(timeRange);
             this.oldestCommitId = oldestCommitId;
             this.timeRange = timeRange;
-            this.paths = paths;
             this.author = author;
             this.committer = commiter;
+            if (paths != null && paths.size() > 0) {
+                findTreeChild = command(FindTreeChild.class);
+                // We can determine if the path was affected by comparing the hash of the node with
+                // the hash of the node in the parent tree, this map stores the most recent hash.
+                // Specifying null as the hash will cause the first commit to find the first hash.
+                this.paths = new HashMap<String, ObjectId>();
+                for (String path : paths) {
+                    this.paths.put(path, null);
+                }
+            } else {
+                this.paths = null;
+            }
         }
 
         /**
@@ -548,31 +565,56 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
             if (!applies) {
                 return false;
             }
-            if (paths != null && paths.size() > 0) {
+            if (paths != null) {
+                applies = false;
                 // did this commit touch any of the paths?
-                for (String path : paths) {
-                    DiffOp diff = command(DiffOp.class);
-                    ObjectId parentId = commit.parentN(0).or(ObjectId.NULL);
-                    if (!parentId.equals(ObjectId.NULL) && !repository.commitExists(parentId)) {
-                        // we have reached the bottom of a shallow clone. We "fake" it and pretend
-                        // it is the real first commit of the repo
-                        parentId = ObjectId.NULL;
-                    }
-                    Iterator<DiffEntry> diffResult;
-                    try {
-                        diff.setOldVersion(parentId).setNewVersion(commit.getId()).setFilter(path);
-                        diffResult = diff.call();
-                        applies = diffResult.hasNext();
-                        if (applies) {
+                ObjectId parentId = commit.parentN(0).or(ObjectId.NULL);
+                if (parentId.equals(ObjectId.NULL) || !repository.commitExists(parentId)) {
+                    // we have reached the bottom of a shallow clone or the end of history.
+                    for (String path : paths.keySet()) {
+                        ObjectId value = paths.get(path);
+                        if (value == null) {
+                            // First commit we are processing
+                            RevTree commitTree = repository.getTree(commit.getTreeId());
+                            value = getPathHash(commitTree, path);
+                        }
+                        if (!value.equals(ObjectId.NULL)) {
+                            applies = true;
                             break;
                         }
-                    } catch (Exception e) {
-                        Throwables.propagate(e);
+                    }
+                } else {
+                    RevTree parentTree = repository.getTree(repository.getCommit(parentId)
+                            .getTreeId());
+                    ObjectId hash = ObjectId.NULL;
+                    ObjectId compare = null;
+                    for (String path : paths.keySet()) {
+                        compare = paths.get(path);
+                        if (compare == null) {
+                            // First commit we are processing
+                            RevTree commitTree = repository.getTree(commit.getTreeId());
+                            paths.put(path, getPathHash(commitTree, path));
+                        }
+                        hash = getPathHash(parentTree, path);
+                        if (!hash.equals(paths.get(path))) {
+                            applies = true;
+                            paths.put(path, hash);
+                            break;
+                        }
                     }
                 }
             }
 
             return applies;
+        }
+
+        private ObjectId getPathHash(RevTree tree, String path) {
+            ObjectId hash = ObjectId.NULL;
+            Optional<NodeRef> ref = findTreeChild.setChildPath(path).setParent(tree).call();
+            if (ref.isPresent()) {
+                hash = ref.get().getNode().getObjectId();
+            }
+            return hash;
         }
     }
 

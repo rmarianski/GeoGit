@@ -81,17 +81,20 @@ public class BlameOp extends AbstractGeoGitOp<BlameReport> {
 
         Iterator<RevCommit> log = command(LogOp.class).addPath(path).setUntil(commit).call();
         RevCommit commit = log.next();
+        RevObjectParse revObjectParse = command(RevObjectParse.class);
+        DiffOp diffOp = command(DiffOp.class);
+        DiffFeature diffFeature = command(DiffFeature.class);
 
         while (!report.isComplete()) {
             if (!log.hasNext()) {
                 String refSpec = commit.getId().toString() + ":" + path;
-                RevFeature feature = command(RevObjectParse.class).setRefSpec(refSpec)
-                        .call(RevFeature.class).get();
+                RevFeature feature = revObjectParse.setRefSpec(refSpec).call(RevFeature.class)
+                        .get();
                 report.setFirstVersion(feature, commit);
                 break;
             }
             RevCommit commitB = log.next();
-            Iterator<DiffEntry> diffs = command(DiffOp.class).setNewVersion(commit.getId())
+            Iterator<DiffEntry> diffs = diffOp.setNewVersion(commit.getId())
                     .setOldVersion(commitB.getId()).setReportTrees(false).call();
 
             while (diffs.hasNext()) {
@@ -99,12 +102,12 @@ public class BlameOp extends AbstractGeoGitOp<BlameReport> {
                 if (path.equals(diff.newPath())) {
                     if (diff.isAdd()) {
                         String refSpec = commit.getId().toString() + ":" + path;
-                        RevFeature feature = command(RevObjectParse.class).setRefSpec(refSpec)
+                        RevFeature feature = revObjectParse.setRefSpec(refSpec)
                                 .call(RevFeature.class).get();
                         report.setFirstVersion(feature, commit);
                         break;
                     }
-                    FeatureDiff featureDiff = command(DiffFeature.class)
+                    FeatureDiff featureDiff = diffFeature
                             .setNewVersion(Suppliers.ofInstance(diff.getNewObject()))
                             .setOldVersion(Suppliers.ofInstance(diff.getOldObject())).call();
                     Map<PropertyDescriptor, AttributeDiff> attribDiffs = featureDiff.getDiffs();
