@@ -48,7 +48,7 @@ copyright = u'2013, GeoGit Contributors'
 # built documents.
 #
 # The short X.Y version.
-version = '0.7-SNAPSHOT'
+version = '0.7.1'
 # The full version, including alpha/beta/rc tags.
 release = '0.7'
 
