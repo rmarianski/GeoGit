@@ -138,6 +138,12 @@ public class BatchedObjectResource extends Finder {
         public void write(OutputStream out) throws IOException {
         	try {
         		packer.write(out, want, have, false, deduplicator);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw e;
+                } catch (RuntimeException e) {
+                    e.printStackTrace();
+                    throw e;
         	} finally {
         		deduplicator.release();
         	}

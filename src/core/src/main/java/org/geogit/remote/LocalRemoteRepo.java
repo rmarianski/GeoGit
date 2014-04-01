@@ -18,6 +18,7 @@ import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject;
 import org.geogit.api.RevObject.TYPE;
+import org.geogit.api.RevTag;
 import org.geogit.api.RevTree;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.ForEachRef;
@@ -147,7 +148,7 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
         try {
             traverser.traverse(ref.getObjectId());
             while (!traverser.commits.isEmpty()) {
-                walkCommit(traverser.commits.pop(), true);
+                walkHead(traverser.commits.pop(), true);
             }
 
         } catch (Exception e) {
@@ -178,7 +179,7 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
         try {
             traverser.traverse(ref.getObjectId());
             while (!traverser.commits.isEmpty()) {
-                walkCommit(traverser.commits.pop(), false);
+                walkHead(traverser.commits.pop(), false);
             }
 
             Ref updatedRef = remoteGeoGit.command(UpdateRef.class).setName(refspec)
@@ -216,23 +217,39 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
         remoteGeoGit.command(UpdateRef.class).setName(refspec).setDelete(true).call();
     }
 
-    protected void walkCommit(ObjectId commitId, boolean fetch) {
+    protected void walkHead(ObjectId headId, boolean fetch) {
         Repository from = localRepository;
         Repository to = remoteGeoGit.getRepository();
         if (fetch) {
-            from = to;
-            to = localRepository;
+            Repository tmp = to;
+            to = from;
+            from = tmp;
         }
         ObjectInserter objectInserter = to.newObjectInserter();
+        Optional<RevObject> object = from.command(RevObjectParse.class).setObjectId(headId).call();
 
+        if (object.isPresent()) {
+            if (object.get().getType().equals(TYPE.COMMIT)) {
+                RevCommit commit = (RevCommit) object.get();
+                walkTree(commit.getTreeId(), from, to, objectInserter);
+            } else if (object.get().getType().equals(TYPE.TAG)) {
+                RevTag tag = (RevTag) object.get();
+                walkCommit(tag.getCommitId(), from, to, objectInserter);
+            }
+            objectInserter.insert(object.get());
+            touchedIds.add(headId);
+        }
+    }
+
+    protected void walkCommit(ObjectId commitId, Repository from, Repository to, ObjectInserter objectInserter) {
         Optional<RevObject> object = from.command(RevObjectParse.class).setObjectId(commitId)
                 .call();
         if (object.isPresent() && object.get().getType().equals(TYPE.COMMIT)) {
-            RevCommit commit = (RevCommit) object.get();
-            walkTree(commit.getTreeId(), from, to, objectInserter);
+               RevCommit commit = (RevCommit) object.get();
+               walkTree(commit.getTreeId(), from, to, objectInserter);
 
-            objectInserter.insert(commit);
-            touchedIds.add(commitId);
+               objectInserter.insert(commit);
+               touchedIds.add(commitId);
         }
     }
 
