@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.geogit.api.Ref;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 
 /**
@@ -64,5 +65,20 @@ public class FetchResult {
             this.type = type;
         }
 
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(ChangedRef.class) //
+                .addValue(type) //
+                .addValue(oldRef) //
+                .addValue(newRef) //
+                .toString();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(FetchResult.class) //
+            .addValue(getChangedRefs()) //
+            .toString();
     }
 }
