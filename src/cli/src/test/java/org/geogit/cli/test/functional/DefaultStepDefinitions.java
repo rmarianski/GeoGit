@@ -507,6 +507,18 @@ public class DefaultStepDefinitions {
         writer.close();
     }
 
+    @Given("^I have an insert file$")
+    public void I_have_an_insert_file() throws Throwable {
+        File file = new File(platform.pwd(), "insert");
+        BufferedWriter writer = Files.newWriter(file, Charsets.UTF_8);
+        writer.write("Points/Points.1\n");
+        writer.write("sp\tNew_String\n");
+        writer.write("ip\t1001\n");
+        writer.write("pp\tPOINT(2 2)\n");
+        writer.flush();
+        writer.close();
+    }
+
     @Given("^I am inside a repository subdirectory \"([^\"]*)\"$")
     public void I_am_inside_a_repository_subdirectory(String subdirSpec) throws Throwable {
         String[] subdirs = subdirSpec.split("/");
