@@ -61,7 +61,7 @@ abstract class CacheFactory {
         final int concurrencyLevel = getConfig("concurrencyLevel", 0);
         if (concurrencyLevel == 0) {
             this.cache = new SimpleCache<ObjectId, RevObject>(maxSize);
-            LOGGER.info("Cache '{}' configured with maxSize: {}", configKeywordPrefix, maxSize);
+            LOGGER.debug("Cache '{}' configured with maxSize: {}", configKeywordPrefix, maxSize);
             return;
         }
 
@@ -94,7 +94,7 @@ abstract class CacheFactory {
         LOGGER.debug("checking if cache {} is enabled...", configKeywordPrefix);
         final boolean enabled = getConfig("enabled", Boolean.TRUE);
         if (!enabled) {
-            LOGGER.info("Cache {} is disabled", configKeywordPrefix);
+            LOGGER.debug("Cache {} is disabled", configKeywordPrefix);
         }
         return enabled;
     }
