@@ -342,7 +342,7 @@ public class Log extends AbstractWebAPICommand {
     }
 
     private void writeCSV(GeoGIT geogit, Writer out, Iterator<RevCommit> log) throws Exception {
-        String response = "ChangeType,CommitId,Parent CommitIds,Author Name,Author Email,Author Commit Time,Committer Name,Committer Email,Committer Commit Time,Commit Message";
+        String response = "ChangeType,FeatureId,CommitId,Parent CommitIds,Author Name,Author Email,Author Commit Time,Committer Name,Committer Email,Committer Commit Time,Commit Message";
         out.write(response);
         response = "";
         String path = paths.get(0);
@@ -377,6 +377,17 @@ public class Log extends AbstractWebAPICommand {
                 while (diff.hasNext()) {
                     DiffEntry entry = diff.next();
                     response += entry.changeType().toString() + ",";
+                    String fid = "";
+                    if (entry.newPath() != null) {
+                        if (entry.oldPath() != null) {
+                            fid = entry.oldPath() + " -> " + entry.newPath();
+                        } else {
+                            fid = entry.newPath();
+                        }
+                    } else if (entry.oldPath() != null) {
+                        fid = entry.oldPath();
+                    }
+                    response += fid + ",";
                     response += commit.getId().toString() + ",";
                     response += parentId;
                     if (commit.getParentIds().size() > 1) {
