@@ -18,7 +18,7 @@ The ls-tree command replaces the ``ls`` command and shows a list of elements (tr
 
 ::
 
-	<feature_type_id> <blank_space> <element_type<feature|tree>> <feature_id> <blank_space> <xmin;xmax;ymin;ymax> <blank_space> <path> [<blank_space> <size> <blank_space> [num_trees]
+	<feature_type_id> <blank_space> <element_type<feature|tree>> <object_id> <blank_space> <path> <blank_space> <xmin;xmax;ymin;ymax> [<blank_space> <size> <blank_space> num_trees]
 
 Size and number of trees are only printed if the eeent described is a tree 
 
