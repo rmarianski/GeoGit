@@ -126,6 +126,8 @@ public class Pull extends AbstractCommand implements CLICommand {
             if (result.getOldRef() != null && result.getNewRef() != null
                     && result.getOldRef().equals(result.getNewRef())) {
                 console.println("Already up to date.");
+            } else if (result.getOldRef() == null && result.getNewRef() == null) {
+                console.println("Nothing to pull.");
             } else {
                 Iterator<DiffEntry> iter;
                 if (result.getOldRef() == null) {

@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.util.List;
 
 import org.geogit.api.GeoGIT;
+import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
 import org.geogit.api.RevTag;
 import org.geogit.api.SymRef;
@@ -70,21 +71,24 @@ public class ManifestResource extends Resource {
 
             // Print out HEAD first
             final Ref currentHead = ggit.command(RefParse.class).setName(Ref.HEAD).call().get();
-
-            w.write(currentHead.getName() + " ");
-            if (currentHead instanceof SymRef) {
-                w.write(((SymRef) currentHead).getTarget());
+            if (!currentHead.getObjectId().equals(ObjectId.NULL)) {
+                w.write(currentHead.getName() + " ");
+                if (currentHead instanceof SymRef) {
+                    w.write(((SymRef) currentHead).getTarget());
+                }
+                w.write(" ");
+                w.write(currentHead.getObjectId().toString());
+                w.write("\n");
             }
-            w.write(" ");
-            w.write(currentHead.getObjectId().toString());
-            w.write("\n");
 
             // Print out the local branches
             for (Ref ref : refs) {
-                w.write(ref.getName());
-                w.write(" ");
-                w.write(ref.getObjectId().toString());
-                w.write("\n");
+                if (!ref.getObjectId().equals(ObjectId.NULL)) {
+                    w.write(ref.getName());
+                    w.write(" ");
+                    w.write(ref.getObjectId().toString());
+                    w.write("\n");
+                }
             }
             // Print out the tags
             for (RevTag tag : tags) {
@@ -95,8 +99,6 @@ public class ManifestResource extends Resource {
                 w.write("\n");
             }
             w.flush();
-
         }
-
     }
 }
