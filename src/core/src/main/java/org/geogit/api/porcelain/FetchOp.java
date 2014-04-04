@@ -274,8 +274,9 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
                 // Update HEAD ref
                 if (!remote.getMapped()) {
                     Ref remoteHead = remoteRepoInstance.headRef();
-
-                    updateLocalRef(remoteHead, remote, localRemoteRefs);
+                    if (remoteHead != null) {
+                        updateLocalRef(remoteHead, remote, localRemoteRefs);
+                    }
                 }
             } finally {
                 try {

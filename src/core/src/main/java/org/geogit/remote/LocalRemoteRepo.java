@@ -104,7 +104,11 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
         final Optional<Ref> currHead = remoteGeoGit.command(RefParse.class).setName(Ref.HEAD)
                 .call();
         Preconditions.checkState(currHead.isPresent(), "Remote repository has no HEAD.");
-        return currHead.get();
+        if (currHead.get().getObjectId().equals(ObjectId.NULL)) {
+            return null;
+        } else {
+            return currHead.get();
+        }
     }
 
     /**
@@ -119,6 +123,9 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
         Predicate<Ref> filter = new Predicate<Ref>() {
             @Override
             public boolean apply(Ref input) {
+                if (input.getObjectId().equals(ObjectId.NULL)) {
+                    return false;
+                }
                 boolean keep = false;
                 if (getHeads) {
                     keep = input.getName().startsWith(Ref.HEADS_PREFIX);
