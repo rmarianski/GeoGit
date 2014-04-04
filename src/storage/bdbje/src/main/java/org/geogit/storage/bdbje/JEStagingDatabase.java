@@ -4,6 +4,9 @@
  */
 package org.geogit.storage.bdbje;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -25,7 +28,6 @@ import org.geogit.storage.ObjectSerializingFactory;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.base.Throwables;
@@ -64,6 +66,8 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
 
     private ConfigDatabase configDB;
 
+    private File repositoryDirectory;
+
     /**
      * @param referenceDatabase the repository reference database, used to get the head re
      * @param repoDb
@@ -97,6 +101,19 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
         });
     }
 
+    @Override
+    public void open() {
+        super.open();
+        Optional<URL> repoPath = new ResolveGeogitDir(platform).call();
+        try {
+            File repoLocation = new File(repoPath.get().toURI());
+            this.repositoryDirectory = repoLocation;
+        } catch (URISyntaxException e1) {
+            Throwables.propagate(e1);
+        }
+
+    }
+
     // TODO:
     // *****************************************************************************************
     // The following methods are a temporary implementation of conflict storage that relies on a
@@ -111,15 +128,18 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
      * @return the list of conflicts
      */
     @Override
-    public List<Conflict> getConflicts(@Nullable String namespace, final String pathFilter) {
-        Optional<File> conflictsFile = findOrCreateConflictsFile(namespace);
-        if (!conflictsFile.isPresent()) {
+    public List<Conflict> getConflicts(@Nullable String namespace, @Nullable final String pathFilter) {
+        final Object monitor = resolveConflictsMonitor(namespace);
+        if (null == monitor) {
             return ImmutableList.of();
         }
-        File file = conflictsFile.get();
-        List<Conflict> conflicts = Lists.newArrayList();
-        try {
-            synchronized (file.getCanonicalPath().intern()) {
+        synchronized (monitor) {
+            final File file = resolveConflictsFile(namespace);
+            if (null == file || !file.exists() || file.length() == 0) {
+                return ImmutableList.of();
+            }
+            List<Conflict> conflicts;
+            try {
                 conflicts = Files.readLines(file, Charsets.UTF_8,
                         new LineProcessor<List<Conflict>>() {
                             List<Conflict> conflicts = Lists.newArrayList();
@@ -140,11 +160,11 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
                                 return true;
                             }
                         });
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
             }
-        } catch (IOException e) {
-            throw Throwables.propagate(e);
+            return conflicts;
         }
-        return conflicts;
     }
 
     /**
@@ -155,13 +175,36 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
      */
     @Override
     public void addConflict(@Nullable String namespace, Conflict conflict) {
-        Optional<File> file = findOrCreateConflictsFile(namespace);
-        Preconditions.checkState(file.isPresent());
-        try {
-            Files.append(conflict.toString() + "\n", file.get(), Charsets.UTF_8);
-        } catch (IOException e) {
-            throw Throwables.propagate(e);
+        final Object monitor = resolveConflictsMonitor(namespace);
+        checkState(monitor != null,
+                "Either not inside a repository directory or the staging area is closed");
+        synchronized (monitor) {
+            Optional<File> fileOp = findOrCreateConflictsFile(namespace);
+            checkState(fileOp.isPresent());
+            try {
+                final File file = fileOp.get();
+                Files.append(conflict.toString() + "\n", file, Charsets.UTF_8);
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
         }
+    }
+
+    /**
+     * @return the object to synchronize on, or null if not inside a geogit repository
+     */
+    @Nullable
+    private Object resolveConflictsMonitor(@Nullable final String namespace) {
+        final File file = resolveConflictsFile(namespace);
+        Object monitor = null;
+        if (file != null) {
+            try {
+                monitor = file.getCanonicalPath().intern();
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+        return monitor;
     }
 
     /**
@@ -171,26 +214,34 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
      * @param path the path of feature whose conflict should be removed
      */
     @Override
-    public void removeConflict(@Nullable String namespace, String path) {
-        List<Conflict> conflicts = getConflicts(namespace, null);
-        Optional<File> file = findOrCreateConflictsFile(namespace);
-        Preconditions.checkState(file.isPresent());
+    public void removeConflict(@Nullable String namespace, final String path) {
+        checkNotNull(path, "path is null");
+        final Object monitor = resolveConflictsMonitor(namespace);
+        checkState(monitor != null,
+                "Either not inside a repository directory or the staging area is closed");
+        synchronized (monitor) {
+            final File file = resolveConflictsFile(namespace);
+            if (file == null || !file.exists()) {
+                return;
+            }
+            try {
+                List<Conflict> conflicts = getConflicts(namespace, null);
 
-        StringBuilder sb = new StringBuilder();
-        try {
-            for (Conflict conflict : conflicts) {
-                if (!path.equals(conflict.getPath())) {
-                    sb.append(conflict.toString() + "\n");
+                StringBuilder sb = new StringBuilder();
+                for (Conflict conflict : conflicts) {
+                    if (!path.equals(conflict.getPath())) {
+                        sb.append(conflict.toString() + "\n");
+                    }
                 }
+                String s = sb.toString();
+                if (s.isEmpty()) {
+                    file.delete();
+                } else {
+                    Files.write(s, file, Charsets.UTF_8);
+                }
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
             }
-            String s = sb.toString();
-            if (!s.isEmpty()) {
-                Files.write(s, file.get(), Charsets.UTF_8);
-            } else {
-                file.get().delete();
-            }
-        } catch (IOException e) {
-            throw Throwables.propagate(e);
         }
     }
 
@@ -203,66 +254,79 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
      */
     @Override
     public Optional<Conflict> getConflict(@Nullable String namespace, final String path) {
-        Optional<File> file = findOrCreateConflictsFile(namespace);
-        if (!file.isPresent()) {
+        final Object monitor = resolveConflictsMonitor(namespace);
+        if (null == monitor) {
             return Optional.absent();
         }
-        Conflict conflict = null;
-        try {
-            File conflictsFile = file.get();
-            synchronized (conflictsFile.getCanonicalPath().intern()) {
-                conflict = Files.readLines(conflictsFile, Charsets.UTF_8,
-                        new LineProcessor<Conflict>() {
-                            Conflict conflict = null;
-
-                            @Override
-                            public Conflict getResult() {
-                                return conflict;
-                            }
-
-                            @Override
-                            public boolean processLine(String s) throws IOException {
-                                Conflict c = Conflict.valueOf(s);
-                                if (c.getPath().equals(path)) {
-                                    conflict = c;
-                                    return false;
-                                } else {
-                                    return true;
-                                }
-                            }
-                        });
+        synchronized (monitor) {
+            File file = resolveConflictsFile(namespace);
+            if (file == null || !file.exists()) {
+                return Optional.absent();
             }
-        } catch (IOException e) {
-            throw Throwables.propagate(e);
+            Conflict conflict = null;
+            try {
+                conflict = Files.readLines(file, Charsets.UTF_8, new LineProcessor<Conflict>() {
+                    Conflict conflict = null;
+
+                    @Override
+                    public Conflict getResult() {
+                        return conflict;
+                    }
+
+                    @Override
+                    public boolean processLine(String s) throws IOException {
+                        Conflict c = Conflict.valueOf(s);
+                        if (c.getPath().equals(path)) {
+                            conflict = c;
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }
+                });
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+            return Optional.fromNullable(conflict);
         }
-        return Optional.fromNullable(conflict);
     }
 
     private Optional<File> findOrCreateConflictsFile(@Nullable String namespace) {
+        final Object monitor = resolveConflictsMonitor(namespace);
+        checkState(Thread.holdsLock(monitor));
+
+        final File file = resolveConflictsFile(namespace);
+        if (null == file) {
+            return Optional.absent();
+        }
+
+        if (!file.exists()) {
+            try {
+                Files.createParentDirs(file);
+                file.createNewFile();
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+
+        return Optional.of(file);
+    }
+
+    /**
+     * @return {@code null} if the database is closed or its location cannot be determined, the
+     *         conflicts file that belongs to the given namespace otherwise, which may or may not
+     *         exist
+     */
+    @Nullable
+    private File resolveConflictsFile(@Nullable String namespace) {
         if (namespace == null) {
             namespace = "conflicts";
         }
-        Optional<File> conflicts = Optional.absent();
+        File file = null;
         if (isOpen()) {
-            Optional<URL> repoPath = new ResolveGeogitDir(platform).call();
-            File file = null;
-            try {
-                file = new File(repoPath.get().toURI());
-            } catch (URISyntaxException e1) {
-                Throwables.propagate(e1);
-            }
-            file = new File(file, namespace);
-            if (!file.exists()) {
-                try {
-                    file.getParentFile().mkdirs();
-                    file.createNewFile();
-                } catch (IOException e) {
-                    throw Throwables.propagate(e);
-                }
-            }
-            conflicts = Optional.of(file);
+            file = new File(repositoryDirectory, namespace);
         }
-        return conflicts;
+        return file;
     }
 
     /**
@@ -272,9 +336,14 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
      */
     @Override
     public void removeConflicts(@Nullable String namespace) {
-        Optional<File> file = findOrCreateConflictsFile(namespace);
-        if (file.isPresent()) {
-            file.get().delete();
+        final Object monitor = resolveConflictsMonitor(namespace);
+        checkState(monitor != null,
+                "Either not inside a repository directory or the staging area is closed");
+        synchronized (monitor) {
+            File file = resolveConflictsFile(namespace);
+            if (file != null && file.exists()) {
+                checkState(file.delete(), "Unable to delete conflicts file %s", file);
+            }
         }
     }
 

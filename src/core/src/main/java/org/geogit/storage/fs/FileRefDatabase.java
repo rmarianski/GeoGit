@@ -11,6 +11,8 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.geogit.api.Ref.append;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -208,6 +210,7 @@ public class FileRefDatabase extends AbstractRefDatabase {
 
     private String readRef(final File refFile) {
         try {
+            // make sure no other thread changes the ref as we read it
             synchronized (refFile.getCanonicalPath().intern()) {
                 return Files.readFirstLine(refFile, CHARSET);
             }
@@ -216,20 +219,32 @@ public class FileRefDatabase extends AbstractRefDatabase {
         }
     }
 
+    /**
+     * @param refName the full name of the ref (e.g.
+     *        {@code refs/heads/master, HEAD, transaction/<tx id>/refs/orig/refs/heads/master, etc.}
+     * @param refValue
+     */
     private void store(String refName, String refValue) {
         final File refFile = toFile(refName);
-        final File tmpFile = new File(refFile.getParentFile(), "." + refFile.getName() + ".tmp");
-
         try {
-            Files.createParentDirs(tmpFile);
-            Files.write(refValue + "\n", tmpFile, CHARSET);
-            boolean renamed;
             synchronized (refFile.getCanonicalPath().intern()) {
-                refFile.delete();
-                renamed = tmpFile.renameTo(refFile);
+                Files.createParentDirs(refFile);
+                checkState(refFile.exists() || refFile.createNewFile(),
+                        "Unable to create file for ref %s", refFile);
+
+                FileOutputStream fout = new FileOutputStream(refFile);
+                try {
+                    FileDescriptor fd = fout.getFD();
+                    fout.write((refValue + "\n").getBytes(CHARSET));
+                    fout.flush();
+                    // force change to be persisted to disk
+                    fd.sync();
+                } finally {
+                    fout.close();
+                }
             }
-            checkState(renamed, "unable to save ref " + refName);
         } catch (IOException e) {
+            e.printStackTrace();
             throw Throwables.propagate(e);
         }
     }
@@ -276,14 +291,15 @@ public class FileRefDatabase extends AbstractRefDatabase {
         addAll(nsDir, namespace, target);
     }
 
-    private void addAll(File nsDir, String prefix, Map<String, String> target) {
+    private void addAll(File nsDir, String prefix, Map<String/* name */, String/* value */> target) {
         File[] children = nsDir.listFiles();
         for (File f : children) {
+            final String fileName = f.getName();
             if (f.isDirectory()) {
-                String namespace = append(prefix, f.getName());
+                String namespace = append(prefix, fileName);
                 addAll(f, namespace, target);
-            } else if (f.getName().length() == 0 || f.getName().charAt(0) != '.') {
-                String refName = append(prefix, f.getName());
+            } else if (fileName.length() == 0 || fileName.charAt(0) != '.') {
+                String refName = append(prefix, fileName);
                 String refValue = readRef(f);
                 target.put(refName, refValue);
             }
