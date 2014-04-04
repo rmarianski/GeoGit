@@ -35,6 +35,7 @@ import org.geogit.api.GlobalInjectorBuilder;
 import org.geogit.api.Injector;
 import org.geogit.api.Platform;
 import org.geogit.api.ProgressListener;
+import org.geogit.api.hooks.CannotRunGeogitOperationException;
 import org.geogit.api.plumbing.ResolveGeogitDir;
 import org.geogit.api.porcelain.ConfigException;
 import org.geogit.api.porcelain.ConfigGet;
@@ -468,6 +469,10 @@ public class GeogitCLI {
             exception = paramValidationError;
             consoleMessage = paramValidationError.getMessage();
 
+        } catch (CannotRunGeogitOperationException cannotRun) {
+
+            consoleMessage = cannotRun.getMessage();
+
         } catch (CommandFailedException cmdFailed) {
             exception = cmdFailed;
             if (null == cmdFailed.getMessage()) {
@@ -513,7 +518,7 @@ public class GeogitCLI {
      * @throws exceptions thrown by the executed commands.
      */
     private void executeInternal(String... args) throws ParameterException, CommandFailedException,
-            IOException {
+            IOException, CannotRunGeogitOperationException {
         tryConfigureLogging();
 
         JCommander mainCommander = newCommandParser();

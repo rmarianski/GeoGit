@@ -101,7 +101,7 @@ public class ShpImport extends AbstractShpCommand implements CLICommand {
 
                 // force the import not to use paging due to a bug in the shapefile datastore
                 command.setUsePaging(false);
-                
+
                 command.setProgressListener(progressListener).call();
 
                 cli.getConsole().println(shp + " imported successfully.");

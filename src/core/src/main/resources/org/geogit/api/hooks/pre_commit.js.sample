@@ -1,4 +1,4 @@
-# a simple hook that avoids commiting with very short messages or with capital letters
+# a simple hook that avoids committing with very short messages or with capital letters
 
 exception = Packages.org.geogit.api.hooks.CannotRunGeogitOperationException;
 msg = params.get("message");

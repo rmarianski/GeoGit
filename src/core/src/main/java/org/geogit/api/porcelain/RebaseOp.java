@@ -21,6 +21,7 @@ import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.CatObject;
+import org.geogit.api.hooks.Hookable;
 import org.geogit.api.plumbing.DiffTree;
 import org.geogit.api.plumbing.FindCommonAncestor;
 import org.geogit.api.plumbing.RefParse;
@@ -71,6 +72,7 @@ import com.google.common.io.Files;
  * 
  */
 @CanRunDuringConflict
+@Hookable(name = "rebase")
 public class RebaseOp extends AbstractGeoGitOp<Boolean> {
 
     private Supplier<ObjectId> upstream;

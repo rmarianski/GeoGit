@@ -26,6 +26,7 @@ import org.geogit.api.data.ForwardingFeatureSource;
 import org.geogit.api.plumbing.LsTreeOp;
 import org.geogit.api.plumbing.LsTreeOp.Strategy;
 import org.geogit.api.plumbing.RevObjectParse;
+import org.geogit.api.hooks.Hookable;
 import org.geogit.geotools.plumbing.GeoToolsOpException.StatusCode;
 import org.geogit.repository.WorkingTree;
 import org.geotools.data.DataStore;
@@ -61,7 +62,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
  * 
  * @see DataStore
  */
-
+@Hookable(name = "import")
 public class ImportOp extends AbstractGeoGitOp<RevTree> {
 
     private boolean all = false;

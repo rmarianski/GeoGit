@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.geogit.storage.FieldType;
 import org.geogit.storage.text.TextValueSerializer;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -110,6 +112,7 @@ public class MappingRule {
      * this rule, even if it meets the conditions set by the 'filter' object
      */
     @Expose
+    @Nullable
     private Map<String, List<String>> exclude;
 
     /**
@@ -122,6 +125,7 @@ public class MappingRule {
      * The default fields to include in the destination feature type without transforming them
      */
     @Expose
+    @Nullable
     private List<DefaultField> defaultFields;
 
     private SimpleFeatureType featureType;
@@ -134,9 +138,11 @@ public class MappingRule {
 
     private static GeometryFactory gf = new GeometryFactory();
 
-    public MappingRule(String name, Map<String, List<String>> filter,
-            Map<String, List<String>> filterExclude, Map<String, AttributeDefinition> fields,
-            List<DefaultField> defaultFields) {
+    public MappingRule(final String name, final Map<String, List<String>> filter,
+            @Nullable final Map<String, List<String>> filterExclude,
+            final Map<String, AttributeDefinition> fields,
+            @Nullable final List<DefaultField> defaultFields) {
+
         Preconditions.checkNotNull(name);
         Preconditions.checkNotNull(filter);
         Preconditions.checkNotNull(fields);
@@ -286,7 +292,7 @@ public class MappingRule {
             }
             return gf.createPolygon(coords);
         }
-        
+
         return geom;
     }
 

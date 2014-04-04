@@ -22,6 +22,7 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.api.ProgressListener;
+import org.geogit.api.hooks.Hookable;
 import org.geogit.api.SubProgressListener;
 import org.geogit.api.porcelain.AddOp;
 import org.geogit.api.porcelain.CommitOp;
@@ -62,7 +63,7 @@ import crosby.binary.osmosis.OsmosisReader;
  * overpass api, or from a file with OSM data
  * 
  */
-
+@Hookable(name = "osmimport")
 public class OSMImportOp extends AbstractGeoGitOp<Optional<OSMReport>> {
 
     /**
