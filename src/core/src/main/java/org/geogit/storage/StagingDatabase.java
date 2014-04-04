@@ -19,6 +19,15 @@ import com.google.common.base.Optional;
 public interface StagingDatabase extends ObjectDatabase {
 
     /**
+     * Checks whether there are conflicts for the given transaction namesapce.
+     * 
+     * @param namespace the namespace of the conflict
+     * @return {@code true} if there are conflicts in the provided transaction namespace,
+     *         {@code false} otherwise
+     */
+    public boolean hasConflicts(@Nullable String namespace);
+
+    /**
      * Gets the specified conflict from the database.
      * 
      * @param namespace the namespace of the conflict

@@ -9,6 +9,8 @@ import static org.geogit.storage.sqlite.SQLiteStorage.VERSION;
 
 import java.util.List;
 
+import javax.sql.DataSource;
+
 import org.geogit.api.Platform;
 import org.geogit.api.plumbing.merge.Conflict;
 import org.geogit.repository.RepositoryConnectionException;
@@ -63,6 +65,12 @@ public abstract class SQLiteStagingDatabase<T> extends ForwardingStagingDatabase
     }
 
     @Override
+    public boolean hasConflicts(String namespace) {
+        int count = count(namespace, cx);
+        return count > 0;
+    }
+
+    @Override
     public List<Conflict> getConflicts(String namespace, String pathFilter) {
         return Lists.newArrayList(Iterables.transform(get(namespace, pathFilter, cx),
                 StringToConflict.INSTANCE));
@@ -109,6 +117,14 @@ public abstract class SQLiteStagingDatabase<T> extends ForwardingStagingDatabase
      */
     protected abstract void init(T cx);
 
+    /**
+     * Returns the number of conflicts matching the specified namespace filter.
+     * 
+     * @param namespace Namespace value, may be <code>null</code>.
+     * 
+     */
+    protected abstract int count(final String namespace, T cx);
+    
     /**
      * Returns all conflicts matching the specified namespace and pathFilter.
      * 
