@@ -34,7 +34,6 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import com.google.inject.Inject;
-import com.sleepycat.je.Environment;
 
 /**
  * The Index (or Staging Area) object database.
@@ -64,8 +63,6 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
     private Platform platform;
 
     private ConfigDatabase configDB;
-
-    private Environment tempDatabasesEnvironment;
 
     /**
      * @param referenceDatabase the repository reference database, used to get the head re
@@ -98,17 +95,6 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
                 return db;
             }
         });
-    }
-
-    @Override
-    public void close() {
-        try {
-            if (tempDatabasesEnvironment != null) {
-                tempDatabasesEnvironment.close();
-            }
-        } finally {
-            super.close();
-        }
     }
 
     // TODO:
