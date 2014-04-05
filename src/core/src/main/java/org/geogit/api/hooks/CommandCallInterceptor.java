@@ -12,6 +12,8 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.plumbing.ResolveGeogitDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
@@ -21,6 +23,8 @@ import com.google.common.base.Throwables;
  * 
  */
 public class CommandCallInterceptor implements MethodInterceptor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandCallInterceptor.class);
 
     public enum INSTANT {
         PRE, POST
@@ -36,6 +40,9 @@ public class CommandCallInterceptor implements MethodInterceptor {
         } catch (CannotRunGeogitOperationException e) {
             // this exception should not be thrown in a post-execution hook, but just in case, we
             // swallow it and ignore it
+            LOGGER.warn(
+                    "Post-command hook for command {} threw an exception that will not be propagated",
+                    operation.getClass().getName(), e);
         }
         return ret;
 

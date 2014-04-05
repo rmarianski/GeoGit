@@ -10,6 +10,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.GeogitTransaction;
+import org.geogit.api.hooks.Hookable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -20,6 +21,7 @@ import com.google.common.base.Throwables;
  * 
  * @see GeogitTransaction
  */
+@Hookable(name = "transaction-start")
 public class TransactionBegin extends AbstractGeoGitOp<GeogitTransaction> {
 
     /**

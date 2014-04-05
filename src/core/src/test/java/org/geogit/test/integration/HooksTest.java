@@ -43,7 +43,7 @@ public class HooksTest extends RepositoryTestCase {
         CharSequence commitPreHookCode = "exception = Packages.org.geogit.api.hooks.CannotRunGeogitOperationException;\n"
                 + "msg = params.get(\"message\");\n"
                 + "if (msg.length() < 30){\n"
-                + "\tthrow new exception(\"Commit messages must have at least 30 letters\");\n}"
+                + "\tthrow new exception(\"Commit messages must have at least 30 characters\");\n}"
                 + "params.put(\"message\", msg.toLowerCase());";
 
         File hooksFolder = new File(geogit.getPlatform().pwd(), ".geogit/hooks");
@@ -56,7 +56,8 @@ public class HooksTest extends RepositoryTestCase {
             geogit.command(CommitOp.class).setMessage("A short message").call();
             fail();
         } catch (Exception e) {
-            assertEquals("Commit messages must have at least 30 letters", e.getMessage());
+            assertTrue(e.getMessage(),
+                    e.getMessage().startsWith("Commit messages must have at least 30 characters"));
         }
 
         String longMessage = "THIS IS A LONG UPPERCASE COMMIT MESSAGE";

@@ -8,6 +8,7 @@ package org.geogit.api.plumbing;
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
+import org.geogit.api.hooks.Hookable;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -17,6 +18,7 @@ import com.google.common.base.Preconditions;
  * <p>
  * 
  */
+@Hookable(name = "update-sym-ref")
 public class UpdateSymRef extends AbstractGeoGitOp<Optional<Ref>> {
 
     private String name;

@@ -13,6 +13,7 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.GeogitTransaction;
 import org.geogit.api.Ref;
 import org.geogit.api.SymRef;
+import org.geogit.api.hooks.Hookable;
 import org.geogit.api.porcelain.CheckoutOp;
 import org.geogit.api.porcelain.MergeOp;
 import org.geogit.api.porcelain.NothingToCommitException;
@@ -36,6 +37,7 @@ import com.google.common.collect.ImmutableSet;
  * 
  * @see GeogitTransaction
  */
+@Hookable(name = "transaction-end")
 public class TransactionEnd extends AbstractGeoGitOp<Boolean> {
 
     private boolean cancel = false;

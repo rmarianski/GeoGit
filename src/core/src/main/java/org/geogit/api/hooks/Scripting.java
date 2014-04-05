@@ -4,12 +4,13 @@
  */
 package org.geogit.api.hooks;
 
-import java.io.BufferedReader;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
@@ -22,17 +23,21 @@ import javax.script.ScriptException;
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.plumbing.ResolveRepository;
 import org.geogit.repository.Repository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 
 /**
  * Utilities to execute scripts representing hooks for GeoGit operations
  * 
  */
 public class Scripting {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Scripting.class);
 
     private static final String PARAMS = "params";
 
@@ -49,82 +54,106 @@ public class Scripting {
      *        (for instance, changing the commit message in a commit operation)
      * @throws CannotRunGeogitOperationException
      */
-    @SuppressWarnings("unchecked")
-    public static void executeScript(File scriptFile, AbstractGeoGitOp<?> operation)
+    public static void executeScript(final File scriptFile, final AbstractGeoGitOp<?> operation)
             throws CannotRunGeogitOperationException {
-        Preconditions.checkArgument(scriptFile.exists(), "Wrong script file %s",
-                scriptFile.getPath());
-        String filename = scriptFile.getName();
-        String ext = filename.substring(filename.lastIndexOf('.') + 1);
-        ScriptEngine engine = factory.getEngineByExtension(ext);
-        if (engine != null) {
-            try {
-                Map<String, Object> params = getParamMap(operation);
-                engine.put(PARAMS, params);
-                Repository repo = operation.command(ResolveRepository.class).call();
-                engine.put(GEOGIT, new GeoGitAPI(repo));
-                engine.eval(new FileReader(scriptFile));
-                Object map = engine.get(PARAMS);
-                setParamMap((Map<String, Object>) map, operation);
-            } catch (ScriptException e) {
-                Throwable cause = Throwables.getRootCause(e);
-                // TODO: improve this hack to check exception type
-                if (cause.toString().contains(
-                        CannotRunGeogitOperationException.class.getSimpleName())) {
-                    String msg = cause.getMessage();
-                    msg = msg.substring(
-                            CannotRunGeogitOperationException.class.getName().length() + 2,
-                            msg.lastIndexOf("(")).trim();
-                    throw new CannotRunGeogitOperationException(msg);
-                } else {
-                    // we ignore all exceptions caused by malformed scripts. We consider them as if
-                    // there was no script for this hook
-                    return;
-                }
-            } catch (Exception e) {
+
+        checkArgument(scriptFile.exists(), "Script file does not exist %s", scriptFile.getPath());
+
+        final String filename = scriptFile.getName();
+        final String ext = Files.getFileExtension(filename);
+
+        final ScriptEngine engine = factory.getEngineByExtension(ext);
+        if (engine == null) {
+            runShellScript(scriptFile);
+        } else {
+            runJVMScript(operation, scriptFile, engine);
+        }
+    }
+
+    private static void runJVMScript(AbstractGeoGitOp<?> operation, File scriptFile,
+            final ScriptEngine engine) throws CannotRunGeogitOperationException {
+
+        LOGGER.info("Running jvm script {}", scriptFile.getAbsolutePath());
+
+        try {
+            Map<String, Object> params = getParamMap(operation);
+            engine.put(PARAMS, params);
+            Repository repo = operation.command(ResolveRepository.class).call();
+            engine.put(GEOGIT, new GeoGitAPI(repo));
+            engine.eval(new FileReader(scriptFile));
+            Object map = engine.get(PARAMS);
+            setParamMap((Map<String, Object>) map, operation);
+        } catch (ScriptException e) {
+            Throwable cause = Throwables.getRootCause(e);
+            // TODO: improve this hack to check exception type
+            if (cause.toString().contains(CannotRunGeogitOperationException.class.getSimpleName())) {
+                String msg = cause.getMessage();
+                msg = msg.substring(CannotRunGeogitOperationException.class.getName().length() + 2,
+                        msg.lastIndexOf("(")).trim();
+                msg += " (command aborted by .geogit/hooks/" + scriptFile.getName() + ")";
+                throw new CannotRunGeogitOperationException(msg);
+            } else {
+                // we ignore all exceptions caused by malformed scripts. We consider them as if
+                // there was no script for this hook
                 return;
             }
+        } catch (Exception e) {
+        }
+    }
+
+    private static void runShellScript(final File scriptFile)
+            throws CannotRunGeogitOperationException {
+
+        LOGGER.info("Running shell script {}", scriptFile.getAbsolutePath());
+
+        // try running the script directly as an executable file
+        List<String> commandAndArgs = Lists.newArrayList();
+        ProcessBuilder pb = new ProcessBuilder(commandAndArgs);
+        if (isWindows()) {
+            commandAndArgs.add("cmd.exe");
+            commandAndArgs.add("/C");
+            commandAndArgs.add(scriptFile.getPath());
         } else {
-            // try running the script directly as an executable file
-            List<String> list = Lists.newArrayList();
-            ProcessBuilder pb = new ProcessBuilder(list);
-            if (isWindows()) {
-                list.add("cmd.exe");
-                list.add("/C");
-                list.add(scriptFile.getPath());
-            } else {
-                if (scriptFile.canExecute()) {
-                    list.add(scriptFile.getPath());
-                } else {
-                    return;
-                }
+            if (!scriptFile.canExecute()) {
+                return;
             }
-
-            try {
-                final Process process = pb.start();
-                final StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream());
-                final StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream());
-                errorGobbler.start();
-                outputGobbler.start();
-                int exitCode = process.waitFor();
-                if (exitCode != 0) {
-                    // the script exited with non-zero code, so we indicate it throwing the
-                    // corresponding exception.
-                    // TODO: get message?
-                    throw new CannotRunGeogitOperationException(
-                            "Hook script exited with non-zero error code");
-                }
-            } catch (IOException e) {
-                return; // can't run scripts, so there is nothing that blocks running the
-                        // command, and we can return
-            } catch (InterruptedException e) {
-                return; // can't run scripts, so there is nothing that blocks running the
-                        // command, and we can return
-
-            }
-
+            commandAndArgs.add(scriptFile.getPath());
         }
 
+        try {
+            LOGGER.debug("-- starting process {}", scriptFile);
+            pb.redirectErrorStream(true);
+            final Process process = pb.start();
+            LOGGER.debug("-- process {} started", scriptFile);
+
+            final StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(),
+                    System.out);
+            outputGobbler.start();
+            int exitCode;
+            try {
+                LOGGER.debug("-- waiting for process {} to finish", scriptFile);
+                exitCode = process.waitFor();
+                LOGGER.debug("process {} exit code: {}", scriptFile, exitCode);
+            } finally {
+                outputGobbler.stop();
+            }
+            if (exitCode != 0) {
+                // the script exited with non-zero code, so we indicate it throwing the
+                // corresponding exception.
+                // TODO: get message?
+                throw new CannotRunGeogitOperationException(
+                        "Hook script exited with non-zero error code");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return; // can't run scripts, so there is nothing that blocks running the
+                    // command, and we can return
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return; // can't run scripts, so there is nothing that blocks running the
+                    // command, and we can return
+
+        }
     }
 
     /**
@@ -187,26 +216,29 @@ public class Scripting {
         return (os.indexOf("win") >= 0);
     }
 
-}
+    private static class StreamGobbler extends Thread {
 
-class StreamGobbler extends Thread {
+        InputStream is;
 
-    InputStream is;
+        OutputStream out;
 
-    StreamGobbler(final InputStream is) {
-        this.is = is;
-    }
+        StreamGobbler(final InputStream is, final OutputStream out) {
+            this.is = is;
+            this.out = out;
+            setDaemon(true);
+        }
 
-    @Override
-    public void run() {
-        try {
-            final InputStreamReader isr = new InputStreamReader(is);
-            final BufferedReader br = new BufferedReader(isr);
-            String line = null;
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
+        @Override
+        public void run() {
+            try {
+                String line = null;
+                int c;
+                while ((c = is.read()) != -1) {
+                    out.write(c);
+                }
+            } catch (final IOException ioe) {
+                ioe.printStackTrace();
             }
-        } catch (final IOException ioe) {
         }
     }
 }

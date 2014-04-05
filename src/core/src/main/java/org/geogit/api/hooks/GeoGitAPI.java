@@ -140,8 +140,10 @@ public class GeoGitAPI {
     }
 
     public Object run(String className, Map<String, Object> params) throws ClassNotFoundException {
-        Class<AbstractGeoGitOp> clazz = (Class<AbstractGeoGitOp>) Class.forName(className);
-        AbstractGeoGitOp operation = repository.command(clazz);
+        @SuppressWarnings("unchecked")
+        Class<AbstractGeoGitOp<?>> clazz = (Class<AbstractGeoGitOp<?>>) Class.forName(className);
+
+        AbstractGeoGitOp<?> operation = repository.command(clazz);
         Map<String, Object> oldParams = Scripting.getParamMap(operation);
         Scripting.setParamMap(params, operation);
         return operation.call();
