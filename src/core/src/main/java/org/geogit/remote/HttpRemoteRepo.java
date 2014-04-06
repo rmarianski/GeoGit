@@ -333,7 +333,6 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
             connection.setDoInput(true);
             out = connection.getOutputStream();
             writer = new OutputStreamWriter(out);
-            gson.toJson(message, System.out);
             gson.toJson(message, writer);
             writer.flush();
         } catch (IOException e) {
