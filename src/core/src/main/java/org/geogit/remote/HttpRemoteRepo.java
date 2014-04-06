@@ -107,7 +107,7 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             // Get Response
             InputStream is = connection.getInputStream();
@@ -153,7 +153,7 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             // Get Response
             InputStream is = connection.getInputStream();

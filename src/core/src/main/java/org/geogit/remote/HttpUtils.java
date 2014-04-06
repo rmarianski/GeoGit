@@ -145,7 +145,7 @@ class HttpUtils {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             // Get Response
             InputStream is = connection.getInputStream();
@@ -189,7 +189,7 @@ class HttpUtils {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             // Get Response
             InputStream is = connection.getInputStream();
@@ -237,7 +237,7 @@ class HttpUtils {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             InputStream inputStream = connection.getInputStream();
 
@@ -303,7 +303,7 @@ class HttpUtils {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             // Get Response
             InputStream is = connection.getInputStream();
@@ -342,7 +342,7 @@ class HttpUtils {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             // Get Response
             InputStream is = connection.getInputStream();
@@ -382,7 +382,7 @@ class HttpUtils {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             InputStream inputStream = connection.getInputStream();
 
@@ -444,7 +444,7 @@ class HttpUtils {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             // Get Response
             InputStream is = connection.getInputStream();
@@ -482,7 +482,7 @@ class HttpUtils {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             InputStream stream = connection.getInputStream();
             HttpUtils.consumeAndCloseStream(stream);
@@ -516,7 +516,7 @@ class HttpUtils {
             connection.setRequestMethod("GET");
 
             connection.setUseCaches(false);
-            connection.setDoOutput(true);
+            connection.connect();
 
             connection.getInputStream();
             // TODO: throw an exception if the remote ref was not updated.
