@@ -5,6 +5,7 @@
 
 package org.geogit.cli.porcelain;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.geogit.api.porcelain.PushOp;
@@ -44,7 +45,7 @@ public class Push extends AbstractCommand implements CLICommand {
      * Executes the push command using the provided options.
      */
     @Override
-    public void runInternal(GeogitCLI cli) {
+    public void runInternal(GeogitCLI cli) throws IOException {
 
         PushOp push = cli.getGeogit().command(PushOp.class);
         push.setProgressListener(cli.getProgressListener());
@@ -60,11 +61,12 @@ public class Push extends AbstractCommand implements CLICommand {
         }
         try {
             // TODO: listen on progress?
-            push.call();
+            boolean dataPushed = push.call();
+            if (!dataPushed) {
+                cli.getConsole().println("Nothing to push.");
+            }
         } catch (SynchronizationException e) {
             switch (e.statusCode) {
-            case NOTHING_TO_PUSH:
-                throw new CommandFailedException("Nothing to push.", e);
             case REMOTE_HAS_CHANGES:
                 throw new CommandFailedException(
                         "Push failed: The remote repository has changes that would be lost in the event of a push.",
@@ -72,6 +74,8 @@ public class Push extends AbstractCommand implements CLICommand {
             case HISTORY_TOO_SHALLOW:
                 throw new CommandFailedException(
                         "Push failed: There is not enough local history to complete the push.", e);
+            default:
+                break;
             }
         }
     }

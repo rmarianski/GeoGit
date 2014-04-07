@@ -67,29 +67,18 @@ public class PushWebOp extends AbstractWebAPICommand {
         }
 
         try {
-            command.setAll(pushAll).setRemote(remoteName).call();
+            final Boolean dataPushed = command.setAll(pushAll).setRemote(remoteName).call();
             context.setResponseContent(new CommandResponse() {
                 @Override
                 public void write(ResponseWriter out) throws Exception {
                     out.start();
                     out.writeElement("Push", "Success");
-                    out.writeElement("dataPushed", "true");
+                    out.writeElement("dataPushed", dataPushed.toString());
                     out.finish();
                 }
             });
         } catch (SynchronizationException e) {
             switch (e.statusCode) {
-            case NOTHING_TO_PUSH:
-                context.setResponseContent(new CommandResponse() {
-                    @Override
-                    public void write(ResponseWriter out) throws Exception {
-                        out.start();
-                        out.writeElement("Push", "Nothing to push.");
-                        out.writeElement("dataPushed", "false");
-                        out.finish();
-                    }
-                });
-                break;
             case REMOTE_HAS_CHANGES:
                 context.setResponseContent(CommandResponse
                         .error("Push failed: The remote repository has changes that would be lost in the event of a push."));
@@ -97,6 +86,8 @@ public class PushWebOp extends AbstractWebAPICommand {
             case HISTORY_TOO_SHALLOW:
                 context.setResponseContent(CommandResponse
                         .error("Push failed: There is not enough local history to complete the push."));
+            default:
+                break;
             }
         }
     }

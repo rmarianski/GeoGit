@@ -15,6 +15,7 @@ import org.geogit.api.Remote;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.ForEachRef;
 import org.geogit.api.plumbing.RefParse;
+import org.geogit.api.porcelain.SynchronizationException.StatusCode;
 import org.geogit.remote.IRemoteRepo;
 import org.geogit.remote.RemoteUtils;
 import org.geogit.repository.Hints;
@@ -36,7 +37,7 @@ import com.google.inject.Inject;
  * conflicting changes when pushing a branch that has non conflicting changes at both sides. This
  * needs to be revisited once we get more merge tools.
  */
-public class PushOp extends AbstractGeoGitOp<Void> {
+public class PushOp extends AbstractGeoGitOp<Boolean> {
 
     private boolean all;
 
@@ -104,7 +105,7 @@ public class PushOp extends AbstractGeoGitOp<Void> {
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
     @Override
-    public Void call() {
+    public Boolean call() {
         if (remote == null) {
             setRemote("origin");
         }
@@ -123,6 +124,7 @@ public class PushOp extends AbstractGeoGitOp<Void> {
             Throwables.propagate(e);
         }
 
+        boolean dataPushed = false;
         try {
             if (refSpecs.size() > 0) {
                 for (String refspec : refSpecs) {
@@ -165,7 +167,14 @@ public class PushOp extends AbstractGeoGitOp<Void> {
                         Preconditions.checkArgument(localRef.isPresent(),
                                 "Local ref could not be resolved.");
                         // push the localref branch to the remoteref branch
-                        remoteRepo.get().pushNewData(localRef.get(), remoterefspec);
+                        try {
+                            remoteRepo.get().pushNewData(localRef.get(), remoterefspec);
+                            dataPushed = true;
+                        } catch (SynchronizationException e) {
+                            if (e.statusCode != StatusCode.NOTHING_TO_PUSH) {
+                                Throwables.propagate(e);
+                            }
+                        }
                     }
 
                 }
@@ -196,7 +205,14 @@ public class PushOp extends AbstractGeoGitOp<Void> {
                 }
 
                 for (Ref ref : refsToPush) {
-                    remoteRepo.get().pushNewData(ref);
+                    try {
+                        remoteRepo.get().pushNewData(ref);
+                        dataPushed = true;
+                    } catch (SynchronizationException e) {
+                        if (e.statusCode != StatusCode.NOTHING_TO_PUSH) {
+                            Throwables.propagate(e);
+                        }
+                    }
                 }
             }
 
@@ -210,7 +226,7 @@ public class PushOp extends AbstractGeoGitOp<Void> {
             }
         }
 
-        return null;
+        return dataPushed;
     }
 
     /**
