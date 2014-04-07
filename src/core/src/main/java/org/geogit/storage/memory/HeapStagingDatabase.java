@@ -153,4 +153,13 @@ public class HeapStagingDatabase extends ForwardingStagingDatabase {
         }
         conflicts.remove(namespace);
     }
+
+    @Override
+    public boolean hasConflicts(String namespace) {
+        if (namespace == null) {
+            namespace = "root";
+        }
+        Map<String, Conflict> conflicts = this.conflicts.get(namespace);
+        return conflicts != null && !conflicts.isEmpty();
+    }
 }

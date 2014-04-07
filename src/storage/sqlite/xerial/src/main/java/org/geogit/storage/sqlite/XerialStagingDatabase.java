@@ -56,6 +56,30 @@ public class XerialStagingDatabase extends SQLiteStagingDatabase<DataSource> {
     }
 
     @Override
+    protected int count(final String namespace, DataSource ds) {
+        Connection cx = Xerial.newConnection(ds);
+        Integer count = new DbOp<Integer>() {
+            @Override
+            protected Integer doRun(Connection cx) throws IOException, SQLException {
+                String sql = format("SELECT count(*) FROM %s WHERE namespace = ?", CONFLICTS);
+
+                PreparedStatement ps = open(cx.prepareStatement(log(sql, LOG, namespace)));
+                ps.setString(1, namespace);
+
+                ResultSet rs = ps.executeQuery();
+                int count = 0;
+                while (rs.next()) {
+                    count = rs.getInt(1);
+                }
+                rs.close();
+                return Integer.valueOf(count);
+            }
+        }.run(cx);
+
+        return count.intValue();
+    }
+
+    @Override
     protected Iterable<String> get(final String namespace, final String pathFilter, DataSource ds) {
         Connection cx = Xerial.newConnection(ds);
         ResultSet rs = new DbOp<ResultSet>() {

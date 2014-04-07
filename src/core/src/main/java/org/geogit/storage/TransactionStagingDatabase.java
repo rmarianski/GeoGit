@@ -214,6 +214,15 @@ public class TransactionStagingDatabase implements StagingDatabase {
      * namespace.
      */
     @Override
+    public boolean hasConflicts(String namespace) {
+        return database.hasConflicts(txNamespace);
+    }
+
+    /**
+     * Pass through to {@link StagingDatabase}, replacing the namespace with the transaction
+     * namespace.
+     */
+    @Override
     public Optional<Conflict> getConflict(@Nullable String namespace, String path) {
         return database.getConflict(txNamespace, path);
     }

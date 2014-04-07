@@ -120,6 +120,18 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
     // conflict file in the index folder
     // *****************************************************************************************
 
+    @Override
+    public boolean hasConflicts(String namespace) {
+        final Object monitor = resolveConflictsMonitor(namespace);
+        if (monitor == null) {
+            return false;
+        }
+        synchronized (monitor) {
+            final File file = resolveConflictsFile(namespace);
+            return file.exists() && file.length() > 0;
+        }
+    }
+
     /**
      * Gets all conflicts that match the specified path filter.
      * 
