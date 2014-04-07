@@ -7,7 +7,6 @@ package org.geogit.cli.porcelain;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 
 import org.geogit.api.GeoGIT;
@@ -86,16 +85,14 @@ public class Clone extends AbstractCommand implements CLICommand {
                     "Sparse Clone: You must explicitly specify a remote branch to clone by using '--branch <branch>'.");
         }
 
-        String repoURL = args.get(0);
+        String repoURL = args.get(0).replace('\\', '/');
 
         File repoDir;
         {
             File currDir = cli.getPlatform().pwd();
 
-            // Construct a non-relative repository URL
-            URI repoURI = URI.create(repoURL);
-            String protocol = repoURI.getScheme();
-            if (protocol == null || protocol.equals("file")) {
+            // Construct a non-relative repository URL in case of a local remote
+            if (!repoURL.startsWith("http")) {
                 File repo = new File(repoURL);
                 if (!repo.isAbsolute()) {
                     repo = new File(currDir, repoURL).getCanonicalFile();
@@ -110,26 +107,13 @@ public class Clone extends AbstractCommand implements CLICommand {
                     f = new File(currDir, target).getCanonicalFile();
                 }
                 repoDir = f;
-                if (!repoDir.exists() && !repoDir.mkdirs()) {
-                    throw new CommandFailedException("Can't create directory "
-                            + repoDir.getAbsolutePath());
-                }
             } else {
-                String[] sp;
-
-                if (protocol == null || protocol.equals("file")) {
-                    sp = repoURL.split(System.getProperty("file.separator"));
-                } else {
-                    // HTTP
-                    sp = repoURL.split("/");
-                }
-
+                String[] sp = repoURL.split("/");
                 repoDir = new File(currDir, sp[sp.length - 1]).getCanonicalFile();
-
-                if (!repoDir.exists() && !repoDir.mkdirs()) {
-                    throw new CommandFailedException("Can't create directory "
-                            + repoDir.getAbsolutePath());
-                }
+            }
+            if (!repoDir.exists() && !repoDir.mkdirs()) {
+                throw new CommandFailedException("Can't create directory "
+                        + repoDir.getAbsolutePath());
             }
         }
 

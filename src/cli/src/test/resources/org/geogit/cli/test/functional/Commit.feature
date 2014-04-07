@@ -26,6 +26,15 @@ Feature: "commit" command
      When I run the command "commit -m Test"
      Then the response should contain "3 features added"
      
+  Scenario: Try to commit current staged features using a message with blank spaces
+    Given I have a repository
+      And I have staged "points1"
+      And I have staged "points2"
+      And I have staged "lines1"
+     When I run the command "commit -m "A message with spaces""
+     Then the response should contain "3 features added" 
+      And the response should contain "A message with spaces"    
+     
   Scenario: Try to perform multiple commits
     Given I have a repository
       And I have staged "points1"

@@ -28,6 +28,19 @@ Feature: "clone" command
       And the response should not contain "Commit2"
       And the response should contain "Commit1"
       
+  Scenario: Try to clone a remote repository with blank spaces
+    Given I am in an empty directory
+  	  And there is a remote repository with blank spaces
+     When I run the command "clone "remote repo" localrepo"
+     Then the response should contain "Cloning into 'localrepo'..."
+      And the response should contain "Done."
+     When I run the command "log"
+     Then the response should contain "Commit5"
+      And the response should contain "Commit4"
+      And the response should not contain "Commit3"
+      And the response should not contain "Commit2"
+      And the response should contain "Commit1"      
+      
   Scenario: Try to make a shallow clone of a remote repository
     Given I am in an empty directory
       And there is a remote repository

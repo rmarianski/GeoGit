@@ -57,6 +57,7 @@ import org.geogit.api.plumbing.diff.PatchSerializer;
 import org.geogit.api.porcelain.MergeConflictsException;
 import org.geogit.api.porcelain.MergeOp;
 import org.geogit.api.porcelain.TagCreateOp;
+import org.geogit.cli.ArgumentTokenizer;
 import org.geogit.repository.Hints;
 import org.geogit.repository.WorkingTree;
 import org.junit.rules.TemporaryFolder;
@@ -114,12 +115,13 @@ public class DefaultStepDefinitions {
         setupGeogit();
     }
 
-    @When("^I run the command \"([^\"]*)\"$")
+    @When("^I run the command \"(.*?)\"$")
     public void I_run_the_command_X(String commandSpec) throws Throwable {
-        String[] args = commandSpec.split(" ");
+        String[] args = ArgumentTokenizer.tokenize(commandSpec);
         File pwd = platform.pwd();
         for (int i = 0; i < args.length; i++) {
             args[i] = args[i].replace("${currentdir}", pwd.getAbsolutePath());
+            args[i] = args[i].replace("\"", "");
         }
         runCommand(args);
     }
@@ -276,17 +278,26 @@ public class DefaultStepDefinitions {
 
     @Given("^there is a remote repository$")
     public void there_is_a_remote_repository() throws Throwable {
+        createRemote("remoterepo");
+    }
+
+    @Given("^there is a remote repository with blank spaces$")
+    public void there_is_a_remote_repository_with_blank_spaces() throws Throwable {
+        createRemote("remote repo");
+    }
+
+    private void createRemote(String name) throws Throwable {
         I_am_in_an_empty_directory();
 
         final File currDir = platform.pwd();
 
-        List<String> output = runAndParseCommand(true, "init", "remoterepo");
+        List<String> output = runAndParseCommand(true, "init", name);
 
         assertEquals(output.toString(), 1, output.size());
         assertNotNull(output.get(0));
         assertTrue(output.get(0), output.get(0).startsWith("Initialized"));
 
-        final File remoteRepo = new File(currDir, "remoterepo");
+        final File remoteRepo = new File(currDir, name);
         GlobalState.remoteRepo = remoteRepo;
         platform.setWorkingDir(remoteRepo);
         setupGeogit();

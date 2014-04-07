@@ -10,11 +10,13 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 
 import org.geogit.api.Remote;
 import org.geogit.repository.Repository;
 import org.geogit.storage.DeduplicationService;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.inject.Injector;
@@ -43,6 +45,7 @@ public class RemoteUtils {
             IRemoteRepo remoteRepo = null;
             if (protocol == null || protocol.equals("file")) {
                 String filepath = new URL(remoteConfig.getFetchURL()).getFile();
+                filepath = URLDecoder.decode(filepath, Charsets.UTF_8.displayName());
                 if (remoteConfig.getMapped()) {
                     remoteRepo = new LocalMappedRemoteRepo(injector, new File(filepath),
                             localRepository);

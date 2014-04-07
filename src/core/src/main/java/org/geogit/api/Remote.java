@@ -17,6 +17,7 @@ import javax.crypto.spec.PBEParameterSpec;
 import org.geotools.data.Base64;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 
 /**
  * Internal representation of a GeoGit remote repository.
@@ -64,18 +65,15 @@ public class Remote {
     }
 
     private String checkURL(String url) {
-        url = url.replace("\\", "/");
-        if (url.startsWith("file:")) {
+        if (Strings.isNullOrEmpty(url) || url.startsWith("http:")) {
             return url;
         }
         File file = new File(url);
-        if (file.exists()) {
-            try {
-                return file.toURI().toURL().toExternalForm();
-            } catch (MalformedURLException e) {
-                // shouldn't reach here, since the file exists and the path should then be correct
-                return url;
-            }
+        try {
+            url = file.toURI().toURL().toString();
+        } catch (MalformedURLException e) {
+            // shouldn't reach here, since the file exists and the path should then be correct
+            return url;
         }
         return url;
     }
