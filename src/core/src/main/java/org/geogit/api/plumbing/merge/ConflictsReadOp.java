@@ -11,9 +11,12 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.plumbing.ResolveGeogitDir;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
-public class ConflictsReadOp extends AbstractGeoGitOp<List<Conflict>> {
+public class ConflictsReadOp extends AbstractGeoGitOp<List<Conflict>> implements
+        Supplier<Iterable<Conflict>> {
+
     @Override
     public List<Conflict> call() {
         final Optional<URL> repoUrl = getCommandLocator().command(ResolveGeogitDir.class).call();
@@ -22,5 +25,10 @@ public class ConflictsReadOp extends AbstractGeoGitOp<List<Conflict>> {
         } else {
             return ImmutableList.of();
         }
+    }
+
+    @Override
+    public Iterable<Conflict> get() {
+        return call();
     }
 }

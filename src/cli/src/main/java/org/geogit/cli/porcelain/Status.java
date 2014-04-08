@@ -6,7 +6,6 @@ package org.geogit.cli.porcelain;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 
 import jline.console.ConsoleReader;
 
@@ -16,19 +15,16 @@ import org.geogit.api.GeoGIT;
 import org.geogit.api.NodeRef;
 import org.geogit.api.Ref;
 import org.geogit.api.SymRef;
-import org.geogit.api.plumbing.DiffIndex;
-import org.geogit.api.plumbing.DiffWorkTree;
 import org.geogit.api.plumbing.RefParse;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffEntry.ChangeType;
 import org.geogit.api.plumbing.merge.Conflict;
-import org.geogit.api.plumbing.merge.ConflictsReadOp;
+import org.geogit.api.porcelain.StatusOp;
+import org.geogit.api.porcelain.StatusOp.StatusSummary;
 import org.geogit.cli.AbstractCommand;
 import org.geogit.cli.CLICommand;
 import org.geogit.cli.GeogitCLI;
 import org.geogit.cli.annotation.ReadOnly;
-import org.geogit.repository.StagingArea;
-import org.geogit.repository.WorkingTree;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -68,16 +64,12 @@ public class Status extends AbstractCommand implements CLICommand {
         ConsoleReader console = cli.getConsole();
         GeoGIT geogit = cli.getGeogit();
 
-        final StagingArea index = geogit.getRepository().getIndex();
-
-        final WorkingTree workTree = geogit.getRepository().getWorkingTree();
-
-        final long countStaged = index.countStaged(null).getCount();
-        final int countConflicted = index.countConflicted(null);
-        final long countUnstaged = workTree.countUnstaged(null).getCount();
+        StatusOp op = geogit.command(StatusOp.class);
+        StatusSummary summary = op.call();
 
         final Optional<Ref> currHead = geogit.command(RefParse.class).setName(Ref.HEAD).call();
         checkParameter(currHead.isPresent(), "Repository has no HEAD.");
+
         if (currHead.get() instanceof SymRef) {
             final SymRef headRef = (SymRef) currHead.get();
             console.println("# On branch " + Ref.localName(headRef.getTarget()));
@@ -85,38 +77,40 @@ public class Status extends AbstractCommand implements CLICommand {
             console.println("# Not currently on any branch.");
         }
 
+        print(console, summary);
+
+    }
+
+    private void print(ConsoleReader console, StatusSummary summary) throws IOException {
+        long countStaged = summary.getCountStaged();
+        long countUnstaged = summary.getCountUnstaged();
+        int countConflicted = summary.getCountConflicts();
+
         if (countStaged + countUnstaged + countConflicted == 0) {
             console.println("nothing to commit (working directory clean)");
-            return;
         }
 
         if (countStaged > 0) {
-            Iterator<DiffEntry> staged = geogit.command(DiffIndex.class).setReportTrees(true)
-                    .call();
             console.println("# Changes to be committed:");
             console.println("#   (use \"geogit reset HEAD <path/to/fid>...\" to unstage)");
             console.println("#");
-            print(console, staged, Color.GREEN, countStaged);
-
+            print(console, summary.getStaged().get(), Color.GREEN, countStaged);
             console.println("#");
         }
 
         if (countConflicted > 0) {
-            List<Conflict> conflicts = geogit.command(ConflictsReadOp.class).call();
             console.println("# Unmerged paths:");
             console.println("#   (use \"geogit add/rm <path/to/fid>...\" as appropriate to mark resolution");
             console.println("#");
-            printUnmerged(console, conflicts, Color.RED, countConflicted);
+            printUnmerged(console, summary.getConflicts().get(), Color.RED, countConflicted);
         }
 
         if (countUnstaged > 0) {
-            Iterator<DiffEntry> unstaged = geogit.command(DiffWorkTree.class).setReportTrees(true)
-                    .call();
             console.println("# Changes not staged for commit:");
             console.println("#   (use \"geogit add <path/to/fid>...\" to update what will be committed");
             console.println("#   (use \"geogit checkout -- <path/to/fid>...\" to discard changes in working directory");
             console.println("#");
-            print(console, unstaged, Color.RED, countUnstaged);
+            print(console, summary.getUnstaged().get(), Color.RED, countUnstaged);
         }
 
     }
@@ -164,18 +158,16 @@ public class Status extends AbstractCommand implements CLICommand {
         console.println(ansi.toString());
     }
 
-    private void printUnmerged(final ConsoleReader console, final List<Conflict> conflicts,
+    private void printUnmerged(final ConsoleReader console, final Iterable<Conflict> conflicts,
             final Color color, final int total) throws IOException {
-
-        final int limit = all || this.limit == null ? Integer.MAX_VALUE : this.limit.intValue();
 
         StringBuilder sb = new StringBuilder();
 
         Ansi ansi = newAnsi(console.getTerminal(), sb);
 
         String path;
-        for (int i = 0; i < conflicts.size() && i < limit; i++) {
-            path = conflicts.get(i).getPath();
+        for (Conflict c : conflicts) {
+            path = c.getPath();
             sb.setLength(0);
             ansi.a("#      ").fg(color).a("unmerged").a("  ").a(path).reset();
             console.println(ansi.toString());
