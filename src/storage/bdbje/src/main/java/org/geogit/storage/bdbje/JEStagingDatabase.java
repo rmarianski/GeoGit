@@ -24,7 +24,6 @@ import org.geogit.repository.RepositoryConnectionException;
 import org.geogit.storage.ConfigDatabase;
 import org.geogit.storage.ForwardingStagingDatabase;
 import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.ObjectSerializingFactory;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
@@ -74,28 +73,25 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
      * @param stagingDb
      */
     @Inject
-    public JEStagingDatabase(final ObjectSerializingFactory sfac,
-            final ObjectDatabase repositoryDb, final EnvironmentBuilder envBuilder,
-            final Platform platform, final ConfigDatabase configDB, final Hints hints) {
+    public JEStagingDatabase(final ObjectDatabase repositoryDb,
+            final EnvironmentBuilder envBuilder, final Platform platform,
+            final ConfigDatabase configDB, final Hints hints) {
 
-        super(Suppliers.ofInstance(repositoryDb), stagingDbSupplier(sfac, envBuilder, configDB,
-                hints));
+        super(Suppliers.ofInstance(repositoryDb), stagingDbSupplier(envBuilder, configDB, hints));
 
         this.platform = platform;
         this.configDB = configDB;
     }
 
     private static Supplier<JEObjectDatabase> stagingDbSupplier(
-            final ObjectSerializingFactory sfac, final EnvironmentBuilder envProvider,
-            final ConfigDatabase configDb, final Hints hints) {
+            final EnvironmentBuilder envProvider, final ConfigDatabase configDb, final Hints hints) {
 
         return Suppliers.memoize(new Supplier<JEObjectDatabase>() {
 
             @Override
             public JEObjectDatabase get() {
                 boolean readOnly = hints.getBoolean(Hints.STAGING_READ_ONLY);
-                JEObjectDatabase db = new JEObjectDatabase(configDb, sfac, envProvider, readOnly,
-                        "index");
+                JEObjectDatabase db = new JEObjectDatabase(configDb, envProvider, readOnly, "index");
                 return db;
             }
         });

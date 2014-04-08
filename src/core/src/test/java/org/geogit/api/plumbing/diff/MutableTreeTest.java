@@ -18,7 +18,6 @@ import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.diff.DepthTreeIterator.Strategy;
 import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.datastream.DataStreamSerializationFactory;
 import org.geogit.storage.memory.HeapObjectDatabse;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,9 +66,9 @@ public class MutableTreeTest extends Assert {
     @Test
     @Ignore
     public void testBuild() {
-        ObjectDatabase origin = new HeapObjectDatabse(new DataStreamSerializationFactory());
+        ObjectDatabase origin = new HeapObjectDatabse();
         origin.open();
-        ObjectDatabase target = new HeapObjectDatabse(new DataStreamSerializationFactory());
+        ObjectDatabase target = new HeapObjectDatabse();
         target.open();
         RevTree tree = root.build(origin, target);
 

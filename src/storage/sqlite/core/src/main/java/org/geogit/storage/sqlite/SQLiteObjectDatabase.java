@@ -51,7 +51,7 @@ public abstract class SQLiteObjectDatabase<C> implements ObjectDatabase {
 
     final ConfigDatabase configdb;
 
-    final ObjectSerializingFactory serializer = new DataStreamSerializationFactory();
+    final ObjectSerializingFactory serializer = DataStreamSerializationFactory.INSTANCE;
 
     C cx;
 

@@ -19,6 +19,12 @@ import org.geogit.storage.ObjectSerializingFactory;
 import org.geogit.storage.ObjectWriter;
 
 public class DataStreamSerializationFactory implements ObjectSerializingFactory {
+
+    /**
+     * factory singleton
+     */
+    public static final DataStreamSerializationFactory INSTANCE = new DataStreamSerializationFactory();
+
     private final static ObjectReader<RevCommit> COMMIT_READER = new CommitReader();
 
     private final static ObjectReader<RevTree> TREE_READER = new TreeReader();

@@ -8,8 +8,6 @@ import org.geogit.api.TestPlatform;
 import org.geogit.repository.Hints;
 import org.geogit.storage.ConfigDatabase;
 import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.ObjectSerializingFactory;
-import org.geogit.storage.datastream.DataStreamSerializationFactory;
 import org.geogit.storage.fs.IniFileConfigDatabase;
 import org.junit.After;
 import org.junit.Assert;
@@ -47,9 +45,7 @@ public class JEObjectDatabaseTest extends Assert {
 
     private ObjectDatabase createDb() {
         ConfigDatabase configDB = new IniFileConfigDatabase(platform);
-        ObjectSerializingFactory serialFactory = new DataStreamSerializationFactory();
-
-        JEObjectDatabase db = new JEObjectDatabase(configDB, serialFactory, envProvider, hints);
+        JEObjectDatabase db = new JEObjectDatabase(configDB, envProvider, hints);
         db.open();
         return db;
     }

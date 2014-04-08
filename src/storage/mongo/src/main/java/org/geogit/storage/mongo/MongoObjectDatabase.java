@@ -58,7 +58,7 @@ public class MongoObjectDatabase implements ObjectDatabase {
 
     protected DBCollection collection = null;
 
-    protected ObjectSerializingFactory serializers = new DataStreamSerializationFactory();
+    protected ObjectSerializingFactory serializers = DataStreamSerializationFactory.INSTANCE;
 
     private String collectionName;
 

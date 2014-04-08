@@ -15,7 +15,6 @@ import org.geogit.api.RevTree;
 import org.geogit.api.RevTreeBuilder;
 import org.geogit.api.plumbing.diff.DepthTreeIterator.Strategy;
 import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.datastream.DataStreamSerializationFactory;
 import org.geogit.storage.memory.HeapObjectDatabse;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,7 +40,7 @@ public class DepthTreeIteratorTest extends Assert {
 
     @Before
     public void setUp() {
-        source = new HeapObjectDatabse(new DataStreamSerializationFactory());
+        source = new HeapObjectDatabse();
         source.open();
 
         metadataId = ObjectId.forString("fake id");
