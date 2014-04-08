@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
 import org.geogit.api.plumbing.RefParse;
 import org.geogit.api.porcelain.BranchCreateOp;
@@ -26,6 +27,8 @@ import org.geogit.remote.RemoteRepositoryTestCase;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import com.google.common.base.Optional;
 
 public class PushOpTest extends RemoteRepositoryTestCase {
     @Rule
@@ -307,6 +310,9 @@ public class PushOpTest extends RemoteRepositoryTestCase {
         push.call();
 
         // verify that the remote got the commit
+        Optional<Ref> remoteRef = remoteGeogit.geogit.command(RefParse.class).setName("Branch1").call();
+        assertTrue(remoteRef.isPresent());
+        assertTrue(remoteRef.get().getName().startsWith(Ref.HEADS_PREFIX));
         remoteGeogit.geogit.command(CheckoutOp.class).setSource("Branch1").call();
         Iterator<RevCommit> logs = remoteGeogit.geogit.command(LogOp.class).call();
         List<RevCommit> logged = new ArrayList<RevCommit>();
