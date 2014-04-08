@@ -178,6 +178,7 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
     @Override
     public void pushNewData(Ref ref, String refspec) throws SynchronizationException {
         Optional<Ref> remoteRef = remoteGeoGit.command(RefParse.class).setName(refspec).call();
+        remoteRef = remoteRef.or(remoteGeoGit.command(RefParse.class).setName(Ref.TAGS_PREFIX + refspec).call());
         checkPush(ref, remoteRef);
         touchedIds = new LinkedList<ObjectId>();
 
@@ -189,7 +190,10 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
                 walkHead(traverser.commits.pop(), false);
             }
 
-            Ref updatedRef = remoteGeoGit.command(UpdateRef.class).setName(refspec)
+            String nameToSet =
+                remoteRef.isPresent() ? remoteRef.get().getName() : Ref.HEADS_PREFIX + refspec;
+
+            Ref updatedRef = remoteGeoGit.command(UpdateRef.class).setName(nameToSet)
                     .setNewValue(ref.getObjectId()).call().get();
 
             Ref remoteHead = headRef();
