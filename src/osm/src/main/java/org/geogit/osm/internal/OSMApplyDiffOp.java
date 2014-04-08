@@ -341,8 +341,14 @@ public class OSMApplyDiffOp extends AbstractGeoGitOp<Optional<OSMReport>> {
 
             final List<Long> ids = Lists.transform(nodes, NODELIST_TO_ID_LIST);
 
-            Coordinate[] coordinates = pointCache.get(ids);
-            return GEOMF.createLineString(coordinates);
+            try {
+                Coordinate[] coordinates = pointCache.get(ids);
+                return GEOMF.createLineString(coordinates);
+            } catch (IllegalArgumentException e) {
+                unableToProcessCount++;
+                return null;
+            }
+
         }
     }
 
