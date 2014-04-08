@@ -6,7 +6,6 @@ package org.geogit.cli.porcelain;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 
 import jline.console.ConsoleReader;
 
@@ -21,7 +20,7 @@ import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffEntry.ChangeType;
 import org.geogit.api.plumbing.merge.Conflict;
 import org.geogit.api.porcelain.StatusOp;
-import org.geogit.api.porcelain.StatusSummary;
+import org.geogit.api.porcelain.StatusOp.StatusSummary;
 import org.geogit.cli.AbstractCommand;
 import org.geogit.cli.CLICommand;
 import org.geogit.cli.GeogitCLI;
@@ -30,7 +29,6 @@ import org.geogit.cli.annotation.ReadOnly;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Optional;
-import com.google.common.collect.Iterators;
 
 /**
  * Displays features that have differences between the index and the current HEAD commit and
@@ -90,8 +88,6 @@ public class Status extends AbstractCommand implements CLICommand {
 
         if (countStaged + countUnstaged + countConflicted == 0) {
             console.println("nothing to commit (working directory clean)");
-            print(console, Iterators.<DiffEntry> emptyIterator(), Color.GREEN, countStaged
-                    + countUnstaged + countConflicted);
         }
 
         if (countStaged > 0) {
@@ -106,7 +102,7 @@ public class Status extends AbstractCommand implements CLICommand {
             console.println("# Unmerged paths:");
             console.println("#   (use \"geogit add/rm <path/to/fid>...\" as appropriate to mark resolution");
             console.println("#");
-            printUnmerged(console, summary.getConflicts(), Color.RED, countConflicted);
+            printUnmerged(console, summary.getConflicts().get(), Color.RED, countConflicted);
         }
 
         if (countUnstaged > 0) {
@@ -162,18 +158,16 @@ public class Status extends AbstractCommand implements CLICommand {
         console.println(ansi.toString());
     }
 
-    private void printUnmerged(final ConsoleReader console, final List<Conflict> conflicts,
+    private void printUnmerged(final ConsoleReader console, final Iterable<Conflict> conflicts,
             final Color color, final int total) throws IOException {
-
-        final int limit = all || this.limit == null ? Integer.MAX_VALUE : this.limit.intValue();
 
         StringBuilder sb = new StringBuilder();
 
         Ansi ansi = newAnsi(console.getTerminal(), sb);
 
         String path;
-        for (int i = 0; i < conflicts.size() && i < limit; i++) {
-            path = conflicts.get(i).getPath();
+        for (Conflict c : conflicts) {
+            path = c.getPath();
             sb.setLength(0);
             ansi.a("#      ").fg(color).a("unmerged").a("  ").a(path).reset();
             console.println(ansi.toString());

@@ -5,7 +5,6 @@
 package org.geogit.api.porcelain;
 
 import java.util.Iterator;
-import java.util.List;
 
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.plumbing.DiffIndex;
@@ -23,40 +22,75 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 
 @CanRunDuringConflict
-public class StatusOp extends AbstractGeoGitOp<StatusSummary> {
+public class StatusOp extends AbstractGeoGitOp<StatusOp.StatusSummary> {
+
+    public static class StatusSummary {
+
+        private static final Supplier<Iterator<DiffEntry>> empty;
+
+        private static final Supplier<Iterable<Conflict>> no_conflicts;
+        static {
+            Iterator<DiffEntry> e = Iterators.<DiffEntry> emptyIterator();
+            empty = Suppliers.ofInstance(e);
+            Iterable<Conflict> c = ImmutableList.of();
+            no_conflicts = Suppliers.ofInstance(c);
+        }
+
+        private Supplier<Iterable<Conflict>> conflicts = no_conflicts;
+
+        private Supplier<Iterator<DiffEntry>> staged = empty;
+
+        private Supplier<Iterator<DiffEntry>> unstaged = empty;
+
+        private long countStaged, countUnstaged;
+
+        private int countConflicted;
+
+        public Supplier<Iterable<Conflict>> getConflicts() {
+            return conflicts;
+        }
+
+        public Supplier<Iterator<DiffEntry>> getStaged() {
+            return staged;
+        }
+
+        public Supplier<Iterator<DiffEntry>> getUnstaged() {
+            return unstaged;
+        }
+
+        public long getCountStaged() {
+            return countStaged;
+        }
+
+        public long getCountUnstaged() {
+            return countUnstaged;
+        }
+
+        public int getCountConflicts() {
+            return countConflicted;
+        }
+    }
 
     @Override
     public StatusSummary call() {
         WorkingTree workTree = getWorkTree();
         StagingArea index = getIndex();
 
-        final long countStaged = index.countStaged(null).getCount();
-        final int countConflicted = index.countConflicted(null);
-        final long countUnstaged = workTree.countUnstaged(null).getCount();
-
-        final Iterator<DiffEntry> empty = Iterators.<DiffEntry> emptyIterator();
-
-        Supplier<Iterator<DiffEntry>> stagedEntries = Suppliers.ofInstance(empty);
-        Supplier<Iterator<DiffEntry>> unstagedEntries = Suppliers.ofInstance(empty);
-
-        List<Conflict> conflicts = ImmutableList.of();
-
-        if (countStaged > 0) {
-            stagedEntries = command(DiffIndex.class).setReportTrees(true);
-        }
-        if (countConflicted > 0) {
-            conflicts = command(ConflictsReadOp.class).call();
-        }
-        if (countUnstaged > 0) {
-            unstagedEntries = command(DiffWorkTree.class).setReportTrees(true);
-        }
         StatusSummary summary = new StatusSummary();
-        summary.setCountStaged(countStaged);
-        summary.setCountUnstaged(countUnstaged);
-        summary.setConflictsCount(countConflicted);
-        summary.setStaged(stagedEntries);
-        summary.setUnstaged(unstagedEntries);
-        summary.setConflicts(conflicts);
+
+        summary.countStaged = index.countStaged(null).getCount();
+        summary.countUnstaged = workTree.countUnstaged(null).getCount();
+        summary.countConflicted = index.countConflicted(null);
+
+        if (summary.countStaged > 0) {
+            summary.staged = command(DiffIndex.class).setReportTrees(true);
+        }
+        if (summary.countUnstaged > 0) {
+            summary.unstaged = command(DiffWorkTree.class).setReportTrees(true);
+        }
+        if (summary.countConflicted > 0) {
+            summary.conflicts = command(ConflictsReadOp.class);
+        }
         return summary;
     }
 }

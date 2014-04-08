@@ -1,7 +1,7 @@
 package org.geogit.test.integration;
 
 import org.geogit.api.porcelain.StatusOp;
-import org.geogit.api.porcelain.StatusSummary;
+import org.geogit.api.porcelain.StatusOp.StatusSummary;
 import org.junit.Test;
 
 public class StatusOpTest extends RepositoryTestCase {
