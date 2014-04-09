@@ -14,9 +14,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.storage.ConfigDatabase;
 import org.slf4j.Logger;

@@ -129,9 +129,9 @@ public class Conflicts extends AbstractCommand implements CLICommand {
                 .getObjectId();
         Optional<RevCommit> oursHead = geogit.command(RevObjectParse.class).setObjectId(oursHeadId)
                 .call(RevCommit.class);
-        Optional<RevCommit> commonAncestor = geogit.command(FindCommonAncestor.class)
+        Optional<ObjectId> commonAncestor = geogit.command(FindCommonAncestor.class)
                 .setLeft(theirsHead.get()).setRight(oursHead.get()).call();
-        String ancestorPath = commonAncestor.get().getId().toString() + ":" + conflict.getPath();
+        String ancestorPath = commonAncestor.get().toString() + ":" + conflict.getPath();
         StringBuilder sb = new StringBuilder();
         sb.append(conflict.getPath());
         sb.append(" ");
@@ -172,10 +172,10 @@ public class Conflicts extends AbstractCommand implements CLICommand {
                 .getObjectId();
         Optional<RevCommit> oursHead = geogit.command(RevObjectParse.class).setObjectId(oursHeadId)
                 .call(RevCommit.class);
-        Optional<RevCommit> commonAncestor = geogit.command(FindCommonAncestor.class)
+        Optional<ObjectId> commonAncestor = geogit.command(FindCommonAncestor.class)
                 .setLeft(theirsHead.get()).setRight(oursHead.get()).call();
 
-        String ancestorPath = commonAncestor.get().getId().toString() + ":" + conflict.getPath();
+        String ancestorPath = commonAncestor.get().toString() + ":" + conflict.getPath();
         Optional<NodeRef> ancestorNodeRef = geogit.command(FeatureNodeRefFromRefspec.class)
                 .setRefspec(ancestorPath).call();
         String path = Ref.ORIG_HEAD + ":" + conflict.getPath();

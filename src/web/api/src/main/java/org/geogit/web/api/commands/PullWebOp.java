@@ -160,7 +160,7 @@ public class PullWebOp extends AbstractWebAPICommand {
                     .getCommit(sourceRef.get().getObjectId());
             final RevCommit ours = context.getGeoGIT().getRepository()
                     .getCommit(destRef.get().getObjectId());
-            final Optional<RevCommit> ancestor = geogit.command(FindCommonAncestor.class)
+            final Optional<ObjectId> ancestor = geogit.command(FindCommonAncestor.class)
                     .setLeft(ours).setRight(theirs).call();
             context.setResponseContent(new CommandResponse() {
                 final MergeScenarioReport report = geogit.command(ReportMergeScenarioOp.class)
@@ -171,7 +171,7 @@ public class PullWebOp extends AbstractWebAPICommand {
                     out.start();
                     Optional<RevCommit> mergeCommit = Optional.absent();
                     out.writeMergeResponse(mergeCommit, report, geogit, ours.getId(),
-                            theirs.getId(), ancestor.get().getId());
+                            theirs.getId(), ancestor.get());
                     out.finish();
                 }
             });

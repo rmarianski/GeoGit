@@ -128,12 +128,12 @@ public class SquashOp extends AbstractGeoGitOp<ObjectId> {
         Preconditions.checkState(getIndex().isClean() && getWorkTree().isClean(),
                 "You must have a clean working tree and index to perform a squash.");
 
-        Optional<RevCommit> ancestor = command(FindCommonAncestor.class).setLeft(since)
+        Optional<ObjectId> ancestor = command(FindCommonAncestor.class).setLeft(since)
                 .setRight(until).call();
         Preconditions.checkArgument(ancestor.isPresent(),
                 "'since' and 'until' command do not have a common ancestor");
-        Preconditions
-                .checkArgument(ancestor.get().equals(since), "Commits provided in wrong order");
+        Preconditions.checkArgument(ancestor.get().equals(since.getId()),
+                "Commits provided in wrong order");
 
         Preconditions.checkArgument(!since.getParentIds().isEmpty(),
                 "'since' commit has no parents");

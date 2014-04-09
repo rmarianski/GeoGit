@@ -400,17 +400,15 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
                 // The branches are equal, no need to push.
                 throw new SynchronizationException(StatusCode.NOTHING_TO_PUSH);
             } else if (localRepository.blobExists(mappedId)) {
-                RevCommit leftCommit = localRepository.getCommit(mappedId);
-                RevCommit rightCommit = localRepository.getCommit(ref.getObjectId());
-                Optional<RevCommit> ancestor = localRepository.command(FindCommonAncestor.class)
-                        .setLeft(leftCommit).setRight(rightCommit).call();
+                Optional<ObjectId> ancestor = localRepository.command(FindCommonAncestor.class)
+                        .setLeftId(mappedId).setRightId(ref.getObjectId()).call();
                 if (!ancestor.isPresent()) {
                     // There is no common ancestor, a push will overwrite history
                     throw new SynchronizationException(StatusCode.REMOTE_HAS_CHANGES);
-                } else if (ancestor.get().getId().equals(ref.getObjectId())) {
+                } else if (ancestor.get().equals(ref.getObjectId())) {
                     // My last commit is the common ancestor, the remote already has my data.
                     throw new SynchronizationException(StatusCode.NOTHING_TO_PUSH);
-                } else if (!ancestor.get().getId().equals(mappedId)) {
+                } else if (!ancestor.get().equals(mappedId)) {
                     // The remote branch's latest commit is not my ancestor, a push will cause a
                     // loss of history.
                     throw new SynchronizationException(StatusCode.REMOTE_HAS_CHANGES);

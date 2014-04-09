@@ -25,6 +25,7 @@ import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject;
 import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.SymRef;
+import org.geogit.api.plumbing.FindCommonAncestor;
 import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.porcelain.DiffOp;
@@ -328,8 +329,8 @@ class HttpMappedRemoteRepo extends AbstractMappedRemoteRepo {
             for (int i = 0; i < commit.getParentIds().size(); i++) {
                 ObjectId parentId = commit.getParentIds().get(i);
                 if (i != 0) {
-                    Optional<ObjectId> commonAncestor = from.getGraphDatabase()
-                            .findLowestCommonAncestor(commit.getParentIds().get(0), parentId);
+                    Optional<ObjectId> commonAncestor = from.command(FindCommonAncestor.class)
+                            .setLeftId(commit.getParentIds().get(0)).setRightId(parentId).call();
                     if (commonAncestor.isPresent()) {
                         if (from.getGraphDatabase().isSparsePath(parentId, commonAncestor.get())) {
                             // This should be the base commit to preserve changes that were filtered

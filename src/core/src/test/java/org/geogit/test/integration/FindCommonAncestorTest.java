@@ -4,6 +4,7 @@
  */
 package org.geogit.test.integration;
 
+import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.plumbing.FindCommonAncestor;
 import org.geogit.api.porcelain.BranchCreateOp;
@@ -64,11 +65,11 @@ public class FindCommonAncestorTest extends RepositoryTestCase {
         final RevCommit right = geogit.command(CommitOp.class).setMessage("commit for " + idL1)
                 .call();
 
-        Optional<RevCommit> commonAncestor = geogit.command(FindCommonAncestor.class).setLeft(left)
+        Optional<ObjectId> commonAncestor = geogit.command(FindCommonAncestor.class).setLeft(left)
                 .setRight(right).call();
 
         assertTrue(commonAncestor.isPresent());
-        assertEquals(commonAncestor.get().getId(), c1.getId());
+        assertEquals(commonAncestor.get(), c1.getId());
 
     }
 
@@ -105,11 +106,11 @@ public class FindCommonAncestorTest extends RepositoryTestCase {
         final RevCommit right = geogit.command(CommitOp.class).setMessage("commit for " + idL1)
                 .call();
 
-        Optional<RevCommit> commonAncestor = geogit.command(FindCommonAncestor.class).setLeft(left)
+        Optional<ObjectId> commonAncestor = geogit.command(FindCommonAncestor.class).setLeft(left)
                 .setRight(right).call();
 
         assertTrue(commonAncestor.isPresent());
-        assertEquals(commonAncestor.get().getId(), c1.getId());
+        assertEquals(commonAncestor.get(), c1.getId());
 
     }
 
@@ -158,11 +159,11 @@ public class FindCommonAncestorTest extends RepositoryTestCase {
         final MergeReport mergeReport = geogit.command(MergeOp.class)
                 .addCommit(Suppliers.ofInstance(left.getId())).call();
 
-        Optional<RevCommit> commonAncestor = geogit.command(FindCommonAncestor.class)
+        Optional<ObjectId> commonAncestor = geogit.command(FindCommonAncestor.class)
                 .setLeft(mergeReport.getMergeCommit()).setRight(branch2).call();
 
         assertTrue(commonAncestor.isPresent());
-        assertEquals(commonAncestor.get().getId(), ancestor.getId());
+        assertEquals(commonAncestor.get(), ancestor.getId());
 
     }
 
@@ -228,11 +229,102 @@ public class FindCommonAncestorTest extends RepositoryTestCase {
         mergeReport = geogit.command(MergeOp.class).addCommit(Suppliers.ofInstance(left.getId()))
                 .call();
 
-        Optional<RevCommit> commonAncestor = geogit.command(FindCommonAncestor.class)
+        Optional<ObjectId> commonAncestor = geogit.command(FindCommonAncestor.class)
                 .setLeft(mergeReport.getMergeCommit()).setRight(branch2).call();
 
         assertTrue(commonAncestor.isPresent());
-        assertEquals(commonAncestor.get().getId(), ancestor.getId());
+        assertEquals(commonAncestor.get(), ancestor.getId());
 
+    }
+
+    @Test
+    public void testFindCommonAncestorCase5() throws Exception {
+        // Create the following revision graph
+        // o - root commit Add Points 1
+        // |\
+        // | o - commit1 Add Points 2
+        // | |\
+        // o | | - commit2 Add Points 3
+        // | | |
+        // | | o - commit3 Modify Points 1
+        // | | |
+        // | o | - commit4 Add Lines 1
+        // | |\|
+        // | | o - commit5 Merge commit
+        // | | |
+        // | o | - commit6 Add Lines 2
+        // | | |
+        // | o | - commit7 Add Lines 3
+        // | | |
+        // | o | - commit8 Add Polygon 1
+        // | | |
+        // | o | - commit9 Add Polygon 2
+        // | | |
+        // | | o - commit10 Add Polygon 3
+        // |/
+        // o - commit11 Merge commit
+
+        // root commit
+        insertAndAdd(points1);
+        geogit.command(CommitOp.class).setMessage("root commit").call();
+
+        // commit1
+        geogit.command(BranchCreateOp.class).setAutoCheckout(true).setName("branch1").call();
+        insertAndAdd(points2);
+        geogit.command(CommitOp.class).setMessage("commit1").call();
+        geogit.command(BranchCreateOp.class).setAutoCheckout(false).setName("branch2").call();
+
+        // commit2
+        geogit.command(CheckoutOp.class).setSource("master").call();
+        insertAndAdd(points3);
+        geogit.command(CommitOp.class).setMessage("commit2").call();
+
+        // commit3
+        geogit.command(CheckoutOp.class).setSource("branch2").call();
+        insertAndAdd(points1_modified);
+        geogit.command(CommitOp.class).setMessage("commit3").call();
+
+        // commit4
+        geogit.command(CheckoutOp.class).setSource("branch1").call();
+        insertAndAdd(lines1);
+        ObjectId commit4 = geogit.command(CommitOp.class).setMessage("commit4").call().getId();
+
+        // commit5
+        geogit.command(CheckoutOp.class).setSource("branch2").call();
+        geogit.command(MergeOp.class).setMessage("commit3")
+                .addCommit(Suppliers.ofInstance(commit4)).call();
+
+        // commit6
+        geogit.command(CheckoutOp.class).setSource("branch1").call();
+        insertAndAdd(lines2);
+        geogit.command(CommitOp.class).setMessage("commit6").call();
+
+        // commit7
+        insertAndAdd(lines3);
+        geogit.command(CommitOp.class).setMessage("commit7").call();
+
+        // commit8
+        insertAndAdd(poly1);
+        geogit.command(CommitOp.class).setMessage("commit8").call();
+
+        // commit9
+        insertAndAdd(poly2);
+        ObjectId commit9 = geogit.command(CommitOp.class).setMessage("commit9").call().getId();
+
+        // commit10
+        geogit.command(CheckoutOp.class).setSource("branch2").call();
+        insertAndAdd(poly3);
+        RevCommit commit10 = geogit.command(CommitOp.class).setMessage("commit10").call();
+
+        // commit11
+        geogit.command(CheckoutOp.class).setSource("master").call();
+        MergeReport report = geogit.command(MergeOp.class).setMessage("commit11")
+                .addCommit(Suppliers.ofInstance(commit9)).call();
+
+        Optional<ObjectId> commonAncestor = geogit.command(FindCommonAncestor.class)
+                .setLeft(report.getMergeCommit()).setRight(commit10).call();
+
+        assertTrue(commonAncestor.isPresent());
+        assertEquals(commonAncestor.get(), commit4);
     }
 }

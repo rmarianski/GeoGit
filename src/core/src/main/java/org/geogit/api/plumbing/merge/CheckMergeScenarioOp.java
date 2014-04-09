@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.geogit.api.AbstractGeoGitOp;
+import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.plumbing.DiffTree;
@@ -61,12 +62,12 @@ public class CheckMergeScenarioOp extends AbstractGeoGitOp<Boolean> {
         if (commits.size() < 2) {
             return Boolean.FALSE;
         }
-        Optional<RevCommit> ancestor = command(FindCommonAncestor.class).setLeft(commits.get(0))
+        Optional<ObjectId> ancestor = command(FindCommonAncestor.class).setLeft(commits.get(0))
                 .setRight(commits.get(1)).call();
         Preconditions.checkState(ancestor.isPresent(), "No ancestor commit could be found.");
         for (int i = 2; i < commits.size(); i++) {
             ancestor = command(FindCommonAncestor.class).setLeft(commits.get(i))
-                    .setRight(ancestor.get()).call();
+                    .setRightId(ancestor.get()).call();
             Preconditions.checkState(ancestor.isPresent(), "No ancestor commit could be found.");
         }
 
@@ -76,7 +77,7 @@ public class CheckMergeScenarioOp extends AbstractGeoGitOp<Boolean> {
         // we organize the changes made for each path
         for (RevCommit commit : commits) {
             Iterator<DiffEntry> toMergeDiffs = command(DiffTree.class).setReportTrees(true)
-                    .setOldTree(ancestor.get().getId()).setNewTree(commit.getId()).call();
+                    .setOldTree(ancestor.get()).setNewTree(commit.getId()).call();
             while (toMergeDiffs.hasNext()) {
                 DiffEntry diff = toMergeDiffs.next();
                 String path = diff.oldPath() == null ? diff.newPath() : diff.oldPath();

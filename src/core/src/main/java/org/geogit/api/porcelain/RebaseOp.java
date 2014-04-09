@@ -273,14 +273,14 @@ public class RebaseOp extends AbstractGeoGitOp<Boolean> {
 
             command(UpdateRef.class).setName(Ref.ORIG_HEAD).setNewValue(headCommit.getId());
 
-            Optional<RevCommit> ancestorCommit = command(FindCommonAncestor.class)
+            Optional<ObjectId> ancestorCommit = command(FindCommonAncestor.class)
                     .setLeft(headCommit).setRight(targetCommit)
                     .setProgressListener(subProgress(10.f)).call();
 
             Preconditions.checkState(ancestorCommit.isPresent(),
                     "No ancestor commit could be found.");
 
-            if (ancestorCommit.get().getId().equals(headCommit.getId())) {
+            if (ancestorCommit.get().equals(headCommit.getId())) {
                 // Fast-forward
                 command(UpdateRef.class).setName(currentBranch).setNewValue(upstream.get()).call();
                 command(UpdateSymRef.class).setName(Ref.HEAD).setNewValue(currentBranch).call();
@@ -297,7 +297,7 @@ public class RebaseOp extends AbstractGeoGitOp<Boolean> {
             List<RevCommit> commitsToRebase = new ArrayList<RevCommit>();
 
             RevCommit commit = commitIterator.next();
-            while (!commit.getId().equals(ancestorCommit.get().getId())) {
+            while (!commit.getId().equals(ancestorCommit.get())) {
                 commitsToRebase.add(commit);
                 commit = commitIterator.next();
             }
@@ -312,7 +312,7 @@ public class RebaseOp extends AbstractGeoGitOp<Boolean> {
 
             if (squashMessage != null) {
                 CommitBuilder builder = new CommitBuilder(commitsToRebase.get(0));
-                builder.setParentIds(Arrays.asList(ancestorCommit.get().getId()));
+                builder.setParentIds(Arrays.asList(ancestorCommit.get()));
                 builder.setMessage(squashMessage);
                 squashCommit = builder.build();
                 // save the commit, since it does not exist in the database, and might be needed if

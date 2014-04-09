@@ -125,7 +125,7 @@ public class MergeWebOp extends AbstractWebAPICommand {
             final RevCommit ours = context.getGeoGIT().getRepository()
                     .getCommit(currHead.get().getObjectId());
             final RevCommit theirs = context.getGeoGIT().getRepository().getCommit(oid.get());
-            final Optional<RevCommit> ancestor = transaction.command(FindCommonAncestor.class)
+            final Optional<ObjectId> ancestor = transaction.command(FindCommonAncestor.class)
                     .setLeft(ours).setRight(theirs).call();
             context.setResponseContent(new CommandResponse() {
                 final MergeScenarioReport report = transaction.command(ReportMergeScenarioOp.class)
@@ -136,7 +136,7 @@ public class MergeWebOp extends AbstractWebAPICommand {
                     out.start();
                     Optional<RevCommit> mergeCommit = Optional.absent();
                     out.writeMergeResponse(mergeCommit, report, transaction, ours.getId(),
-                            theirs.getId(), ancestor.get().getId());
+                            theirs.getId(), ancestor.get());
                     out.finish();
                 }
             });

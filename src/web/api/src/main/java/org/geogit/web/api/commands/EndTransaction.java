@@ -6,6 +6,7 @@ package org.geogit.web.api.commands;
 
 import org.geogit.api.CommandLocator;
 import org.geogit.api.GeogitTransaction;
+import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.plumbing.FindCommonAncestor;
 import org.geogit.api.plumbing.TransactionEnd;
@@ -75,7 +76,7 @@ public class EndTransaction extends AbstractWebAPICommand {
         } catch (MergeConflictsException m) {
             final RevCommit ours = context.getGeoGIT().getRepository().getCommit(m.getOurs());
             final RevCommit theirs = context.getGeoGIT().getRepository().getCommit(m.getTheirs());
-            final Optional<RevCommit> ancestor = transaction.command(FindCommonAncestor.class)
+            final Optional<ObjectId> ancestor = transaction.command(FindCommonAncestor.class)
                     .setLeft(ours).setRight(theirs).call();
             context.setResponseContent(new CommandResponse() {
                 final MergeScenarioReport report = transaction.command(ReportMergeScenarioOp.class)
@@ -86,7 +87,7 @@ public class EndTransaction extends AbstractWebAPICommand {
                     out.start();
                     Optional<RevCommit> mergeCommit = Optional.absent();
                     out.writeMergeResponse(mergeCommit, report, transaction, ours.getId(),
-                            theirs.getId(), ancestor.get().getId());
+                            theirs.getId(), ancestor.get());
                     out.finish();
                 }
             });
