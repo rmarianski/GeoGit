@@ -17,11 +17,13 @@ Feature: General features of CLI
      When I run the command "brunch"
      Then the response should contain "Did you mean this?"
       And the response should contain "branch"
+      And it should exit with non-zero exit code 
      
   Scenario: Show command candidates when command is mistyped
     Given I have a repository      
      When I run the command "confit"
      Then the response should contain "Did you mean one of these?"
       And the response should contain "config"
-      And the response should contain "commit"     
+      And the response should contain "commit"
+      And it should exit with non-zero exit code      
      
