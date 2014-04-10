@@ -66,6 +66,8 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
         // create a list of envelopes using the entries list
         while (entries.hasNext()) {
             DiffEntry entry = entries.next();
+            oldEnvelope.setToNull();
+            newEnvelope.setToNull();
 
             if (entry.getOldObject() != null) {
                 entry.getOldObject().expand(oldEnvelope);
@@ -76,12 +78,8 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
             }
 
             if (!oldEnvelope.equals(newEnvelope)) {
-                if (entry.getOldObject() != null) {
-                    entry.getOldObject().expand(diffBounds);
-                }
-                if (entry.getNewObject() != null) {
-                    entry.getNewObject().expand(diffBounds);
-                }
+                diffBounds.expandToInclude(oldEnvelope);
+                diffBounds.expandToInclude(newEnvelope);
             }
         }
 
