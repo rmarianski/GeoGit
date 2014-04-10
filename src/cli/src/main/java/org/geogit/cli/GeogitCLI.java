@@ -541,7 +541,7 @@ public class GeogitCLI {
                     }
                 }
                 consoleReader.flush();
-                return;
+                throw new CommandFailedException();
             }
 
             Object object = commandParser.getObjects().get(0);
@@ -567,6 +567,7 @@ public class GeogitCLI {
                 printUsage(extension.getCommandParser());
             } else {
                 printUsage(mainCommander);
+                throw new CommandFailedException();
             }
         } else {
             JCommander jCommander = mainCommander.getCommands().get(parsedCommand);
