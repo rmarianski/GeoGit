@@ -85,8 +85,8 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
             List<GraphEdge> edges = new LinkedList<GraphEdge>();
             while (nodeEdges.hasNext()) {
                 Edge nodeEdge = nodeEdges.next();
-                edges.add(new GraphEdge(new BlueprintsGraphNode(nodeEdge.getVertex(IN)),
-                        new BlueprintsGraphNode(nodeEdge.getVertex(OUT))));
+                edges.add(new GraphEdge(new BlueprintsGraphNode(nodeEdge.getVertex(OUT)),
+                        new BlueprintsGraphNode(nodeEdge.getVertex(IN))));
             }
             return edges;
         }
@@ -319,8 +319,13 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
 
     @Override
     public GraphNode getNode(ObjectId id) {
-        // TODO Auto-generated method stub
-        return null;
+        Iterable<Vertex> results = graphDB.getVertices("identifier", id.toString());
+        Vertex node = null;
+        Iterator<Vertex> iterator = results.iterator();
+        if (iterator.hasNext()) {
+            node = iterator.next();
+        }
+        return new BlueprintsGraphNode(node);
     }
 
     /**

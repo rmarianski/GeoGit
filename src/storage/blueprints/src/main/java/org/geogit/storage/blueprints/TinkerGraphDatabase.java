@@ -4,7 +4,6 @@
  */
 package org.geogit.storage.blueprints;
 
-import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.repository.RepositoryConnectionException;
 import org.geogit.storage.ConfigDatabase;
