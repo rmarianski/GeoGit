@@ -9,6 +9,7 @@ import org.geogit.storage.GraphDatabase;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.StagingDatabase;
 import org.geogit.storage.bdbje.EnvironmentBuilder;
+import org.geogit.storage.bdbje.JEGraphDatabase;
 import org.geogit.storage.bdbje.JEObjectDatabase;
 import org.geogit.storage.bdbje.JEStagingDatabase;
 
@@ -25,6 +26,7 @@ public class JETestStorageModule extends AbstractModule {
         // BDB JE bindings for the different kinds of databases
         bind(ObjectDatabase.class).to(JEObjectDatabase.class).in(Scopes.SINGLETON);
         bind(StagingDatabase.class).to(JEStagingDatabase.class).in(Scopes.SINGLETON);
+        bind(GraphDatabase.class).to(JEGraphDatabase.class).in(Scopes.SINGLETON);
 
         // this module's specific. Used by the JE*Databases to set up the db environment
         // A new instance of each db

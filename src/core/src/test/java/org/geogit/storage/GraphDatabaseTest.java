@@ -93,6 +93,8 @@ public abstract class GraphDatabaseTest {
     public void testMapNode() throws IOException {
         ObjectId commitId = ObjectId.forString("commitId");
         ObjectId mappedId = ObjectId.forString("mapped");
+        database.put(commitId, new ImmutableList.Builder<ObjectId>().build());
+        database.put(mappedId, new ImmutableList.Builder<ObjectId>().build());
         database.map(mappedId, commitId);
         ObjectId mapping = database.getMapping(mappedId);
         assertEquals(commitId, mapping);
@@ -215,6 +217,7 @@ public abstract class GraphDatabaseTest {
         database.map(commit3Map, commit3);
 
         assertTrue(database.isSparsePath(commit2, rootId));
+        assertFalse(database.isSparsePath(commit3, rootId));
 
     }
 

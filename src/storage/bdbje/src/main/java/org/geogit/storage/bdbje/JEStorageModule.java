@@ -6,6 +6,7 @@
 package org.geogit.storage.bdbje;
 
 import org.geogit.storage.DeduplicationService;
+import org.geogit.storage.GraphDatabase;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.StagingDatabase;
 
@@ -23,7 +24,7 @@ public class JEStorageModule extends AbstractModule {
         bind(ObjectDatabase.class).to(JEObjectDatabase.class).in(Scopes.SINGLETON);
         bind(StagingDatabase.class).to(JEStagingDatabase.class).in(Scopes.SINGLETON);
         bind(DeduplicationService.class).to(BDBJEDeduplicationService.class).in(Scopes.SINGLETON);
-        
+        bind(GraphDatabase.class).to(JEGraphDatabase.class).in(Scopes.SINGLETON);
 
         // this module's specific. Used by the JE*Databases to set up the db environment
         // A new instance of each db
