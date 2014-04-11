@@ -483,29 +483,6 @@ public class JEGraphDatabase implements GraphDatabase {
         putNodeInternal(commitId, node);
     }
 
-    @Override
-    public boolean isSparsePath(ObjectId start, ObjectId end) {
-        NodeData node = getNodeInternal(start, true);
-        return sparsePath_recursive(node, end, false);
-    }
-
-    private boolean sparsePath_recursive(NodeData node, ObjectId end, boolean sparse) {
-        if (node.id.equals(end)) {
-            return sparse;
-        }
-        if (node.outgoing.size() > 0) {
-            boolean node_sparse = node.isSparse();
-            boolean combined_sparse = false;
-            for (ObjectId parent : node.outgoing) {
-                NodeData parentNode = getNodeInternal(parent, true);
-                combined_sparse = combined_sparse
-                        || sparsePath_recursive(parentNode, end, sparse || node_sparse);
-            }
-            return combined_sparse;
-        }
-        return false;
-    }
-
     private class JEGraphNode extends GraphNode {
         NodeData node;
 
@@ -536,6 +513,11 @@ public class JEGraphDatabase implements GraphDatabase {
                 }
             }
             return edges;
+        }
+
+        @Override
+        public boolean isSparse() {
+            return node.isSparse();
         }
 
     }

@@ -50,6 +50,8 @@ public interface GraphDatabase extends Closeable {
 
         public abstract List<GraphEdge> getEdges(Direction direction);
 
+        public abstract boolean isSparse();
+
         @Override
         public boolean equals(Object obj) {
             if (obj == this) {
@@ -163,16 +165,6 @@ public interface GraphDatabase extends Closeable {
      * @param commitId the id of the commit
      */
     public void setProperty(ObjectId commitId, String propertyName, String propertyValue);
-
-    /**
-     * Determines if there are any sparse commits between the start commit and the end commit, not
-     * including the end commit.
-     * 
-     * @param start the start commit
-     * @param end the end commit
-     * @return true if there are any sparse commits between start and end
-     */
-    public boolean isSparsePath(ObjectId start, ObjectId end);
 
     public GraphNode getNode(ObjectId id);
 

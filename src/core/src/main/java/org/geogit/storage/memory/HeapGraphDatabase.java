@@ -193,18 +193,6 @@ public class HeapGraphDatabase implements GraphDatabase {
     }
 
     @Override
-    public boolean isSparsePath(ObjectId start, ObjectId end) {
-        ShortestPathWalker p = new ShortestPathWalker(graph.get(start).get(), graph.get(end).get());
-        while (p.hasNext()) {
-            Node n = p.next();
-            if (Boolean.valueOf(n.get(GraphDatabase.SPARSE_FLAG).or("false"))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public void truncate() {
         graph.clear();
     }
@@ -267,6 +255,12 @@ public class HeapGraphDatabase implements GraphDatabase {
                         nodeEdge.dst)));
             }
             return edges;
+        }
+
+        @Override
+        public boolean isSparse() {
+            return node.props != null && node.props.containsKey(SPARSE_FLAG)
+                    && Boolean.valueOf(node.props.get(SPARSE_FLAG));
         }
     }
 

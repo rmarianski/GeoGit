@@ -147,19 +147,6 @@ public abstract class SQLiteGraphDatabase<T> implements GraphDatabase {
     }
 
     @Override
-    public boolean isSparsePath(ObjectId start, ObjectId end) {
-        ShortestPathWalker<T> p = new ShortestPathWalker<T>(start, end, this, cx);
-        while (p.hasNext()) {
-            ObjectId node = p.next();
-            if (Boolean.valueOf(property(node.toString(), GraphDatabase.SPARSE_FLAG, cx))) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
     public void truncate() {
     }
 
@@ -298,6 +285,12 @@ public abstract class SQLiteGraphDatabase<T> implements GraphDatabase {
                 }
             }
             return edges;
+        }
+
+        @Override
+        public boolean isSparse() {
+            String sparse = property(id.toString(), SPARSE_FLAG, cx);
+            return sparse != null && Boolean.valueOf(sparse);
         }
     }
 

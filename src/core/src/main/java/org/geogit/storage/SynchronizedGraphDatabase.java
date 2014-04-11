@@ -95,12 +95,6 @@ public class SynchronizedGraphDatabase implements GraphDatabase {
         }
     }
 
-    public boolean isSparsePath(ObjectId start, ObjectId end) {
-        synchronized (delegate) {
-            return delegate.isSparsePath(start, end);
-        }
-    }
-
     public void truncate() {
         synchronized (delegate) {
             delegate.truncate();

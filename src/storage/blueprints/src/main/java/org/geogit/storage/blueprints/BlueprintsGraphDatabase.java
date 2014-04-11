@@ -90,6 +90,12 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
             }
             return edges;
         }
+
+        @Override
+        public boolean isSparse() {
+            return node.getPropertyKeys().contains(SPARSE_FLAG)
+                    && Boolean.valueOf((String) node.getProperty(SPARSE_FLAG));
+        }
     }
 
     /**
@@ -505,60 +511,6 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
             } else {
                 return 0;
             }
-        } finally {
-            this.rollback();
-        }
-    }
-
-    /**
-     * Determines if there are any sparse commits between the start commit and the end commit, not
-     * including the end commit.
-     * 
-     * @param start the start commit
-     * @param end the end commit
-     * @return true if there are any sparse commits between start and end
-     */
-    public boolean isSparsePath(final ObjectId start, final ObjectId end) {
-        try {
-            Vertex startNode = null;
-            Vertex endNode = null;
-            Iterable<Vertex> startResults = graphDB.getVertices("identifier", start.toString());
-            startNode = startResults.iterator().next();
-            Iterable<Vertex> endResults = graphDB.getVertices("identifier", end.toString());
-            endNode = endResults.iterator().next();
-
-            PipeFunction<LoopBundle<Vertex>, Boolean> whileFunction = new PipeFunction<LoopBundle<Vertex>, Boolean>() {
-                @Override
-                public Boolean compute(LoopBundle<Vertex> argument) {
-                    return !argument.getObject().getProperty("identifier").equals(end.toString());
-                }
-            };
-
-            PipeFunction<LoopBundle<Vertex>, Boolean> emitFunction = new PipeFunction<LoopBundle<Vertex>, Boolean>() {
-                @Override
-                public Boolean compute(LoopBundle<Vertex> argument) {
-                    return argument.getObject().getProperty("identifier").equals(end.toString());
-                }
-            };
-
-            @SuppressWarnings("rawtypes")
-            GremlinPipeline<Vertex, List> pipe = new GremlinPipeline<Vertex, Vertex>()
-                    .start(startNode).as("start").outE(Relationship.PARENT.name()).inV()
-                    .loop("start", whileFunction, emitFunction).path();
-
-            for (List<?> path : pipe) {
-                for (Object o : path) {
-                    if (o instanceof Vertex) {
-                        Vertex vertex = (Vertex) o;
-                        if (!vertex.equals(endNode)
-                                && vertex.getPropertyKeys().contains(SPARSE_FLAG)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
         } finally {
             this.rollback();
         }
