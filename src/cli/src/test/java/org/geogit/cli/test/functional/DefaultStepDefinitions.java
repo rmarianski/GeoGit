@@ -352,6 +352,10 @@ public class DefaultStepDefinitions {
         runCommand(true, "commit -m Commit5");
         runCommand(true, "tag " + tagName + " -m Created_" + tagName + "");
 
+        String actual = stdOut.toString().replaceAll(LINE_SEPARATOR, "").replaceAll("\\\\", "/")
+                .trim().toLowerCase();
+        assertTrue(actual, actual.startsWith("created tag " + tagName));
+
         platform.setWorkingDir(currDir);
         setupGeogit();
     }

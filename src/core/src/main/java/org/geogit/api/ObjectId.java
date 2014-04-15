@@ -4,7 +4,6 @@
  */
 package org.geogit.api;
 
-import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -18,10 +17,7 @@ import com.google.common.primitives.UnsignedBytes;
 /**
  * A {@link RevObject} identifier backed by a hash function (SHA1 for instance)
  */
-public final class ObjectId implements Serializable, Comparable<ObjectId> {
-
-    /** serialVersionUID */
-    private static final long serialVersionUID = -2445723120477753654L;
+public final class ObjectId implements Comparable<ObjectId> {
 
     /**
      * A "natural order" {@link Ordering comparator}

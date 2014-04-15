@@ -3,22 +3,15 @@ package org.geogit.storage.bdbje;
 import static com.sleepycat.je.OperationStatus.NOTFOUND;
 import static com.sleepycat.je.OperationStatus.SUCCESS;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -31,12 +24,15 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import com.sleepycat.bind.tuple.TupleBinding;
+import com.sleepycat.bind.tuple.TupleInput;
+import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.CacheMode;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
@@ -53,6 +49,10 @@ public class JEGraphDatabase implements GraphDatabase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JEGraphDatabase.class);
 
+    static final String ENVIRONMENT_NAME = "graph";
+
+    private static final GraphNodeBinding BINDING = new GraphNodeBinding();
+
     private EnvironmentBuilder envProvider;
 
     /**
@@ -62,25 +62,17 @@ public class JEGraphDatabase implements GraphDatabase {
 
     protected Database graphDb;
 
-    @Nullable
-    private ExecutorService dbSyncService;
-
-    private ExecutorService writerService;
-
     private final String envName;
 
     private final ConfigDatabase configDb;
 
+    private final String databaseName = "GraphDatabase";
+
     @Inject
     public JEGraphDatabase(final ConfigDatabase config, final EnvironmentBuilder envProvider) {
-        this(config, envProvider, "objects");
-    }
-
-    public JEGraphDatabase(final ConfigDatabase config, final EnvironmentBuilder envProvider,
-            final String envName) {
         this.configDb = config;
         this.envProvider = envProvider;
-        this.envName = envName;
+        this.envName = JEGraphDatabase.ENVIRONMENT_NAME;
     }
 
     @Override
@@ -90,14 +82,7 @@ public class JEGraphDatabase implements GraphDatabase {
             return;
         }
         this.graphDb = createDatabase();
-
-        int nWriterThreads = 1;
-        writerService = Executors.newFixedThreadPool(nWriterThreads, new ThreadFactoryBuilder()
-                .setNameFormat("BDBJE-" + env.getHome().getName() + "-WRITE-THREAD-%d").build());
-        if (!graphDb.getConfig().getTransactional()) {
-            dbSyncService = Executors.newFixedThreadPool(nWriterThreads, new ThreadFactoryBuilder()
-                    .setNameFormat("BDBJE-" + env.getHome().getName() + "-SYNC-THREAD-%d").build());
-        }
+        //System.err.println("---> " + getClass().getName() + ".open() " + env.getHome());
 
         LOGGER.debug("Graph database opened at {}. Transactional: {}", env.getHome(), graphDb
                 .getConfig().getTransactional());
@@ -105,7 +90,6 @@ public class JEGraphDatabase implements GraphDatabase {
 
     protected Database createDatabase() {
 
-        final String databaseName = "GraphDatabase";
         Environment environment;
         try {
             environment = createEnvironment();
@@ -180,20 +164,13 @@ public class JEGraphDatabase implements GraphDatabase {
             LOGGER.trace("Database already closed.");
             return;
         }
+        //System.err.println("<--- " + getClass().getName() + ".close() " + env.getHome());
         final File envHome = env.getHome();
         try {
             LOGGER.debug("Closing graph database at {}", envHome);
-            if (writerService != null) {
-                writerService.shutdown();
-                waitForServiceShutDown(writerService);
-            }
             if (graphDb != null) {
                 graphDb.close();
                 graphDb = null;
-            }
-            if (dbSyncService != null) {
-                dbSyncService.shutdown();
-                waitForServiceShutDown(dbSyncService);
             }
             LOGGER.trace("GraphDatabase closed. Closing environment...");
             env.sync();
@@ -203,21 +180,19 @@ public class JEGraphDatabase implements GraphDatabase {
             env = null;
         }
         LOGGER.debug("Database {} closed.", envHome);
-
     }
 
-    private void waitForServiceShutDown(ExecutorService service) {
-        try {
-            while (!service.isTerminated()) {
-                service.awaitTermination(100, TimeUnit.MILLISECONDS);
-            }
-        } catch (InterruptedException e) {
-            LOGGER.warn("Error waiting for service to finish", e);
+    @Override
+    protected void finalize() {
+        if (isOpen()) {
+            LOGGER.warn("JEGraphDatabase %s was not closed. Forcing close at finalize()",
+                    env.getHome());
+            close();
         }
     }
 
-    private class NodeData implements Serializable {
-        private static final long serialVersionUID = -7213804957950419813L;
+    private static class NodeData {
+        public ObjectId id;
 
         public List<ObjectId> outgoing;
 
@@ -225,69 +200,36 @@ public class JEGraphDatabase implements GraphDatabase {
 
         public Map<String, String> properties;
 
+        @Nullable
         public ObjectId mappedTo;
 
-        public ObjectId id;
+        public NodeData(ObjectId id, List<ObjectId> parents) {
+            this(id, ObjectId.NULL, new ArrayList<ObjectId>(parents), new ArrayList<ObjectId>(2),
+                    new HashMap<String, String>());
+        }
 
-        public NodeData(ObjectId id, ImmutableList<ObjectId> parents) {
+        NodeData(ObjectId id, ObjectId mappedTo, List<ObjectId> parents, List<ObjectId> children,
+                Map<String, String> properties) {
             this.id = id;
-            this.outgoing = new LinkedList<ObjectId>();
-            this.outgoing.addAll(parents);
-            this.incoming = new LinkedList<ObjectId>();
-            this.properties = new HashMap<String, String>();
-            this.mappedTo = null;
+            this.mappedTo = mappedTo;
+            this.outgoing = parents;
+            this.incoming = children;
+            this.properties = properties;
         }
 
         public NodeData(ObjectId id) {
-            this(id, new ImmutableList.Builder<ObjectId>().build());
+            this(id, ImmutableList.<ObjectId> of());
         }
 
         public boolean isSparse() {
             return properties.containsKey(SPARSE_FLAG) ? Boolean.valueOf(properties
                     .get(SPARSE_FLAG)) : false;
         }
-
-        private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-            out.writeObject(outgoing);
-            out.writeObject(incoming);
-            out.writeObject(properties);
-            if (mappedTo != null) {
-                out.writeBoolean(true);
-                out.writeObject(mappedTo);
-            } else {
-                out.writeBoolean(false);
-            }
-            if (id != null) {
-                out.writeBoolean(true);
-                out.writeObject(id);
-            } else {
-                out.writeBoolean(false);
-            }
-        }
-
-        @SuppressWarnings("unchecked")
-        private void readObject(java.io.ObjectInputStream in) throws IOException,
-                ClassNotFoundException {
-            outgoing = (List<ObjectId>) in.readObject();
-            incoming = (List<ObjectId>) in.readObject();
-            properties = (Map<String, String>) in.readObject();
-            if (in.readBoolean()) {
-                mappedTo = (ObjectId) in.readObject();
-            } else {
-                mappedTo = null;
-            }
-            if (in.readBoolean()) {
-                id = (ObjectId) in.readObject();
-            } else {
-                in = null;
-            }
-        }
     }
 
     protected NodeData getNodeInternal(final ObjectId id, final boolean failIfNotFound) {
         Preconditions.checkNotNull(id, "id");
-        String graphKey = id.toString() + "-graph";
-        DatabaseEntry key = new DatabaseEntry(graphKey.getBytes());
+        DatabaseEntry key = new DatabaseEntry(id.getRawValue());
         DatabaseEntry data = new DatabaseEntry();
 
         final LockMode lockMode = LockMode.READ_UNCOMMITTED;
@@ -300,42 +242,20 @@ public class JEGraphDatabase implements GraphDatabase {
             }
             return null;
         }
-        final byte[] cData = data.getData();
-        NodeData node = null;
-        try {
-            node = (NodeData) new ObjectInputStream(new ByteArrayInputStream(cData)).readObject();
-        } catch (Exception e) {
-        }
+        NodeData node = BINDING.entryToObject(data);
         return node;
     }
 
-    private boolean putNodeInternal(final ObjectId id, final NodeData node) {
-        final Transaction transaction = newTransaction();
+    private boolean putNodeInternal(final Transaction transaction, final ObjectId id,
+            final NodeData node) throws IOException {
 
-        final OperationStatus status;
-        try {
-            ByteArrayOutputStream b = new ByteArrayOutputStream();
-            ObjectOutputStream o = new ObjectOutputStream(b);
-            o.writeObject(node);
-            status = putNodeInternal(id, b.toByteArray(), transaction);
-            commit(transaction);
-            return SUCCESS.equals(status);
-        } catch (Exception e) {
-            abort(transaction);
-        }
-        return false;
-    }
+        DatabaseEntry key = new DatabaseEntry(id.getRawValue());
+        DatabaseEntry data = new DatabaseEntry();
+        BINDING.objectToEntry(node, data);
 
-    private OperationStatus putNodeInternal(final ObjectId id, final byte[] rawData,
-            Transaction transaction) {
-        OperationStatus status;
-        String graphKey = id.toString() + "-graph";
-        final byte[] rawKey = graphKey.getBytes();
-        DatabaseEntry key = new DatabaseEntry(rawKey);
-        DatabaseEntry data = new DatabaseEntry(rawData);
+        final OperationStatus status = graphDb.put(transaction, key, data);
 
-        status = graphDb.put(transaction, key, data);
-        return status;
+        return SUCCESS.equals(status);
     }
 
     private void abort(@Nullable Transaction transaction) {
@@ -380,8 +300,7 @@ public class JEGraphDatabase implements GraphDatabase {
     public boolean exists(ObjectId commitId) {
         Preconditions.checkNotNull(commitId, "id");
 
-        String graphKey = commitId.toString() + "-graph";
-        DatabaseEntry key = new DatabaseEntry(graphKey.getBytes());
+        DatabaseEntry key = new DatabaseEntry(commitId.getRawValue());
         DatabaseEntry data = new DatabaseEntry();
         // tell db not to retrieve data
         data.setPartial(0, 0, true);
@@ -410,27 +329,34 @@ public class JEGraphDatabase implements GraphDatabase {
     public boolean put(ObjectId commitId, ImmutableList<ObjectId> parentIds) {
         NodeData node = getNodeInternal(commitId, false);
         boolean updated = false;
-        if (node == null) {
-            node = new NodeData(commitId, parentIds);
-            updated = true;
+        final Transaction transaction = newTransaction();
+        try {
+            if (node == null) {
+                node = new NodeData(commitId, parentIds);
+                updated = true;
+            }
+            for (ObjectId parent : parentIds) {
+                if (!node.outgoing.contains(parent)) {
+                    node.outgoing.add(parent);
+                    updated = true;
+                }
+                NodeData parentNode = getNodeInternal(parent, false);
+                if (parentNode == null) {
+                    parentNode = new NodeData(parent);
+                    updated = true;
+                }
+                if (!parentNode.incoming.contains(commitId)) {
+                    parentNode.incoming.add(commitId);
+                    updated = true;
+                }
+                putNodeInternal(transaction, parent, parentNode);
+            }
+            putNodeInternal(transaction, commitId, node);
+            commit(transaction);
+        } catch (Exception e) {
+            abort(transaction);
+            throw Throwables.propagate(e);
         }
-        for (ObjectId parent : parentIds) {
-            if (!node.outgoing.contains(parent)) {
-                node.outgoing.add(parent);
-                updated = true;
-            }
-            NodeData parentNode = getNodeInternal(parent, false);
-            if (parentNode == null) {
-                parentNode = new NodeData(parent);
-                updated = true;
-            }
-            if (!parentNode.incoming.contains(commitId)) {
-                parentNode.incoming.add(commitId);
-                updated = true;
-            }
-            putNodeInternal(parent, parentNode);
-        }
-        putNodeInternal(commitId, node);
         return updated;
     }
 
@@ -438,7 +364,14 @@ public class JEGraphDatabase implements GraphDatabase {
     public void map(ObjectId mapped, ObjectId original) {
         NodeData node = getNodeInternal(mapped, true);
         node.mappedTo = original;
-        putNodeInternal(mapped, node);
+        final Transaction transaction = newTransaction();
+        try {
+            putNodeInternal(transaction, mapped, node);
+            commit(transaction);
+        } catch (Exception e) {
+            abort(transaction);
+            throw Throwables.propagate(e);
+        }
     }
 
     @Override
@@ -480,7 +413,14 @@ public class JEGraphDatabase implements GraphDatabase {
     public void setProperty(ObjectId commitId, String propertyName, String propertyValue) {
         NodeData node = getNodeInternal(commitId, true);
         node.properties.put(propertyName, propertyValue);
-        putNodeInternal(commitId, node);
+        final Transaction transaction = newTransaction();
+        try {
+            putNodeInternal(transaction, commitId, node);
+            commit(transaction);
+        } catch (Exception e) {
+            abort(transaction);
+            throw Throwables.propagate(e);
+        }
     }
 
     private class JEGraphNode extends GraphNode {
@@ -531,6 +471,110 @@ public class JEGraphDatabase implements GraphDatabase {
     public void truncate() {
         // TODO Auto-generated method stub
 
+    }
+
+    private static class GraphNodeBinding extends TupleBinding<NodeData> {
+
+        private static final ObjectIdBinding OID = new ObjectIdBinding();
+
+        private static final OidListBinding OIDLIST = new OidListBinding();
+
+        private static final PropertiesBinding PROPS = new PropertiesBinding();
+
+        @Override
+        public NodeData entryToObject(TupleInput input) {
+            ObjectId id = OID.entryToObject(input);
+            ObjectId mappedTo = OID.entryToObject(input);
+            List<ObjectId> outgoing = OIDLIST.entryToObject(input);
+            List<ObjectId> incoming = OIDLIST.entryToObject(input);
+            Map<String, String> properties = PROPS.entryToObject(input);
+
+            NodeData nodeData = new NodeData(id, mappedTo, outgoing, incoming, properties);
+            return nodeData;
+        }
+
+        @Override
+        public void objectToEntry(NodeData node, TupleOutput output) {
+            OID.objectToEntry(node.id, output);
+            OID.objectToEntry(node.mappedTo, output);
+            OIDLIST.objectToEntry(node.outgoing, output);
+            OIDLIST.objectToEntry(node.incoming, output);
+            PROPS.objectToEntry(node.properties, output);
+        }
+
+        private static class ObjectIdBinding extends TupleBinding<ObjectId> {
+
+            @Nullable
+            @Override
+            public ObjectId entryToObject(TupleInput input) {
+                int size = input.read();
+                if (size == 0) {
+                    return null;
+                }
+                Preconditions.checkState(ObjectId.NUM_BYTES == size);
+                byte[] hash = new byte[size];
+                Preconditions.checkState(size == input.read(hash));
+                return ObjectId.createNoClone(hash);
+            }
+
+            @Override
+            public void objectToEntry(@Nullable ObjectId object, TupleOutput output) {
+                if (null == object || object.isNull()) {
+                    output.write(0);
+                } else {
+                    output.write(ObjectId.NUM_BYTES);
+                    output.write(object.getRawValue());
+                }
+            }
+        }
+
+        private static class OidListBinding extends TupleBinding<List<ObjectId>> {
+            private static final ObjectIdBinding OID = new ObjectIdBinding();
+
+            @Override
+            public List<ObjectId> entryToObject(TupleInput input) {
+                int len = input.readInt();
+                List<ObjectId> list = new ArrayList<ObjectId>((int) (1.5 * len));
+                for (int i = 0; i < len; i++) {
+                    list.add(OID.entryToObject(input));
+                }
+                return list;
+            }
+
+            @Override
+            public void objectToEntry(List<ObjectId> list, TupleOutput output) {
+                int len = list.size();
+                output.writeInt(len);
+                for (int i = 0; i < len; i++) {
+                    OID.objectToEntry(list.get(i), output);
+                }
+            }
+
+        }
+
+        private static class PropertiesBinding extends TupleBinding<Map<String, String>> {
+
+            @Override
+            public Map<String, String> entryToObject(TupleInput input) {
+                int len = input.readInt();
+                Map<String, String> props = new HashMap<String, String>();
+                for (int i = 0; i < len; i++) {
+                    String k = input.readString();
+                    String v = input.readString();
+                    props.put(k, v);
+                }
+                return props;
+            }
+
+            @Override
+            public void objectToEntry(Map<String, String> props, TupleOutput output) {
+                output.writeInt(props.size());
+                for (Map.Entry<String, String> e : props.entrySet()) {
+                    output.writeString(e.getKey());
+                    output.writeString(e.getValue());
+                }
+            }
+        }
     }
 
 }

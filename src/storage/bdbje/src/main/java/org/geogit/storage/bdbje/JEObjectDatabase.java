@@ -75,6 +75,9 @@ import com.sleepycat.je.TransactionConfig;
  */
 public class JEObjectDatabase extends AbstractObjectDatabase implements ObjectDatabase {
 
+    /** Name of the BDB JE Environment inside the .geogit folder used for the objects database */
+    static final String ENVIRONMENT_NAME = "objects";
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(JEObjectDatabase.class);
 
     private static final int SYNC_BYTES_LIMIT = 512 * 1024 * 1024;
@@ -113,7 +116,8 @@ public class JEObjectDatabase extends AbstractObjectDatabase implements ObjectDa
     @Inject
     public JEObjectDatabase(final ConfigDatabase configDB, final EnvironmentBuilder envProvider,
             final Hints hints) {
-        this(configDB, envProvider, hints.getBoolean(Hints.OBJECTS_READ_ONLY), "objects");
+        this(configDB, envProvider, hints.getBoolean(Hints.OBJECTS_READ_ONLY),
+                JEObjectDatabase.ENVIRONMENT_NAME);
     }
 
     public JEObjectDatabase(final ConfigDatabase configDB, final EnvironmentBuilder envProvider,
