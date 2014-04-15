@@ -7,6 +7,7 @@ package org.geogit.geotools.cli.porcelain;
 
 import java.io.IOException;
 
+import org.geogit.api.ProgressListener;
 import org.geogit.cli.CLICommand;
 import org.geogit.cli.CommandFailedException;
 import org.geogit.cli.GeogitCLI;
@@ -14,7 +15,6 @@ import org.geogit.cli.annotation.ObjectDatabaseReadOnly;
 import org.geogit.geotools.plumbing.GeoToolsOpException;
 import org.geogit.geotools.plumbing.ImportOp;
 import org.geotools.data.DataStore;
-import org.geogit.api.ProgressListener;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -49,6 +49,12 @@ public class SLImport extends AbstractSLCommand implements CLICommand {
     boolean add;
 
     /**
+     * Use origin feature type
+     */
+    @Parameter(names = { "--force-featuretype" }, description = "Use origin feature type even if it does not match the default destination featuretype")
+    boolean forceFeatureType;
+
+    /**
      * Set the path default feature type to the the feature type of imported features, and modify
      * existing features to match it
      */
@@ -69,6 +75,7 @@ public class SLImport extends AbstractSLCommand implements CLICommand {
             ProgressListener progressListener = cli.getProgressListener();
             cli.getGeogit().command(ImportOp.class).setAll(all).setTable(table).setAlter(alter)
                     .setOverwrite(!add).setDataStore(dataStore)
+                    .setAdaptToDefaultFeatureType(!forceFeatureType)
                     .setProgressListener(progressListener).call();
 
             cli.getConsole().println("Import successful.");
@@ -93,6 +100,11 @@ public class SLImport extends AbstractSLCommand implements CLICommand {
             case UNABLE_TO_INSERT:
                 throw new CommandFailedException(
                         "Unable to insert features into the working tree.", e);
+            case INCOMPATIBLE_FEATURE_TYPE:
+                throw new CommandFailedException(
+                        "The feature type of the data to import does not match the feature type of the destination tree and cannot be imported\n"
+                                + "USe the --force-featuretype switch to import using the original featuretype and crete a mixed type tree",
+                        e);
             case ALTER_AND_ALL_DEFINED:
                 throw new CommandFailedException(
                         "Alter cannot be used with --all option and more than one table.", e);

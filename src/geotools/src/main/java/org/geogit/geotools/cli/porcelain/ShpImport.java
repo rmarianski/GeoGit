@@ -46,6 +46,12 @@ public class ShpImport extends AbstractShpCommand implements CLICommand {
     boolean add;
 
     /**
+     * Use origin feature type
+     */
+    @Parameter(names = { "--force-featuretype" }, description = "Use origin feature type even if it does not match the default destination featuretype")
+    boolean forceFeatureType;
+
+    /**
      * Set the path default feature type to the the feature type of imported features, and modify
      * existing features to match it
      */
@@ -97,11 +103,12 @@ public class ShpImport extends AbstractShpCommand implements CLICommand {
                 ImportOp command = cli.getGeogit().command(ImportOp.class).setAll(true)
                         .setTable(null).setAlter(alter).setOverwrite(!add)
                         .setDestinationPath(destTable).setDataStore(dataStore)
-                        .setFidAttribute(fidAttribute);
+                        .setFidAttribute(fidAttribute)
+                        .setAdaptToDefaultFeatureType(!forceFeatureType);
 
                 // force the import not to use paging due to a bug in the shapefile datastore
                 command.setUsePaging(false);
-                
+
                 command.setProgressListener(progressListener).call();
 
                 cli.getConsole().println(shp + " imported successfully.");
@@ -118,6 +125,11 @@ public class ShpImport extends AbstractShpCommand implements CLICommand {
                 case UNABLE_TO_INSERT:
                     throw new CommandFailedException(
                             "Unable to insert features into the working tree.", e);
+                case INCOMPATIBLE_FEATURE_TYPE:
+                    throw new CommandFailedException(
+                            "The feature type of the data to import does not match the feature type of the destination tree and cannot be imported\n"
+                                    + "USe the --force-featuretype switch to import using the original featuretype and crete a mixed type tree",
+                            e);
                 default:
                     throw new CommandFailedException("Import failed with exception: "
                             + e.statusCode.name(), e);

@@ -7,6 +7,7 @@ package org.geogit.geotools.cli.porcelain;
 import java.io.IOException;
 import java.util.List;
 
+import org.geogit.api.ProgressListener;
 import org.geogit.api.RevFeatureType;
 import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.cli.CLICommand;
@@ -18,7 +19,6 @@ import org.geogit.geotools.plumbing.ImportOp;
 import org.geotools.data.DataStore;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.GeometryDescriptor;
-import org.geogit.api.ProgressListener;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -38,6 +38,12 @@ public class GeoJsonImport extends AbstractGeoJsonCommand implements CLICommand 
      */
     @Parameter(names = { "--add" }, description = "Do not replace or delete features on the destination path, but just add new ones")
     boolean add;
+
+    /**
+     * Use origin feature type
+     */
+    @Parameter(names = { "--force-featuretype" }, description = "Use origin feature type even if it does not match the default destination featuretype")
+    boolean forceFeatureType;
 
     /**
      * Set the path default feature type to the the feature type of imported features, and modify
@@ -119,6 +125,7 @@ public class GeoJsonImport extends AbstractGeoJsonCommand implements CLICommand 
                 cli.getGeogit().command(ImportOp.class).setAll(true).setTable(null).setAlter(alter)
                         .setOverwrite(!add).setDestinationPath(destTable).setDataStore(dataStore)
                         .setFidAttribute(fidAttribute).setGeometryNameOverride(geomName)
+                        .setAdaptToDefaultFeatureType(!forceFeatureType)
                         .setProgressListener(progressListener).call();
 
                 cli.getConsole().println(geoJSON + " imported successfully.");
@@ -137,6 +144,11 @@ public class GeoJsonImport extends AbstractGeoJsonCommand implements CLICommand 
                 case UNABLE_TO_INSERT:
                     throw new CommandFailedException(
                             "Unable to insert features into the working tree.", e);
+                case INCOMPATIBLE_FEATURE_TYPE:
+                    throw new CommandFailedException(
+                            "The feature type of the data to import does not match the feature type of the destination tree and cannot be imported\n"
+                                    + "USe the --force-featuretype switch to import using the original featuretype and crete a mixed type tree",
+                            e);
                 default:
                     throw new CommandFailedException("Import failed with exception: "
                             + e.statusCode.name(), e);
