@@ -5,12 +5,14 @@
 
 package org.geogit.api.plumbing.diff;
 
+import static org.geogit.api.plumbing.diff.TreeTestSupport.createFeaturesTree;
+import static org.geogit.api.plumbing.diff.TreeTestSupport.createTreesTree;
+import static org.geogit.api.plumbing.diff.TreeTestSupport.featureNode;
+
 import java.util.List;
 
-import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
-import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.RevTree;
 import org.geogit.api.RevTreeBuilder;
 import org.geogit.api.plumbing.diff.DepthTreeIterator.Strategy;
@@ -46,19 +48,19 @@ public class DepthTreeIteratorTest extends Assert {
         metadataId = ObjectId.forString("fake id");
         treePath = "";
         emptyTree = RevTree.EMPTY;
-        featuresLeafTree = createFeaturesTree("featuresLeafTree", 100).build();
+        featuresLeafTree = createFeaturesTree(source, "featuresLeafTree", 100).build();
         assertTrue(featuresLeafTree.features().isPresent());
 
-        treesLeafTree = createTreesTree(100, 10).build();
+        treesLeafTree = createTreesTree(source, 100, 10, metadataId).build();
         assertTrue(treesLeafTree.trees().isPresent());
 
-        RevTreeBuilder builder = createTreesTree(10, 10);
+        RevTreeBuilder builder = createTreesTree(source, 10, 10, metadataId);
         for (int i = 0; i < 100; i++) {
-            builder.put(featureRef("feature.", i));
+            builder.put(featureNode("feature.", i));
         }
         mixedLeafTree = builder.build();
 
-        featuresBucketsTree = createFeaturesTree("feature.", 25000).build();
+        featuresBucketsTree = createFeaturesTree(source, "feature.", 25000).build();
     }
 
     @Test
@@ -72,7 +74,7 @@ public class DepthTreeIteratorTest extends Assert {
     @Test
     public void testFeaturesBucketsTree() {
         int numEntries = 2 * RevTree.NORMALIZED_SIZE_LIMIT;
-        RevTree tree = createFeaturesTree("feature.", numEntries).build();
+        RevTree tree = createFeaturesTree(source, "feature.", numEntries).build();
         assertEquals(numEntries, list(tree, Strategy.FEATURES_ONLY).size());
 
         assertEquals(featuresBucketsTree.size(), list(featuresBucketsTree, Strategy.FEATURES_ONLY)
@@ -98,9 +100,9 @@ public class DepthTreeIteratorTest extends Assert {
 
         int numSubTrees = RevTree.NORMALIZED_SIZE_LIMIT + 1;
         int featuresPerTree = RevTree.NORMALIZED_SIZE_LIMIT + 1;
-        RevTreeBuilder builder = createTreesTree(numSubTrees, featuresPerTree);
+        RevTreeBuilder builder = createTreesTree(source, numSubTrees, featuresPerTree, metadataId);
         for (int i = 0; i < 25000; i++) {
-            builder.put(featureRef("f", i));
+            builder.put(featureNode("f", i));
         }
         RevTree mixedBucketsTree = builder.build();
         assertEquals(numSubTrees, list(mixedBucketsTree, Strategy.TREES_ONLY).size());
@@ -119,9 +121,9 @@ public class DepthTreeIteratorTest extends Assert {
 
         int numSubTrees = RevTree.NORMALIZED_SIZE_LIMIT + 1;
         int featuresPerTree = RevTree.NORMALIZED_SIZE_LIMIT + 1;
-        RevTreeBuilder builder = createTreesTree(numSubTrees, featuresPerTree);
+        RevTreeBuilder builder = createTreesTree(source, numSubTrees, featuresPerTree, metadataId);
         for (int i = 0; i < 25000; i++) {
-            builder.put(featureRef("f", i));
+            builder.put(featureNode("f", i));
         }
         RevTree mixedBucketsTree = builder.build();
         assertEquals(mixedBucketsTree.size() + mixedBucketsTree.numTrees(),
@@ -141,9 +143,9 @@ public class DepthTreeIteratorTest extends Assert {
 
         int numSubTrees = RevTree.NORMALIZED_SIZE_LIMIT + 1;
         int featuresPerTree = RevTree.NORMALIZED_SIZE_LIMIT + 1;
-        RevTreeBuilder builder = createTreesTree(numSubTrees, featuresPerTree);
+        RevTreeBuilder builder = createTreesTree(source, numSubTrees, featuresPerTree, metadataId);
         for (int i = 0; i < 25000; i++) {
-            builder.put(featureRef("f", i));
+            builder.put(featureNode("f", i));
         }
         RevTree mixedBucketsTree = builder.build();
         assertEquals(mixedBucketsTree.size(),
@@ -162,9 +164,9 @@ public class DepthTreeIteratorTest extends Assert {
 
         int numSubTrees = RevTree.NORMALIZED_SIZE_LIMIT + 1;
         int featuresPerTree = RevTree.NORMALIZED_SIZE_LIMIT + 1;
-        RevTreeBuilder builder = createTreesTree(numSubTrees, featuresPerTree);
+        RevTreeBuilder builder = createTreesTree(source, numSubTrees, featuresPerTree, metadataId);
         for (int i = 0; i < 25000; i++) {
-            builder.put(featureRef("f", i));
+            builder.put(featureNode("f", i));
         }
         RevTree mixedBucketsTree = builder.build();
         Stopwatch sw = new Stopwatch().start();
@@ -182,31 +184,6 @@ public class DepthTreeIteratorTest extends Assert {
         DepthTreeIterator iterator = new DepthTreeIterator(treePath, metadataId, tree, source,
                 strategy);
         return iterator;
-    }
-
-    private RevTreeBuilder createTreesTree(int numSubTrees, int featuresPerSubtree) {
-        RevTreeBuilder builder = new RevTreeBuilder(source);
-        for (int treeN = 0; treeN < numSubTrees; treeN++) {
-            RevTree subtree = createFeaturesTree("subtree" + treeN, featuresPerSubtree).build();
-            source.put(subtree);
-            builder.put(Node.create("subtree" + treeN, subtree.getId(), metadataId, TYPE.TREE, null));
-        }
-        return builder;
-    }
-
-    private RevTreeBuilder createFeaturesTree(final String namePrefix, final int numEntries) {
-
-        RevTreeBuilder tree = new RevTreeBuilder(source);
-        for (int i = 0; i < numEntries; i++) {
-            tree.put(featureRef(namePrefix, i));
-        }
-        return tree;
-    }
-
-    private Node featureRef(String namePrefix, int i) {
-        String name = namePrefix + String.valueOf(i);
-        Node ref = Node.create(name, ObjectId.forString(name), ObjectId.NULL, TYPE.FEATURE, null);
-        return ref;
     }
 
 }

@@ -16,9 +16,10 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.RevTree;
-import org.geogit.api.plumbing.diff.DiffCounter;
+import org.geogit.api.plumbing.diff.DiffCountConsumer;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffObjectCount;
+import org.geogit.api.plumbing.diff.DiffTreeVisitor;
 import org.geogit.api.plumbing.diff.DiffTreeWalk;
 import org.geogit.storage.StagingDatabase;
 
@@ -30,7 +31,7 @@ import com.google.inject.Inject;
  * A faster alternative to count the number of diffs between two trees than walking a
  * {@link DiffTreeWalk} iterator.
  * 
- * @see DiffCounter
+ * @see DiffCountConsumer
  */
 public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
 
@@ -92,7 +93,9 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
 
         DiffObjectCount diffCount;
         if (pathFilters.isEmpty()) {
-            DiffCounter counter = new DiffCounter(index, oldTree, newTree);
+            DiffTreeVisitor visitor = new DiffTreeVisitor(oldTree, newTree, index, index);
+            DiffCountConsumer counter = new DiffCountConsumer(index);
+            visitor.walk(counter);
             diffCount = counter.get();
         } else {
             DiffTreeWalk treeWalk = new DiffTreeWalk(index, oldTree, newTree);

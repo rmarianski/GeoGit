@@ -5,12 +5,25 @@
 
 package org.geogit.api.plumbing;
 
-import java.util.Iterator;
+import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Preconditions.checkArgument;
+
+import javax.annotation.Nullable;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.plumbing.diff.DiffEntry;
-import org.geogit.api.porcelain.DiffOp;
+import org.geogit.api.Bounded;
+import org.geogit.api.Bucket;
+import org.geogit.api.Node;
+import org.geogit.api.ObjectId;
+import org.geogit.api.Ref;
+import org.geogit.api.RevTree;
+import org.geogit.api.plumbing.diff.DiffTreeVisitor;
+import org.geogit.storage.ObjectDatabase;
+import org.geogit.storage.StagingDatabase;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
@@ -25,6 +38,16 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
     private String newVersion;
 
     private boolean cached;
+
+    private ObjectDatabase odb;
+
+    private StagingDatabase staging;
+
+    @Inject
+    public DiffBounds(ObjectDatabase odb, StagingDatabase staging) {
+        this.odb = odb;
+        this.staging = staging;
+    }
 
     public DiffBounds setOldVersion(String oldVersion) {
         this.oldVersion = oldVersion;
@@ -43,48 +66,107 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
 
     @Override
     public Envelope call() {
-        DiffOp diff = command(DiffOp.class).setOldVersion(oldVersion).setNewVersion(newVersion)
-                .setCompareIndex(cached);
-        Iterator<DiffEntry> entries = diff.call();
-        Envelope diffBounds = computeDiffBounds(entries);
+        checkArgument(cached && oldVersion == null || !cached, String.format(
+                "compare index allows only one revision to check against, got %s / %s", oldVersion,
+                newVersion));
+
+        checkArgument(newVersion == null || oldVersion != null,
+                "If new rev spec is specified then old rev spec is mandatory");
+
+        final String leftRefSpec = fromNullable(oldVersion).or(Ref.HEAD);
+        final String rightRefSpec = fromNullable(newVersion).or(
+                cached ? Ref.STAGE_HEAD : Ref.WORK_HEAD);
+
+        RevTree left = resolveTree(leftRefSpec);
+        RevTree right = resolveTree(rightRefSpec);
+
+        ObjectDatabase leftSource = resolveSafeDb(leftRefSpec);
+        ObjectDatabase rightSource = resolveSafeDb(rightRefSpec);
+        DiffTreeVisitor visitor = new DiffTreeVisitor(left, right, leftSource, rightSource);
+        BoundsWalk walk = new BoundsWalk();
+        visitor.walk(walk);
+        Envelope diffBounds = walk.result;
         return diffBounds;
     }
 
     /**
-     * 
-     * @param entries - A list containing each of the DiffEntries
-     * @return Envelope - representing the final bounds
+     * If {@code refSpec} can easily be determined to be on the object database (e.g. its a ref),
+     * then returns the repository object database, otherwise the staging database, just to be safe
      */
-    private Envelope computeDiffBounds(Iterator<DiffEntry> entries) {
+    private ObjectDatabase resolveSafeDb(String refSpec) {
+        Optional<Ref> ref = command(RefParse.class).setName(refSpec).call();
+        return ref.isPresent() ? odb : staging;
+    }
 
-        Envelope diffBounds = new Envelope();
-        diffBounds.setToNull();
+    private RevTree resolveTree(String refSpec) {
 
-        Envelope oldEnvelope = new Envelope();
-        Envelope newEnvelope = new Envelope();
+        Optional<ObjectId> id = command(ResolveTreeish.class).setTreeish(refSpec).call();
+        Preconditions.checkState(id.isPresent(), "%s did not resolve to a tree", refSpec);
 
-        // create a list of envelopes using the entries list
-        while (entries.hasNext()) {
-            DiffEntry entry = entries.next();
-            oldEnvelope.setToNull();
-            newEnvelope.setToNull();
+        return getIndex().getDatabase().getTree(id.get());
+    }
 
-            if (entry.getOldObject() != null) {
-                entry.getOldObject().expand(oldEnvelope);
-            }
+    private static class BoundsWalk implements DiffTreeVisitor.Consumer {
 
-            if (entry.getNewObject() != null) {
-                entry.getNewObject().expand(newEnvelope);
-            }
+        Envelope result = new Envelope();
 
-            if (!oldEnvelope.equals(newEnvelope)) {
-                diffBounds.expandToInclude(oldEnvelope);
-                diffBounds.expandToInclude(newEnvelope);
+        private Envelope leftEnv = new Envelope();
+
+        private Envelope rightEnv = new Envelope();
+
+        @Override
+        public void feature(@Nullable Node left, @Nullable Node right) {
+            setEnv(left, leftEnv);
+            setEnv(right, rightEnv);
+            if (!leftEnv.equals(rightEnv)) {
+                result.expandToInclude(leftEnv);
+                result.expandToInclude(rightEnv);
             }
         }
 
-        return diffBounds;
+        @Override
+        public boolean tree(@Nullable Node left, @Nullable Node right) {
+            setEnv(left, leftEnv);
+            setEnv(right, rightEnv);
+            if (leftEnv.isNull() && rightEnv.isNull()) {
+                return false;
+            }
+
+            if (leftEnv.isNull()) {
+                result.expandToInclude(rightEnv);
+                return false;
+            } else if (rightEnv.isNull()) {
+                result.expandToInclude(leftEnv);
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public boolean bucket(final int bucketIndex, final int bucketDepth, @Nullable Bucket left,
+                @Nullable Bucket right) {
+            setEnv(left, leftEnv);
+            setEnv(right, rightEnv);
+            if (leftEnv.isNull() && rightEnv.isNull()) {
+                return false;
+            }
+
+            if (leftEnv.isNull()) {
+                result.expandToInclude(rightEnv);
+                return false;
+            } else if (rightEnv.isNull()) {
+                result.expandToInclude(leftEnv);
+                return false;
+            }
+            return true;
+        }
+
+        private void setEnv(@Nullable Bounded bounded, Envelope env) {
+            env.setToNull();
+            if (bounded != null) {
+                bounded.expand(env);
+            }
+        }
 
     }
-
 }
