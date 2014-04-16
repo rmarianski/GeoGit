@@ -82,7 +82,7 @@ public class JEGraphDatabase implements GraphDatabase {
             return;
         }
         this.graphDb = createDatabase();
-        //System.err.println("---> " + getClass().getName() + ".open() " + env.getHome());
+        // System.err.println("---> " + getClass().getName() + ".open() " + env.getHome());
 
         LOGGER.debug("Graph database opened at {}. Transactional: {}", env.getHome(), graphDb
                 .getConfig().getTransactional());
@@ -164,7 +164,7 @@ public class JEGraphDatabase implements GraphDatabase {
             LOGGER.trace("Database already closed.");
             return;
         }
-        //System.err.println("<--- " + getClass().getName() + ".close() " + env.getHome());
+        // System.err.println("<--- " + getClass().getName() + ".close() " + env.getHome());
         final File envHome = env.getHome();
         try {
             LOGGER.debug("Closing graph database at {}", envHome);
@@ -314,15 +314,21 @@ public class JEGraphDatabase implements GraphDatabase {
     @Override
     public ImmutableList<ObjectId> getParents(ObjectId commitId) throws IllegalArgumentException {
         Builder<ObjectId> listBuilder = new ImmutableList.Builder<ObjectId>();
-        NodeData node = getNodeInternal(commitId, true);
-        return listBuilder.addAll(node.outgoing).build();
+        NodeData node = getNodeInternal(commitId, false);
+        if (node != null) {
+            return listBuilder.addAll(node.outgoing).build();
+        }
+        return listBuilder.build();
     }
 
     @Override
     public ImmutableList<ObjectId> getChildren(ObjectId commitId) throws IllegalArgumentException {
         Builder<ObjectId> listBuilder = new ImmutableList.Builder<ObjectId>();
-        NodeData node = getNodeInternal(commitId, true);
-        return listBuilder.addAll(node.incoming).build();
+        NodeData node = getNodeInternal(commitId, false);
+        if (node != null) {
+            return listBuilder.addAll(node.incoming).build();
+        }
+        return listBuilder.build();
     }
 
     @Override
