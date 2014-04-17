@@ -54,26 +54,16 @@ public class Scripting {
      *        (for instance, changing the commit message in a commit operation)
      * @throws CannotRunGeogitOperationException
      */
-    public static void executeScript(final File scriptFile, final AbstractGeoGitOp<?> operation)
+    public static void runJVMScript(AbstractGeoGitOp<?> operation, File scriptFile)
             throws CannotRunGeogitOperationException {
 
         checkArgument(scriptFile.exists(), "Script file does not exist %s", scriptFile.getPath());
 
+        LOGGER.info("Running jvm script {}", scriptFile.getAbsolutePath());
         final String filename = scriptFile.getName();
         final String ext = Files.getFileExtension(filename);
 
         final ScriptEngine engine = factory.getEngineByExtension(ext);
-        if (engine == null) {
-            runShellScript(scriptFile);
-        } else {
-            runJVMScript(operation, scriptFile, engine);
-        }
-    }
-
-    private static void runJVMScript(AbstractGeoGitOp<?> operation, File scriptFile,
-            final ScriptEngine engine) throws CannotRunGeogitOperationException {
-
-        LOGGER.info("Running jvm script {}", scriptFile.getAbsolutePath());
 
         try {
             Map<String, Object> params = getParamMap(operation);
@@ -101,7 +91,7 @@ public class Scripting {
         }
     }
 
-    private static void runShellScript(final File scriptFile)
+    public static void runShellScript(final File scriptFile)
             throws CannotRunGeogitOperationException {
 
         LOGGER.info("Running shell script {}", scriptFile.getAbsolutePath());
@@ -240,5 +230,22 @@ public class Scripting {
                 ioe.printStackTrace();
             }
         }
+    }
+
+    public static CommandHook createScriptHook(final File file, final boolean preHook) {
+        final String filename = file.getName();
+        final String ext = Files.getFileExtension(filename);
+
+        final File preScript = preHook ? file : null;
+        final File postScript = preHook ? null : file;
+
+        final CommandHook hook;
+        final ScriptEngine engine = factory.getEngineByExtension(ext);
+        if (engine == null) {
+            hook = new ShellScriptHook(preScript, postScript);
+        } else {
+            hook = new JVMScriptHook(preScript, postScript);
+        }
+        return hook;
     }
 }
