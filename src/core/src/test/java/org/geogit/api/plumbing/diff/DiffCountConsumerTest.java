@@ -21,7 +21,7 @@ import org.junit.Test;
 /**
  *
  */
-public class DiffCounterTest extends Assert {
+public class DiffCountConsumerTest extends Assert {
 
     /**
      * All original feature noderefs have this objectid
@@ -81,8 +81,10 @@ public class DiffCounterTest extends Assert {
     }
 
     private DiffObjectCount count(RevTree left, RevTree right) {
-        DiffCounter counter = new DiffCounter(odb, left, right);
-        DiffObjectCount count = counter.get();
+        DiffTreeVisitor visitor = new DiffTreeVisitor(left, right, odb, odb);
+        DiffCountConsumer consumer = new DiffCountConsumer(odb);
+        visitor.walk(consumer);
+        DiffObjectCount count = consumer.get();
         return count;
     }
 
