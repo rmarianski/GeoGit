@@ -160,8 +160,7 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
      */
     private boolean processCommit(GraphNode commit, Queue<GraphNode> myQueue, Set<GraphNode> mySet,
             Queue<GraphNode> theirQueue, Set<GraphNode> theirSet) {
-        if (!mySet.contains(commit)) {
-            mySet.add(commit);
+        if (mySet.add(commit)) {
             if (theirSet.contains(commit)) {
                 stopAncestryPath(commit, theirQueue, theirSet);
                 return true;
@@ -199,7 +198,7 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
                         ancestorQueue.add(parentNode);
                         processed.add(parentNode);
                     }
-                } else if (theirQueue.contains(parentNode)) {
+                } else {
                     theirQueue.remove(parentNode);
                 }
             }
