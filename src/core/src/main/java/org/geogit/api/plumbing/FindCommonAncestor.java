@@ -146,6 +146,18 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
         return ancestor;
     }
 
+    /**
+     * Process a commit to see if it has already been seen. If it has, prevent unnecessary work from
+     * continuing on the other traversal queue. If it hasn't, add it's parents to the traversal
+     * queue.
+     * 
+     * @param commit commit to process
+     * @param myQueue my traversal queue
+     * @param mySet my visited nodes
+     * @param theirQueue other traversal queue
+     * @param theirSet other traversal's visited nodes
+     * @return
+     */
     private boolean processCommit(GraphNode commit, Queue<GraphNode> myQueue, Set<GraphNode> mySet,
             Queue<GraphNode> theirQueue, Set<GraphNode> theirSet) {
         if (!mySet.contains(commit)) {
@@ -163,6 +175,16 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
 
     }
 
+    /**
+     * This function is called when a common ancestor is found and the other traversal queue should
+     * stop traversing down the history of that particular commit. Any ancestors caught after this
+     * one will be an older ancestor. This function follows the ancestry of the common ancestor
+     * until it has been removed from the opposite traversal queue.
+     * 
+     * @param commit the common ancestor
+     * @param theirQueue the opposite traversal queue
+     * @param theirSet the opposite visited nodes
+     */
     private void stopAncestryPath(GraphNode commit, Queue<GraphNode> theirQueue,
             Set<GraphNode> theirSet) {
         Queue<GraphNode> ancestorQueue = new LinkedList<GraphNode>();
@@ -184,6 +206,14 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
         }
     }
 
+    /**
+     * This function is called at the end of the traversal to make sure none of our results have a
+     * more recent ancestor in the result list.
+     * 
+     * @param potentialCommonAncestors the result list
+     * @param leftSet the visited nodes of the left traversal
+     * @param rightSet the visited nodes of the right traversal
+     */
     private void verifyAncestors(List<GraphNode> potentialCommonAncestors, Set<GraphNode> leftSet,
             Set<GraphNode> rightSet) {
         Queue<GraphNode> ancestorQueue = new LinkedList<GraphNode>();
