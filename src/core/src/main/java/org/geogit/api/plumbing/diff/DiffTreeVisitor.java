@@ -391,8 +391,8 @@ public class DiffTreeVisitor {
                 continue;
             }
             if (consumer.bucket(index.intValue(), bucketDepth, lbucket, rbucket)) {
-                RevTree ltree = leftSource.getTree(lbucket.id());
-                RevTree rtree = rightSource.getTree(rbucket.id());
+                RevTree ltree = lbucket == null ? RevTree.EMPTY : leftSource.getTree(lbucket.id());
+                RevTree rtree = rbucket == null ? RevTree.EMPTY : rightSource.getTree(rbucket.id());
                 traverseTree(consumer, ltree, rtree, bucketDepth + 1);
             }
         }
