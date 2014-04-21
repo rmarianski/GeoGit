@@ -6,6 +6,7 @@ package org.geogit.cli;
 
 import org.geogit.cli.plumbing.Cat;
 import org.geogit.cli.plumbing.DiffTree;
+import org.geogit.cli.plumbing.Insert;
 import org.geogit.cli.plumbing.LsTree;
 import org.geogit.cli.plumbing.MergeBase;
 import org.geogit.cli.plumbing.RebuildGraph;
@@ -100,6 +101,7 @@ public class BuiltinCommandsModule extends AbstractModule implements CLIModule {
         bind(FormatPatch.class);
         bind(Help.class);
         bind(Init.class);
+        bind(Insert.class);
         bind(Log.class);
         bind(Ls.class);
         bind(LsTree.class);
