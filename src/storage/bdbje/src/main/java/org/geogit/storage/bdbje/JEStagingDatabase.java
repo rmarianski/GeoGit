@@ -61,6 +61,11 @@ import com.google.inject.Inject;
  */
 public class JEStagingDatabase extends ForwardingStagingDatabase {
 
+    /**
+     * Name of the BDB JE environment inside the .geogit folder used for the staging database
+     */
+    static final String ENVIRONMENT_NAME = "index";
+    
     private Platform platform;
 
     private ConfigDatabase configDB;
@@ -91,7 +96,8 @@ public class JEStagingDatabase extends ForwardingStagingDatabase {
             @Override
             public JEObjectDatabase get() {
                 boolean readOnly = hints.getBoolean(Hints.STAGING_READ_ONLY);
-                JEObjectDatabase db = new JEObjectDatabase(configDb, envProvider, readOnly, "index");
+                JEObjectDatabase db = new JEObjectDatabase(configDb, envProvider, readOnly,
+                        JEStagingDatabase.ENVIRONMENT_NAME);
                 return db;
             }
         });

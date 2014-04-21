@@ -16,6 +16,7 @@ import org.geogit.storage.GraphDatabase;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.RefDatabase;
 import org.geogit.storage.StagingDatabase;
+import org.geogit.storage.bdbje.JEGraphDatabase;
 import org.geogit.storage.bdbje.JEObjectDatabase;
 import org.geogit.storage.bdbje.JEStagingDatabase;
 import org.geogit.storage.blueprints.TinkerGraphDatabase;
@@ -43,7 +44,7 @@ public class CLIInjectorBuilder extends InjectorBuilder {
 
     private static final VersionedFormat DEFAULT_REFS = new VersionedFormat("file", "1.0");
 
-    private static final VersionedFormat DEFAULT_GRAPH = new VersionedFormat("tinkergraph", "0.1");
+    private static final VersionedFormat DEFAULT_GRAPH = new VersionedFormat("bdbje", "0.1");
 
     private static final PluginDefaults defaults = new PluginDefaults(DEFAULT_OBJECTS,//
             DEFAULT_STAGING,//
@@ -101,6 +102,10 @@ public class CLIInjectorBuilder extends InjectorBuilder {
                     binder(), VersionedFormat.class, GraphDatabase.class);
             graphPlugins //
                     .addBinding(DEFAULT_GRAPH) //
+                    .to(JEGraphDatabase.class) //
+                    .in(Scopes.SINGLETON);
+            graphPlugins //
+                    .addBinding(new VersionedFormat("tinkergraph", "0.1")) //
                     .to(TinkerGraphDatabase.class) //
                     .in(Scopes.SINGLETON);
             graphPlugins //

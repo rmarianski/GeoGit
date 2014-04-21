@@ -231,7 +231,7 @@ public class RevertFeatureWebOp extends AbstractWebAPICommand {
             final RevCommit ours = context.getGeoGIT().getRepository()
                     .getCommit(currHead.get().getObjectId());
             final RevCommit theirs = context.getGeoGIT().getRepository().getCommit(mapped.getId());
-            final Optional<RevCommit> ancestor = geogit.command(FindCommonAncestor.class)
+            final Optional<ObjectId> ancestor = geogit.command(FindCommonAncestor.class)
                     .setLeft(ours).setRight(theirs).call();
             context.setResponseContent(new CommandResponse() {
                 final MergeScenarioReport report = geogit.command(ReportMergeScenarioOp.class)
@@ -242,7 +242,7 @@ public class RevertFeatureWebOp extends AbstractWebAPICommand {
                     out.start();
                     Optional<RevCommit> mergeCommit = Optional.absent();
                     out.writeMergeResponse(mergeCommit, report, geogit, ours.getId(),
-                            theirs.getId(), ancestor.get().getId());
+                            theirs.getId(), ancestor.get());
                     out.finish();
                 }
             });

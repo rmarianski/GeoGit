@@ -11,6 +11,7 @@ import java.util.List;
 import jline.console.ConsoleReader;
 
 import org.geogit.api.GeoGIT;
+import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject;
 import org.geogit.api.plumbing.FindCommonAncestor;
@@ -56,11 +57,11 @@ public class MergeBase extends AbstractCommand implements CLICommand {
         checkParameter(right.isPresent(), commits.get(1) + " does not resolve to any object.");
         checkParameter(right.get() instanceof RevCommit, commits.get(1)
                 + " does not resolve to a commit");
-        Optional<RevCommit> ancestor = geogit.command(FindCommonAncestor.class)
+        Optional<ObjectId> ancestor = geogit.command(FindCommonAncestor.class)
                 .setLeft((RevCommit) left.get()).setRight((RevCommit) right.get()).call();
         checkParameter(ancestor.isPresent(), "No common ancestor was found.");
 
-        console.print(ancestor.get().getId().toString());
+        console.print(ancestor.get().toString());
     }
 
 }

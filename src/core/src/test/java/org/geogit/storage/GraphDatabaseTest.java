@@ -5,7 +5,6 @@
 package org.geogit.storage;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -20,7 +19,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -91,165 +89,11 @@ public abstract class GraphDatabaseTest {
     }
 
     @Test
-    public void testFindCommonAncestor1() throws IOException {
-        // Create the following revision graph
-        // o - root commit
-        // |\
-        // | o - commit1
-        // |
-        // o - commit2
-        ObjectId rootId = ObjectId.forString("root commit");
-        ImmutableList<ObjectId> parents = ImmutableList.of();
-        database.put(rootId, parents);
-        ObjectId commit1 = ObjectId.forString("commit1");
-        parents = ImmutableList.of(rootId);
-        database.put(commit1, parents);
-        ObjectId commit2 = ObjectId.forString("commit2");
-        database.put(commit2, parents);
-
-        Optional<ObjectId> ancestor = database.findLowestCommonAncestor(commit1, commit2);
-        assertTrue(ancestor.isPresent());
-        assertEquals(rootId, ancestor.get());
-    }
-
-    @Test
-    public void testFindCommonAncestor2() throws IOException {
-        // Create the following revision graph
-        // o - root commit
-        // |\
-        // | o - commit1
-        // | |
-        // | o - commit2
-        // | |
-        // | o - commit3
-        // |
-        // o - commit4
-        ObjectId rootId = ObjectId.forString("root commit");
-        ImmutableList<ObjectId> parents = ImmutableList.of();
-        database.put(rootId, parents);
-        ObjectId commit1 = ObjectId.forString("commit1");
-        parents = ImmutableList.of(rootId);
-        database.put(commit1, parents);
-        ObjectId commit2 = ObjectId.forString("commit2");
-        parents = ImmutableList.of(commit1);
-        database.put(commit2, parents);
-        ObjectId commit3 = ObjectId.forString("commit3");
-        parents = ImmutableList.of(commit2);
-        database.put(commit3, parents);
-        ObjectId commit4 = ObjectId.forString("commit4");
-        parents = ImmutableList.of(rootId);
-        database.put(commit4, parents);
-
-        Optional<ObjectId> ancestor = database.findLowestCommonAncestor(commit3, commit4);
-        assertTrue(ancestor.isPresent());
-        assertEquals(rootId, ancestor.get());
-    }
-
-    @Test
-    public void testFindCommonAncestor3() throws IOException {
-        // Create the following revision graph
-        // o - root commit
-        // |\
-        // | o - commit1
-        // | |
-        // | o - commit2
-        // | |\
-        // | | o - commit3
-        // | |
-        // o | - commit4
-        // | |
-        // | o - commit5
-        // |/
-        // o - commit6
-        ObjectId rootId = ObjectId.forString("root commit");
-        ImmutableList<ObjectId> parents = ImmutableList.of();
-        database.put(rootId, parents);
-        ObjectId commit1 = ObjectId.forString("commit1");
-        parents = ImmutableList.of(rootId);
-        database.put(commit1, parents);
-        ObjectId commit2 = ObjectId.forString("commit2");
-        parents = ImmutableList.of(commit1);
-        database.put(commit2, parents);
-        ObjectId commit3 = ObjectId.forString("commit3");
-        parents = ImmutableList.of(commit2);
-        database.put(commit3, parents);
-        ObjectId commit4 = ObjectId.forString("commit4");
-        parents = ImmutableList.of(rootId);
-        database.put(commit4, parents);
-        ObjectId commit5 = ObjectId.forString("commit5");
-        parents = ImmutableList.of(commit2);
-        database.put(commit5, parents);
-        ObjectId commit6 = ObjectId.forString("commit6");
-        parents = ImmutableList.of(commit4, commit5);
-        database.put(commit6, parents);
-
-        Optional<ObjectId> ancestor = database.findLowestCommonAncestor(commit6, commit3);
-        assertTrue(ancestor.isPresent());
-        assertEquals(commit2, ancestor.get());
-    }
-
-    @Test
-    public void testFindCommonAncestor4() throws IOException {
-        // Create the following revision graph
-        // o - root commit
-        // |\
-        // | o - commit1
-        // | |
-        // | o - commit2
-        // | |\
-        // | | o - commit3
-        // | | |\
-        // | | | o - commit4
-        // | | | |
-        // | | o | - commit5
-        // | | |/
-        // | | o - commit6
-        // | |
-        // o | - commit7
-        // | |
-        // | o - commit8
-        // |/
-        // o - commit9
-        ObjectId rootId = ObjectId.forString("root commit");
-        ImmutableList<ObjectId> parents = ImmutableList.of();
-        database.put(rootId, parents);
-        ObjectId commit1 = ObjectId.forString("commit1");
-        parents = ImmutableList.of(rootId);
-        database.put(commit1, parents);
-        ObjectId commit2 = ObjectId.forString("commit2");
-        parents = ImmutableList.of(commit1);
-        database.put(commit2, parents);
-        ObjectId commit3 = ObjectId.forString("commit3");
-        parents = ImmutableList.of(commit2);
-        database.put(commit3, parents);
-        ObjectId commit4 = ObjectId.forString("commit4");
-        parents = ImmutableList.of(commit3);
-        database.put(commit4, parents);
-        ObjectId commit5 = ObjectId.forString("commit5");
-        parents = ImmutableList.of(commit3);
-        database.put(commit5, parents);
-        ObjectId commit6 = ObjectId.forString("commit6");
-        parents = ImmutableList.of(commit5, commit4);
-        database.put(commit6, parents);
-        ObjectId commit7 = ObjectId.forString("commit7");
-        parents = ImmutableList.of(rootId);
-        database.put(commit7, parents);
-        ObjectId commit8 = ObjectId.forString("commit8");
-        parents = ImmutableList.of(commit2);
-        database.put(commit8, parents);
-        ObjectId commit9 = ObjectId.forString("commit9");
-        parents = ImmutableList.of(commit7, commit8);
-        database.put(commit9, parents);
-
-        Optional<ObjectId> ancestor = database.findLowestCommonAncestor(commit9, commit6);
-        assertTrue(ancestor.isPresent());
-        assertEquals(commit2, ancestor.get());
-    }
-
-    @Test
     public void testMapNode() throws IOException {
         ObjectId commitId = ObjectId.forString("commitId");
         ObjectId mappedId = ObjectId.forString("mapped");
+        database.put(commitId, new ImmutableList.Builder<ObjectId>().build());
+        database.put(mappedId, new ImmutableList.Builder<ObjectId>().build());
         database.map(mappedId, commitId);
         ObjectId mapping = database.getMapping(mappedId);
         assertEquals(commitId, mapping);
@@ -259,120 +103,6 @@ public abstract class GraphDatabaseTest {
         database.map(mappedId, commitId2);
         mapping = database.getMapping(mappedId);
         assertEquals(commitId2, mapping);
-    }
-
-    @Test
-    public void testSparsePath() throws IOException {
-        // Create the following revision graph
-        // o - root commit
-        // |\
-        // | o - commit1
-        // | |
-        // | o - commit2
-        // | |\
-        // | | o - commit3
-        // | | |\
-        // | | | o - commit4 (Sparse)
-        // | | | |
-        // | | o | - commit5
-        // | | |/
-        // | | o - commit6
-        // | |
-        // o | - commit7
-        // | |
-        // | o - commit8
-        // |/
-        // o - commit9
-        ObjectId rootId = ObjectId.forString("root commit");
-        ImmutableList<ObjectId> parents = ImmutableList.of();
-        database.put(rootId, parents);
-        ObjectId commit1 = ObjectId.forString("commit1");
-        parents = ImmutableList.of(rootId);
-        database.put(commit1, parents);
-        ObjectId commit2 = ObjectId.forString("commit2");
-        parents = ImmutableList.of(commit1);
-        database.put(commit2, parents);
-        ObjectId commit3 = ObjectId.forString("commit3");
-        parents = ImmutableList.of(commit2);
-        database.put(commit3, parents);
-        ObjectId commit4 = ObjectId.forString("commit4");
-        parents = ImmutableList.of(commit3);
-        database.put(commit4, parents);
-        database.setProperty(commit4, GraphDatabase.SPARSE_FLAG, "true");
-        ObjectId commit5 = ObjectId.forString("commit5");
-        parents = ImmutableList.of(commit3);
-        database.put(commit5, parents);
-        ObjectId commit6 = ObjectId.forString("commit6");
-        parents = ImmutableList.of(commit5, commit4);
-        database.put(commit6, parents);
-        ObjectId commit7 = ObjectId.forString("commit7");
-        parents = ImmutableList.of(rootId);
-        database.put(commit7, parents);
-        ObjectId commit8 = ObjectId.forString("commit8");
-        parents = ImmutableList.of(commit2);
-        database.put(commit8, parents);
-        ObjectId commit9 = ObjectId.forString("commit9");
-        parents = ImmutableList.of(commit7, commit8);
-        database.put(commit9, parents);
-
-        assertTrue(database.isSparsePath(commit6, rootId));
-        assertFalse(database.isSparsePath(commit5, rootId));
-        assertTrue(database.isSparsePath(commit4, commit1));
-        assertFalse(database.isSparsePath(commit9, rootId));
-        assertFalse(database.isSparsePath(commit9, commit2));
-    }
-
-    @Test
-    public void testSparsePathMapped() throws IOException {
-        // Create the following mapped revision graph
-        // o--------o - root commit
-        // |\ . . . |\
-        // | o------|-o - commit1
-        // | | . . .| |
-        // | o------|-o - commit2 (sparse)
-        // | | .. --|/
-        // | o---/. | - commit4 (mapped to commit 2)
-        // | . . . .|
-        // o--------o - commit3
-        ObjectId rootId = ObjectId.forString("root commit");
-        ImmutableList<ObjectId> parents = ImmutableList.of();
-        database.put(rootId, parents);
-        ObjectId rootMap = ObjectId.forString("root mapped");
-        database.put(rootMap, parents);
-        database.map(rootId, rootMap);
-        database.map(rootMap, rootId);
-        ObjectId commit1 = ObjectId.forString("commit1");
-        parents = ImmutableList.of(rootId);
-        database.put(commit1, parents);
-        ObjectId commit1Map = ObjectId.forString("commit1 mapped");
-        parents = ImmutableList.of(rootMap);
-        database.put(commit1Map, parents);
-        database.map(commit1, commit1Map);
-        database.map(commit1Map, commit1);
-        ObjectId commit2 = ObjectId.forString("commit2");
-        parents = ImmutableList.of(commit1);
-        database.put(commit2, parents);
-        ObjectId commit2Map = ObjectId.forString("commit2 mapped");
-        parents = ImmutableList.of(commit1Map);
-        database.put(commit2Map, parents);
-        database.map(commit2, commit2Map);
-        database.map(commit2Map, commit2);
-        ObjectId commit4Map = ObjectId.forString("commit4 mapped");
-        parents = ImmutableList.of(commit2Map);
-        database.put(commit4Map, parents);
-        database.map(commit4Map, commit2);
-        database.setProperty(commit2, GraphDatabase.SPARSE_FLAG, "true");
-        ObjectId commit3 = ObjectId.forString("commit3");
-        parents = ImmutableList.of(rootId);
-        database.put(commit3, parents);
-        ObjectId commit3Map = ObjectId.forString("commit3 mapped");
-        parents = ImmutableList.of(rootMap);
-        database.put(commit3Map, parents);
-        database.map(commit3, commit3Map);
-        database.map(commit3Map, commit3);
-
-        assertTrue(database.isSparsePath(commit2, rootId));
-
     }
 
     @Test

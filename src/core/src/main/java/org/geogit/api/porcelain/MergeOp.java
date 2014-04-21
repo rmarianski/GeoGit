@@ -191,10 +191,10 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
                     + commitId.toString());
 
             final RevCommit targetCommit = repository.getCommit(commitId);
-            Optional<RevCommit> ancestorCommit = command(FindCommonAncestor.class)
+            Optional<ObjectId> ancestorCommit = command(FindCommonAncestor.class)
                     .setLeft(headCommit).setRight(targetCommit).call();
 
-            pairs.add(new CommitAncestorPair(commitId, ancestorCommit.get().getId()));
+            pairs.add(new CommitAncestorPair(commitId, ancestorCommit.get()));
 
             mergeScenario = Optional.of(command(ReportMergeScenarioOp.class)
                     .setMergeIntoCommit(headCommit).setToMergeCommit(targetCommit).call());
@@ -284,10 +284,10 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
                 RevCommit headCommit = repository.getCommit(headRef.getObjectId());
                 final RevCommit targetCommit = repository.getCommit(commitId);
 
-                Optional<RevCommit> ancestorCommit = command(FindCommonAncestor.class)
+                Optional<ObjectId> ancestorCommit = command(FindCommonAncestor.class)
                         .setLeft(headCommit).setRight(targetCommit).call();
 
-                pairs.add(new CommitAncestorPair(commitId, ancestorCommit.get().getId()));
+                pairs.add(new CommitAncestorPair(commitId, ancestorCommit.get()));
 
                 subProgress.setProgress(10.f);
 
@@ -297,7 +297,7 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
                 if (commits.size() == 1) {
                     mergeScenario = Optional.of(command(ReportMergeScenarioOp.class)
                             .setMergeIntoCommit(headCommit).setToMergeCommit(targetCommit).call());
-                    if (ancestorCommit.get().getId().equals(headCommit.getId())) {
+                    if (ancestorCommit.get().equals(headCommit.getId())) {
                         // Fast-forward
                         if (headRef instanceof SymRef) {
                             final String currentBranch = ((SymRef) headRef).getTarget();
@@ -315,15 +315,14 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
                         subProgress.complete();
                         changed = true;
                         continue;
-                    } else if (ancestorCommit.get().getId().equals(commitId)) {
+                    } else if (ancestorCommit.get().equals(commitId)) {
                         continue;
                     }
                 }
 
                 // get changes
-                Iterator<DiffEntry> diff = command(DiffTree.class)
-                        .setOldTree(ancestorCommit.get().getId()).setNewTree(targetCommit.getId())
-                        .setReportTrees(true).call();
+                Iterator<DiffEntry> diff = command(DiffTree.class).setOldTree(ancestorCommit.get())
+                        .setNewTree(targetCommit.getId()).setReportTrees(true).call();
                 // stage changes
                 getIndex().stage(new SubProgressListener(subProgress, 100.f), diff, 0);
                 changed = true;

@@ -13,13 +13,10 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.geogit.api.ObjectId;
@@ -59,8 +56,46 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
 
     private Vertex root;
 
-    protected enum CommitRelationshipTypes {
-        TOROOT, PARENT, MAPPED_TO
+    static protected class BlueprintsGraphNode extends GraphNode {
+
+        Vertex node;
+
+        public BlueprintsGraphNode(Vertex node) {
+            this.node = node;
+        }
+
+        @Override
+        public ObjectId getIdentifier() {
+            return ObjectId.valueOf((String) node.getProperty("identifier"));
+        }
+
+        @Override
+        public List<GraphEdge> getEdges(Direction direction) {
+            Iterator<Edge> nodeEdges;
+            switch (direction) {
+            case OUT:
+                nodeEdges = node.getEdges(OUT, Relationship.PARENT.name()).iterator();
+                break;
+            case IN:
+                nodeEdges = node.getEdges(IN, Relationship.PARENT.name()).iterator();
+                break;
+            default:
+                nodeEdges = node.getEdges(BOTH, Relationship.PARENT.name()).iterator();
+            }
+            List<GraphEdge> edges = new LinkedList<GraphEdge>();
+            while (nodeEdges.hasNext()) {
+                Edge nodeEdge = nodeEdges.next();
+                edges.add(new GraphEdge(new BlueprintsGraphNode(nodeEdge.getVertex(OUT)),
+                        new BlueprintsGraphNode(nodeEdge.getVertex(IN))));
+            }
+            return edges;
+        }
+
+        @Override
+        public boolean isSparse() {
+            return node.getPropertyKeys().contains(SPARSE_FLAG)
+                    && Boolean.valueOf((String) node.getProperty(SPARSE_FLAG));
+        }
     }
 
     /**
@@ -245,7 +280,7 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
             Builder<ObjectId> listBuilder = new ImmutableList.Builder<ObjectId>();
 
             if (node != null) {
-                for (Edge edge : node.getEdges(OUT, CommitRelationshipTypes.PARENT.name())) {
+                for (Edge edge : node.getEdges(OUT, Relationship.PARENT.name())) {
                     Vertex parentNode = edge.getVertex(IN);
                     listBuilder
                             .add(ObjectId.valueOf(parentNode.<String> getProperty("identifier")));
@@ -277,7 +312,7 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
             Builder<ObjectId> listBuilder = new ImmutableList.Builder<ObjectId>();
 
             if (node != null) {
-                for (Edge child : node.getEdges(IN, CommitRelationshipTypes.PARENT.name())) {
+                for (Edge child : node.getEdges(IN, Relationship.PARENT.name())) {
                     Vertex childNode = child.getVertex(OUT);
                     listBuilder.add(ObjectId.valueOf(childNode.<String> getProperty("identifier")));
                 }
@@ -286,6 +321,17 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
         } finally {
             this.rollback();
         }
+    }
+
+    @Override
+    public GraphNode getNode(ObjectId id) {
+        Iterable<Vertex> results = graphDB.getVertices("identifier", id.toString());
+        Vertex node = null;
+        Iterator<Vertex> iterator = results.iterator();
+        if (iterator.hasNext()) {
+            node = iterator.next();
+        }
+        return new BlueprintsGraphNode(node);
     }
 
     /**
@@ -304,20 +350,18 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
             Vertex commitNode = getOrAddNode(commitId);
 
             if (parentIds.isEmpty()) {
-                if (!commitNode.getEdges(OUT, CommitRelationshipTypes.TOROOT.name()).iterator()
-                        .hasNext()) {
+                if (!commitNode.getEdges(OUT, Relationship.TOROOT.name()).iterator().hasNext()) {
                     // Attach this node to the root node
-                    commitNode.addEdge(CommitRelationshipTypes.TOROOT.name(), root);
+                    commitNode.addEdge(Relationship.TOROOT.name(), root);
                     updated = true;
                 }
             }
 
-            if (!commitNode.getEdges(OUT, CommitRelationshipTypes.PARENT.name()).iterator()
-                    .hasNext()) {
+            if (!commitNode.getEdges(OUT, Relationship.PARENT.name()).iterator().hasNext()) {
                 // Don't make relationships if they have been created already
                 for (ObjectId parent : parentIds) {
                     Vertex parentNode = getOrAddNode(parent);
-                    commitNode.addEdge(CommitRelationshipTypes.PARENT.name(), parentNode);
+                    commitNode.addEdge(Relationship.PARENT.name(), parentNode);
                     updated = true;
                 }
             }
@@ -342,8 +386,8 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
             // See if it already exists
             commitNode = getOrAddNode(mapped);
 
-            Iterator<Edge> mappedTo = commitNode.getEdges(OUT,
-                    CommitRelationshipTypes.MAPPED_TO.name()).iterator();
+            Iterator<Edge> mappedTo = commitNode.getEdges(OUT, Relationship.MAPPED_TO.name())
+                    .iterator();
             if (mappedTo.hasNext()) {
                 // Remove old mapping
                 Edge toRemove = mappedTo.next();
@@ -352,7 +396,7 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
 
             // Don't make relationships if they have been created already
             Vertex originalNode = getOrAddNode(original);
-            commitNode.addEdge(CommitRelationshipTypes.MAPPED_TO.name(), originalNode);
+            commitNode.addEdge(Relationship.MAPPED_TO.name(), originalNode);
             this.commit();
         } catch (Exception e) {
             this.rollback();
@@ -385,8 +429,7 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
 
     private Vertex getMappedNode(final Vertex commitNode) {
         if (commitNode != null) {
-            Iterable<Edge> mappings = commitNode.getEdges(OUT,
-                    CommitRelationshipTypes.MAPPED_TO.name());
+            Iterable<Edge> mappings = commitNode.getEdges(OUT, Relationship.MAPPED_TO.name());
             if (mappings.iterator().hasNext()) {
                 return mappings.iterator().next().getVertex(IN);
             }
@@ -430,7 +473,7 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
                 @Override
                 public Boolean compute(LoopBundle<Vertex> argument) {
                     Iterable<Edge> edges = argument.getObject().getEdges(OUT,
-                            CommitRelationshipTypes.PARENT.name());
+                            Relationship.PARENT.name());
                     return edges.iterator().hasNext();
                 }
             };
@@ -438,7 +481,7 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
                 @Override
                 public Boolean compute(LoopBundle<Vertex> argument) {
                     Iterable<Edge> edges = argument.getObject().getEdges(OUT,
-                            CommitRelationshipTypes.PARENT.name());
+                            Relationship.PARENT.name());
                     return !edges.iterator().hasNext();
                 }
             };
@@ -456,9 +499,8 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
                 }
             };
             GremlinPipeline<Vertex, List<Edge>> pipe = new GremlinPipeline<Vertex, Vertex>()
-                    .start(commitNode).as("start").outE(CommitRelationshipTypes.PARENT.name())
-                    .inV().loop("start", expandCriterion, emitCriterion).path()
-                    .transform(verticesOnly);
+                    .start(commitNode).as("start").outE(Relationship.PARENT.name()).inV()
+                    .loop("start", expandCriterion, emitCriterion).path().transform(verticesOnly);
 
             if (pipe.hasNext()) {
                 int length = Integer.MAX_VALUE;
@@ -469,60 +511,6 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
             } else {
                 return 0;
             }
-        } finally {
-            this.rollback();
-        }
-    }
-
-    /**
-     * Determines if there are any sparse commits between the start commit and the end commit, not
-     * including the end commit.
-     * 
-     * @param start the start commit
-     * @param end the end commit
-     * @return true if there are any sparse commits between start and end
-     */
-    public boolean isSparsePath(final ObjectId start, final ObjectId end) {
-        try {
-            Vertex startNode = null;
-            Vertex endNode = null;
-            Iterable<Vertex> startResults = graphDB.getVertices("identifier", start.toString());
-            startNode = startResults.iterator().next();
-            Iterable<Vertex> endResults = graphDB.getVertices("identifier", end.toString());
-            endNode = endResults.iterator().next();
-
-            PipeFunction<LoopBundle<Vertex>, Boolean> whileFunction = new PipeFunction<LoopBundle<Vertex>, Boolean>() {
-                @Override
-                public Boolean compute(LoopBundle<Vertex> argument) {
-                    return !argument.getObject().getProperty("identifier").equals(end.toString());
-                }
-            };
-
-            PipeFunction<LoopBundle<Vertex>, Boolean> emitFunction = new PipeFunction<LoopBundle<Vertex>, Boolean>() {
-                @Override
-                public Boolean compute(LoopBundle<Vertex> argument) {
-                    return argument.getObject().getProperty("identifier").equals(end.toString());
-                }
-            };
-
-            @SuppressWarnings("rawtypes")
-            GremlinPipeline<Vertex, List> pipe = new GremlinPipeline<Vertex, Vertex>()
-                    .start(startNode).as("start").outE(CommitRelationshipTypes.PARENT.name()).inV()
-                    .loop("start", whileFunction, emitFunction).path();
-
-            for (List<?> path : pipe) {
-                for (Object o : path) {
-                    if (o instanceof Vertex) {
-                        Vertex vertex = (Vertex) o;
-                        if (!vertex.equals(endNode)
-                                && vertex.getPropertyKeys().contains(SPARSE_FLAG)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
         } finally {
             this.rollback();
         }
@@ -542,137 +530,6 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
         } catch (Exception e) {
             this.rollback();
         }
-    }
-
-    /**
-     * Finds the lowest common ancestor of two commits.
-     * 
-     * @param leftId the commit id of the left commit
-     * @param rightId the commit id of the right commit
-     * @return An {@link Optional} of the lowest common ancestor of the two commits, or
-     *         {@link Optional#absent()} if a common ancestor could not be found.
-     */
-    @Override
-    public Optional<ObjectId> findLowestCommonAncestor(ObjectId leftId, ObjectId rightId) {
-        try {
-            Set<Vertex> leftSet = new HashSet<Vertex>();
-            Set<Vertex> rightSet = new HashSet<Vertex>();
-
-            Queue<Vertex> leftQueue = new LinkedList<Vertex>();
-            Queue<Vertex> rightQueue = new LinkedList<Vertex>();
-
-            Vertex leftNode;
-            Vertex rightNode;
-            Iterable<Vertex> leftResults = graphDB.getVertices("identifier", leftId.toString());
-            leftNode = leftResults.iterator().next();
-            if (!leftNode.getEdges(OUT).iterator().hasNext()) {
-                return Optional.absent();
-            }
-            leftQueue.add(leftNode);
-            Iterable<Vertex> rightResults = graphDB.getVertices("identifier", rightId.toString());
-            rightNode = rightResults.iterator().next();
-            if (!rightNode.getEdges(OUT).iterator().hasNext()) {
-                return Optional.absent();
-            }
-            rightQueue.add(rightNode);
-
-            List<Vertex> potentialCommonAncestors = new LinkedList<Vertex>();
-            while (!leftQueue.isEmpty() || !rightQueue.isEmpty()) {
-                if (!leftQueue.isEmpty()) {
-                    Vertex commit = leftQueue.poll();
-                    if (processCommit(commit, leftQueue, leftSet, rightQueue, rightSet)) {
-                        potentialCommonAncestors.add(commit);
-                    }
-                }
-                if (!rightQueue.isEmpty()) {
-                    Vertex commit = rightQueue.poll();
-                    if (processCommit(commit, rightQueue, rightSet, leftQueue, leftSet)) {
-                        potentialCommonAncestors.add(commit);
-                    }
-                }
-            }
-            verifyAncestors(potentialCommonAncestors, leftSet, rightSet);
-
-            Optional<ObjectId> ancestor = Optional.absent();
-            if (potentialCommonAncestors.size() > 0) {
-                ancestor = Optional.of(ObjectId.valueOf((String) potentialCommonAncestors.get(0)
-                        .getProperty("identifier")));
-            }
-            return ancestor;
-        } finally {
-            this.rollback();
-        }
-    }
-
-    private boolean processCommit(Vertex commit, Queue<Vertex> myQueue, Set<Vertex> mySet,
-            Queue<Vertex> theirQueue, Set<Vertex> theirSet) {
-        if (!mySet.contains(commit)) {
-            mySet.add(commit);
-            if (theirSet.contains(commit)) {
-                stopAncestryPath(commit, theirQueue, theirSet);
-                return true;
-            }
-            for (Edge parentEdge : commit.getEdges(OUT, CommitRelationshipTypes.PARENT.name())) {
-                Vertex parent = parentEdge.getVertex(IN);
-                if (parent.getEdges(OUT).iterator().hasNext()) {
-                    myQueue.add(parent);
-                }
-            }
-        }
-        return false;
-
-    }
-
-    private void stopAncestryPath(Vertex commit, Queue<Vertex> theirQueue, Set<Vertex> theirSet) {
-        Queue<Vertex> ancestorQueue = new LinkedList<Vertex>();
-        ancestorQueue.add(commit);
-        List<Vertex> processed = new LinkedList<Vertex>();
-        while (!ancestorQueue.isEmpty()) {
-            Vertex ancestor = ancestorQueue.poll();
-            for (Edge parent : ancestor.getEdges(BOTH, CommitRelationshipTypes.PARENT.name())) {
-                Vertex parentNode = parent.getVertex(IN);
-                if (!parentNode.getId().equals(ancestor.getId())) {
-                    if (theirSet.contains(parentNode)) {
-                        ancestorQueue.add(parentNode);
-                        processed.add(parentNode);
-                    }
-                } else if (theirQueue.contains(parentNode)) {
-                    theirQueue.remove(parentNode);
-                }
-            }
-        }
-    }
-
-    private void verifyAncestors(List<Vertex> potentialCommonAncestors, Set<Vertex> leftSet,
-            Set<Vertex> rightSet) {
-        Queue<Vertex> ancestorQueue = new LinkedList<Vertex>();
-        List<Vertex> falseAncestors = new LinkedList<Vertex>();
-        List<Vertex> processed = new LinkedList<Vertex>();
-
-        for (Vertex v : potentialCommonAncestors) {
-            if (falseAncestors.contains(v)) {
-                continue;
-            }
-            ancestorQueue.add(v);
-            while (!ancestorQueue.isEmpty()) {
-                Vertex ancestor = ancestorQueue.poll();
-                for (Edge parent : ancestor.getEdges(OUT, CommitRelationshipTypes.PARENT.name())) {
-                    Vertex parentNode = parent.getVertex(IN);
-                    if (parentNode.getId() != ancestor.getId()) {
-                        if (leftSet.contains(parentNode) || rightSet.contains(parentNode)) {
-                            if (!processed.contains(parentNode)) {
-                                ancestorQueue.add(parentNode);
-                                processed.add(parentNode);
-                            }
-                            if (potentialCommonAncestors.contains(parentNode)) {
-                                falseAncestors.add(parentNode);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        potentialCommonAncestors.removeAll(falseAncestors);
     }
 
     @Override

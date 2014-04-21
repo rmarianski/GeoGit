@@ -8,6 +8,8 @@ import static org.geogit.storage.sqlite.SQLiteStorage.FORMAT_NAME;
 import static org.geogit.storage.sqlite.SQLiteStorage.VERSION;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
@@ -17,7 +19,6 @@ import org.geogit.repository.RepositoryConnectionException;
 import org.geogit.storage.ConfigDatabase;
 import org.geogit.storage.GraphDatabase;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -141,46 +142,8 @@ public abstract class SQLiteGraphDatabase<T> implements GraphDatabase {
     }
 
     @Override
-    public Optional<ObjectId> findLowestCommonAncestor(ObjectId leftId, ObjectId rightId) {
-        PathToRootWalker<T> left = new PathToRootWalker<T>(leftId, this, cx);
-        PathToRootWalker<T> right = new PathToRootWalker<T>(rightId, this, cx);
-
-        while (left.hasNext() || right.hasNext()) {
-            if (left.hasNext()) {
-                for (ObjectId node : left.next()) {
-                    if (right.seen(node)) {
-                        return Optional.of(node);
-                    }
-                }
-            }
-            if (right.hasNext()) {
-                for (ObjectId node : right.next()) {
-                    if (left.seen(node)) {
-                        return Optional.of(node);
-                    }
-                }
-            }
-        }
-
-        return Optional.absent();
-    }
-
-    @Override
     public void setProperty(ObjectId commitId, String name, String value) {
         property(commitId.toString(), name, value, cx);
-    }
-
-    @Override
-    public boolean isSparsePath(ObjectId start, ObjectId end) {
-        ShortestPathWalker<T> p = new ShortestPathWalker<T>(start, end, this, cx);
-        while (p.hasNext()) {
-            ObjectId node = p.next();
-            if (Boolean.valueOf(property(node.toString(), GraphDatabase.SPARSE_FLAG, cx))) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     @Override
@@ -290,4 +253,49 @@ public abstract class SQLiteGraphDatabase<T> implements GraphDatabase {
      * Clears the contents of the graph.
      */
     protected abstract void clear(T cx);
+
+    private class SQLiteGraphNode extends GraphNode {
+
+        private ObjectId id;
+
+        public SQLiteGraphNode(ObjectId id) {
+            this.id = id;
+        }
+
+        @Override
+        public ObjectId getIdentifier() {
+            return id;
+        }
+
+        @Override
+        public List<GraphEdge> getEdges(Direction direction) {
+            List<GraphEdge> edges = new LinkedList<GraphEdge>();
+            if (direction == Direction.IN || direction == Direction.BOTH) {
+                Iterator<String> nodeEdges = incoming(id.toString(), cx).iterator();
+                while (nodeEdges.hasNext()) {
+                    String otherNode = nodeEdges.next();
+                    edges.add(new GraphEdge(new SQLiteGraphNode(ObjectId.valueOf(otherNode)), this));
+                }
+            }
+            if (direction == Direction.OUT || direction == Direction.BOTH) {
+                Iterator<String> nodeEdges = outgoing(id.toString(), cx).iterator();
+                while (nodeEdges.hasNext()) {
+                    String otherNode = nodeEdges.next();
+                    edges.add(new GraphEdge(this, new SQLiteGraphNode(ObjectId.valueOf(otherNode))));
+                }
+            }
+            return edges;
+        }
+
+        @Override
+        public boolean isSparse() {
+            String sparse = property(id.toString(), SPARSE_FLAG, cx);
+            return sparse != null && Boolean.valueOf(sparse);
+        }
+    }
+
+    @Override
+    public GraphNode getNode(ObjectId id) {
+        return new SQLiteGraphNode(id);
+    }
 }

@@ -6,7 +6,6 @@ package org.geogit.remote;
 
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
-import org.geogit.api.RevCommit;
 import org.geogit.api.plumbing.FindCommonAncestor;
 import org.geogit.api.porcelain.SynchronizationException;
 import org.geogit.api.porcelain.SynchronizationException.StatusCode;
@@ -245,17 +244,16 @@ abstract class AbstractRemoteRepo implements IRemoteRepo {
                 // The branches are equal, no need to push.
                 throw new SynchronizationException(StatusCode.NOTHING_TO_PUSH);
             } else if (localRepository.blobExists(remoteRef.get().getObjectId())) {
-                RevCommit leftCommit = localRepository.getCommit(remoteRef.get().getObjectId());
-                RevCommit rightCommit = localRepository.getCommit(ref.getObjectId());
-                Optional<RevCommit> ancestor = localRepository.command(FindCommonAncestor.class)
-                        .setLeft(leftCommit).setRight(rightCommit).call();
+                Optional<ObjectId> ancestor = localRepository.command(FindCommonAncestor.class)
+                        .setLeftId(remoteRef.get().getObjectId()).setRightId(ref.getObjectId())
+                        .call();
                 if (!ancestor.isPresent()) {
                     // There is no common ancestor, a push will overwrite history
                     throw new SynchronizationException(StatusCode.REMOTE_HAS_CHANGES);
-                } else if (ancestor.get().getId().equals(ref.getObjectId())) {
+                } else if (ancestor.get().equals(ref.getObjectId())) {
                     // My last commit is the common ancestor, the remote already has my data.
                     throw new SynchronizationException(StatusCode.NOTHING_TO_PUSH);
-                } else if (!ancestor.get().getId().equals(remoteRef.get().getObjectId())) {
+                } else if (!ancestor.get().equals(remoteRef.get().getObjectId())) {
                     // The remote branch's latest commit is not my ancestor, a push will cause a
                     // loss of history.
                     throw new SynchronizationException(StatusCode.REMOTE_HAS_CHANGES);

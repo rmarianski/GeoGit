@@ -5,18 +5,72 @@
 package org.geogit.storage;
 
 import java.io.Closeable;
+import java.util.List;
 
 import org.geogit.api.ObjectId;
 import org.geogit.repository.RepositoryConnectionException;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 @Beta
 public interface GraphDatabase extends Closeable {
 
     public static final String SPARSE_FLAG = "sparse";
+
+    public enum Direction {
+        OUT, IN, BOTH
+    }
+
+    public enum Relationship {
+        TOROOT, PARENT, MAPPED_TO
+    }
+
+    public class GraphEdge {
+        GraphNode from;
+
+        GraphNode to;
+
+        public GraphEdge(GraphNode from, GraphNode to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        public GraphNode getFromNode() {
+            return from;
+        }
+
+        public GraphNode getToNode() {
+            return to;
+        }
+    }
+
+    public abstract class GraphNode {
+        public abstract ObjectId getIdentifier();
+
+        public abstract List<GraphEdge> getEdges(Direction direction);
+
+        public abstract boolean isSparse();
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != this.getClass()) {
+                return false;
+            }
+
+            GraphNode otherNode = (GraphNode) obj;
+
+            return otherNode.getIdentifier().equals(this.getIdentifier());
+        }
+
+        @Override
+        public int hashCode() {
+            return getIdentifier().hashCode();
+        }
+    };
 
     /**
      * Initializes/opens the database. It's safe to call this method multiple times, and only the
@@ -106,31 +160,13 @@ public interface GraphDatabase extends Closeable {
     public int getDepth(final ObjectId commitId);
 
     /**
-     * Finds the lowest common ancestor of two commits.
-     * 
-     * @param leftId the commit id of the left commit
-     * @param rightId the commit id of the right commit
-     * @return An {@link Optional} of the lowest common ancestor of the two commits, or
-     *         {@link Optional#absent()} if a common ancestor could not be found.
-     */
-    public Optional<ObjectId> findLowestCommonAncestor(ObjectId leftId, ObjectId rightId);
-
-    /**
      * Set a property on the provided commit node.
      * 
      * @param commitId the id of the commit
      */
     public void setProperty(ObjectId commitId, String propertyName, String propertyValue);
 
-    /**
-     * Determines if there are any sparse commits between the start commit and the end commit, not
-     * including the end commit.
-     * 
-     * @param start the start commit
-     * @param end the end commit
-     * @return true if there are any sparse commits between start and end
-     */
-    public boolean isSparsePath(ObjectId start, ObjectId end);
+    public GraphNode getNode(ObjectId id);
 
     public void truncate();
 }

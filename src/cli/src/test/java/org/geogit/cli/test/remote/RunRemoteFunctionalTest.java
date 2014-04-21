@@ -14,7 +14,9 @@ import cucumber.junit.Cucumber;
  * 
  */
 @RunWith(Cucumber.class)
-@Cucumber.Options(monochrome = true, format = { "pretty", "html:target/cucumber-report" }, strict = true, //
+@Cucumber.Options(//
+// features = { "src/test/resources/org/geogit/cli/test/remote/Fetch.feature" },//
+monochrome = true, format = { "pretty", "html:target/cucumber-report" }, strict = true,//
 // the glue option tells cucumber where else to look for step definitions
 glue = { "org.geogit.cli.test.functional" })
 public class RunRemoteFunctionalTest {
