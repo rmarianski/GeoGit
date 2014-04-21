@@ -41,13 +41,6 @@ public class PGListTest extends Assert {
 
     private GeogitCLI cli;
 
-    private static AbstractDataStoreFactory factory;
-
-    @BeforeClass
-    public static void oneTimeSetup() throws Exception {
-        factory = TestHelper.createTestFactory();
-    }
-
     @Before
     public void setUp() throws Exception {
         ConsoleReader consoleReader = new ConsoleReader(System.in, System.out,
@@ -65,7 +58,7 @@ public class PGListTest extends Assert {
     @Test
     public void testList() throws Exception {
         PGList listCommand = new PGList();
-        listCommand.dataStoreFactory = factory;
+        listCommand.dataStoreFactory = TestHelper.createTestFactory();
         listCommand.run(cli);
     }
 
@@ -117,7 +110,7 @@ public class PGListTest extends Assert {
 
         when(mockCli.getConsole()).thenThrow(new MockitoException("Exception"));
         PGList listCommand = new PGList();
-        listCommand.dataStoreFactory = factory;
+        listCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(MockitoException.class);
         listCommand.run(mockCli);
     }

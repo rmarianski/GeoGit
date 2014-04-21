@@ -19,11 +19,9 @@ import jline.console.ConsoleReader;
 import org.geogit.api.Platform;
 import org.geogit.cli.CommandFailedException;
 import org.geogit.cli.GeogitCLI;
-import org.geotools.data.AbstractDataStoreFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -39,13 +37,6 @@ public class SQLServerDescribeTest extends Assert {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private GeogitCLI cli;
-
-    private static AbstractDataStoreFactory factory;
-
-    @BeforeClass
-    public static void oneTimeSetup() throws Exception {
-        factory = TestHelper.createTestFactory();
-    }
 
     @Before
     public void setUp() throws Exception {
@@ -65,7 +56,7 @@ public class SQLServerDescribeTest extends Assert {
     public void testDescribe() throws Exception {
         SQLServerDescribe describeCommand = new SQLServerDescribe();
         describeCommand.table = "table1";
-        describeCommand.dataStoreFactory = factory;
+        describeCommand.dataStoreFactory = TestHelper.createTestFactory();
         describeCommand.run(cli);
     }
 
@@ -82,7 +73,7 @@ public class SQLServerDescribeTest extends Assert {
     public void testDescribeNonexistentTable() throws Exception {
         SQLServerDescribe describeCommand = new SQLServerDescribe();
         describeCommand.table = "nonexistent";
-        describeCommand.dataStoreFactory = factory;
+        describeCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(CommandFailedException.class);
         describeCommand.run(cli);
     }
@@ -91,7 +82,7 @@ public class SQLServerDescribeTest extends Assert {
     public void testNoTable() throws Exception {
         SQLServerDescribe describeCommand = new SQLServerDescribe();
         describeCommand.table = "";
-        describeCommand.dataStoreFactory = factory;
+        describeCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(CommandFailedException.class);
         describeCommand.run(cli);
     }
@@ -116,7 +107,7 @@ public class SQLServerDescribeTest extends Assert {
         when(mockCli.getConsole()).thenThrow(new MockitoException("Exception"));
         SQLServerDescribe describeCommand = new SQLServerDescribe();
         describeCommand.table = "table1";
-        describeCommand.dataStoreFactory = factory;
+        describeCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(MockitoException.class);
         describeCommand.run(mockCli);
     }
@@ -133,7 +124,7 @@ public class SQLServerDescribeTest extends Assert {
 
         SQLServerDescribe describeCommand = new SQLServerDescribe();
         describeCommand.table = "table1";
-        describeCommand.dataStoreFactory = factory;
+        describeCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(Exception.class);
         describeCommand.run(testCli);
     }

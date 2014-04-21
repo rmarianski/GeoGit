@@ -36,13 +36,6 @@ public class OracleImportTest {
 
     private GeogitCLI cli;
 
-    private static AbstractDataStoreFactory factory;
-
-    @BeforeClass
-    public static void oneTimeSetup() throws Exception {
-        factory = TestHelper.createTestFactory();
-    }
-
     @Before
     public void setUp() throws Exception {
         ConsoleReader consoleReader = new ConsoleReader(System.in, System.out,
@@ -61,7 +54,7 @@ public class OracleImportTest {
     public void testImport() throws Exception {
         OracleImport importCommand = new OracleImport();
         importCommand.all = true;
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         importCommand.run(cli);
     }
 
@@ -70,7 +63,7 @@ public class OracleImportTest {
         OracleImport importCommand = new OracleImport();
         importCommand.all = false;
         importCommand.table = "";
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(CommandFailedException.class);
         importCommand.run(cli);
     }
@@ -80,7 +73,7 @@ public class OracleImportTest {
         OracleImport importCommand = new OracleImport();
         importCommand.all = true;
         importCommand.table = "table1";
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(CommandFailedException.class);
         importCommand.run(cli);
     }
@@ -90,7 +83,7 @@ public class OracleImportTest {
         OracleImport importCommand = new OracleImport();
         importCommand.all = false;
         importCommand.table = "table1";
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         importCommand.run(cli);
     }
 
@@ -121,7 +114,7 @@ public class OracleImportTest {
         when(mockCli.getConsole()).thenThrow(new MockitoException("Exception"));
         OracleImport importCommand = new OracleImport();
         importCommand.all = true;
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(MockitoException.class);
         importCommand.run(mockCli);
     }
@@ -131,7 +124,7 @@ public class OracleImportTest {
         OracleImport importCommand = new OracleImport();
         importCommand.all = false;
         importCommand.table = "nonexistent";
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(CommandFailedException.class);
         importCommand.run(cli);
     }

@@ -17,10 +17,8 @@ import jline.console.ConsoleReader;
 import org.geogit.api.Platform;
 import org.geogit.cli.CommandFailedException;
 import org.geogit.cli.GeogitCLI;
-import org.geotools.data.AbstractDataStoreFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -36,13 +34,6 @@ public class SQLServerImportTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private GeogitCLI cli;
-
-    private static AbstractDataStoreFactory factory;
-
-    @BeforeClass
-    public static void oneTimeSetup() throws Exception {
-        factory = TestHelper.createTestFactory();
-    }
 
     @Before
     public void setUp() throws Exception {
@@ -62,7 +53,7 @@ public class SQLServerImportTest {
     public void testImport() throws Exception {
         SQLServerImport importCommand = new SQLServerImport();
         importCommand.all = true;
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         importCommand.run(cli);
     }
 
@@ -71,7 +62,7 @@ public class SQLServerImportTest {
         SQLServerImport importCommand = new SQLServerImport();
         importCommand.all = false;
         importCommand.table = "";
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(CommandFailedException.class);
         importCommand.run(cli);
     }
@@ -81,7 +72,7 @@ public class SQLServerImportTest {
         SQLServerImport importCommand = new SQLServerImport();
         importCommand.all = true;
         importCommand.table = "table1";
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(CommandFailedException.class);
         importCommand.run(cli);
     }
@@ -91,7 +82,7 @@ public class SQLServerImportTest {
         SQLServerImport importCommand = new SQLServerImport();
         importCommand.all = false;
         importCommand.table = "table1";
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         importCommand.run(cli);
     }
 
@@ -122,7 +113,7 @@ public class SQLServerImportTest {
         when(mockCli.getConsole()).thenThrow(new MockitoException("Exception"));
         SQLServerImport importCommand = new SQLServerImport();
         importCommand.all = true;
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(MockitoException.class);
         importCommand.run(mockCli);
     }
@@ -132,7 +123,7 @@ public class SQLServerImportTest {
         SQLServerImport importCommand = new SQLServerImport();
         importCommand.all = false;
         importCommand.table = "nonexistent";
-        importCommand.dataStoreFactory = factory;
+        importCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(CommandFailedException.class);
         importCommand.run(cli);
     }

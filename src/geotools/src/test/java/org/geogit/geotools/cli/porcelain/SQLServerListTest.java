@@ -17,11 +17,9 @@ import jline.console.ConsoleReader;
 import org.geogit.api.Platform;
 import org.geogit.cli.CommandFailedException;
 import org.geogit.cli.GeogitCLI;
-import org.geotools.data.AbstractDataStoreFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,13 +35,6 @@ public class SQLServerListTest extends Assert {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private GeogitCLI cli;
-
-    private static AbstractDataStoreFactory factory;
-
-    @BeforeClass
-    public static void oneTimeSetup() throws Exception {
-        factory = TestHelper.createTestFactory();
-    }
 
     @Before
     public void setUp() throws Exception {
@@ -62,7 +53,7 @@ public class SQLServerListTest extends Assert {
     @Test
     public void testList() throws Exception {
         SQLServerList listCommand = new SQLServerList();
-        listCommand.dataStoreFactory = factory;
+        listCommand.dataStoreFactory = TestHelper.createTestFactory();
         listCommand.run(cli);
     }
 
@@ -115,7 +106,7 @@ public class SQLServerListTest extends Assert {
 
         when(mockCli.getConsole()).thenThrow(new MockitoException("Exception"));
         SQLServerList listCommand = new SQLServerList();
-        listCommand.dataStoreFactory = factory;
+        listCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(MockitoException.class);
         listCommand.run(mockCli);
     }

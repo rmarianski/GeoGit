@@ -29,13 +29,6 @@ public class ShpExportTest extends RepositoryTestCase {
 
     private GeogitCLI cli;
 
-    private AbstractDataStoreFactory factory;
-
-    @Before
-    public void oneTimeSetup() throws Exception {
-        factory = TestHelper.createTestFactory();
-    }
-
     @Override
     public void setUpInternal() throws Exception {
         ConsoleReader consoleReader = new ConsoleReader(System.in, System.out,
@@ -72,7 +65,7 @@ public class ShpExportTest extends RepositoryTestCase {
         String shapeFileName = new File(geogit.getPlatform().pwd(), "TestPoints.shp")
                 .getAbsolutePath();
         exportCommand.args = Arrays.asList("Points", shapeFileName);
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(CommandFailedException.class);
         exportCommand.run(cli);
 
@@ -85,7 +78,7 @@ public class ShpExportTest extends RepositoryTestCase {
         String shapeFileName = new File(geogit.getPlatform().pwd(), "TestPoints.shp")
                 .getAbsolutePath();
         exportCommand.args = Arrays.asList("Points", shapeFileName);
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = TestHelper.createTestFactory();
         exportCommand.run(cli);
 
         deleteShapeFile(shapeFileName);
@@ -97,7 +90,7 @@ public class ShpExportTest extends RepositoryTestCase {
         String shapeFileName = new File(geogit.getPlatform().pwd(), "TestPoints.shp")
                 .getAbsolutePath();
         exportCommand.args = Arrays.asList(null, shapeFileName);
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(InvalidParameterException.class);
         exportCommand.run(cli);
     }
@@ -108,7 +101,7 @@ public class ShpExportTest extends RepositoryTestCase {
         String shapeFileName = new File(geogit.getPlatform().pwd(), "TestPoints.shp")
                 .getAbsolutePath();
         exportCommand.args = Arrays.asList("invalidType", shapeFileName);
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = TestHelper.createTestFactory();
         exception.expect(InvalidParameterException.class);
         exportCommand.run(cli);
     }
@@ -119,7 +112,7 @@ public class ShpExportTest extends RepositoryTestCase {
         String shapeFileName = new File(geogit.getPlatform().pwd(), "TestPoints.shp")
                 .getAbsolutePath();
         exportCommand.args = Arrays.asList("Points/Points.1", shapeFileName);
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = TestHelper.createTestFactory();
         try {
             exportCommand.run(cli);
             fail();
@@ -137,7 +130,7 @@ public class ShpExportTest extends RepositoryTestCase {
                 .getAbsolutePath();
         ;
         exportCommand.args = Arrays.asList("WORK_HEAD:Points", shapeFileName);
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = TestHelper.createTestFactory();
         exportCommand.run(cli);
 
         exportCommand.args = Arrays.asList("Lines", shapeFileName);
@@ -166,7 +159,7 @@ public class ShpExportTest extends RepositoryTestCase {
         String shapeFileName = new File(geogit.getPlatform().pwd(), "TestPoints.shp")
                 .getAbsolutePath();
         exportCommand.args = Arrays.asList("Points", shapeFileName);
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = TestHelper.createTestFactory();
         exportCommand.run(cli);
 
         exportCommand.args = Arrays.asList("Lines", shapeFileName);

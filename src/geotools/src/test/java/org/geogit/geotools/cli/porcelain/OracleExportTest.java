@@ -5,6 +5,8 @@
 
 package org.geogit.geotools.cli.porcelain;
 
+import static org.geogit.geotools.cli.porcelain.TestHelper.createTestFactory;
+
 import java.util.Arrays;
 
 import jline.UnsupportedTerminal;
@@ -15,8 +17,6 @@ import org.geogit.cli.CommandFailedException;
 import org.geogit.cli.GeogitCLI;
 import org.geogit.cli.InvalidParameterException;
 import org.geogit.test.integration.RepositoryTestCase;
-import org.geotools.data.AbstractDataStoreFactory;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -27,13 +27,6 @@ public class OracleExportTest extends RepositoryTestCase {
     public ExpectedException exception = ExpectedException.none();
 
     private GeogitCLI cli;
-
-    private static AbstractDataStoreFactory factory;
-
-    @BeforeClass
-    public static void oneTimeSetup() throws Exception {
-        factory = TestHelper.createTestFactory();
-    }
 
     @Override
     public void setUpInternal() throws Exception {
@@ -68,7 +61,7 @@ public class OracleExportTest extends RepositoryTestCase {
 
         OracleExport exportCommand = new OracleExport();
         exportCommand.args = Arrays.asList("Points", "Points");
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = createTestFactory();
         exportCommand.run(cli);
     }
 
@@ -94,7 +87,7 @@ public class OracleExportTest extends RepositoryTestCase {
     public void testExportToTableThatExists() throws Exception {
         OracleExport exportCommand = new OracleExport();
         exportCommand.args = Arrays.asList("Points", "table1");
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = createTestFactory();
         exception.expect(CommandFailedException.class);
         exportCommand.run(cli);
     }
@@ -103,7 +96,7 @@ public class OracleExportTest extends RepositoryTestCase {
     public void testExportToTableThatExistsWithOverwrite() throws Exception {
         OracleExport exportCommand = new OracleExport();
         exportCommand.args = Arrays.asList("WORK_HEAD:Points", "testTable");
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = createTestFactory();
         exportCommand.run(cli);
 
         exportCommand.args = Arrays.asList("Lines", "testTable");
@@ -115,7 +108,7 @@ public class OracleExportTest extends RepositoryTestCase {
     public void testExportWithNonexistentFeatureTypeTree() throws Exception {
         OracleExport exportCommand = new OracleExport();
         exportCommand.args = Arrays.asList("invalidType", "invalidTable");
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = createTestFactory();
         exception.expect(InvalidParameterException.class);
         exportCommand.run(cli);
     }
@@ -124,7 +117,7 @@ public class OracleExportTest extends RepositoryTestCase {
     public void testExportWithNullTable() throws Exception {
         OracleExport exportCommand = new OracleExport();
         exportCommand.args = Arrays.asList("Points", null);
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = createTestFactory();
         exception.expect(InvalidParameterException.class);
         exportCommand.run(cli);
     }
@@ -133,7 +126,7 @@ public class OracleExportTest extends RepositoryTestCase {
     public void testExportWithNullFeatureType() throws Exception {
         OracleExport exportCommand = new OracleExport();
         exportCommand.args = Arrays.asList("", "invalidTable");
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = createTestFactory();
         exception.expect(InvalidParameterException.class);
         exportCommand.run(cli);
     }
@@ -142,7 +135,7 @@ public class OracleExportTest extends RepositoryTestCase {
     public void testExportWithEmptyStringForFeatureType() throws Exception {
         OracleExport exportCommand = new OracleExport();
         exportCommand.args = Arrays.asList("", "invalidTable");
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = createTestFactory();
         exception.expect(InvalidParameterException.class);
         exportCommand.run(cli);
     }
@@ -151,7 +144,7 @@ public class OracleExportTest extends RepositoryTestCase {
     public void testExportWithEmptyStringForTable() throws Exception {
         OracleExport exportCommand = new OracleExport();
         exportCommand.args = Arrays.asList("Points", "");
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = createTestFactory();
         exception.expect(InvalidParameterException.class);
         exportCommand.run(cli);
     }
@@ -160,7 +153,7 @@ public class OracleExportTest extends RepositoryTestCase {
     public void testExportWithFeatureNameInsteadOfType() throws Exception {
         OracleExport exportCommand = new OracleExport();
         exportCommand.args = Arrays.asList("Points/Points.1", "invalidTable");
-        exportCommand.dataStoreFactory = factory;
+        exportCommand.dataStoreFactory = createTestFactory();
         exception.expect(InvalidParameterException.class);
         exportCommand.run(cli);
     }
