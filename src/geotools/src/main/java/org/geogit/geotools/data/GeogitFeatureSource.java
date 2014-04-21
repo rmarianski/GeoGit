@@ -10,7 +10,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevFeatureType;
@@ -300,7 +300,7 @@ class GeogitFeatureSource extends ContentFeatureSource {
 
         final SimpleFeatureType schema = getSchema();
 
-        final CommandLocator commandLocator = getCommandLocator();
+        final Injector commandLocator = getCommandLocator();
 
         nativeReader = new GeogitFeatureReader<SimpleFeatureType, SimpleFeature>(commandLocator,
                 schema, filter, featureTypeTreePath, rootRef, offset, maxFeatures);
@@ -325,8 +325,8 @@ class GeogitFeatureSource extends ContentFeatureSource {
         return featureType;
     }
 
-    CommandLocator getCommandLocator() {
-        CommandLocator commandLocator = getDataStore().getCommandLocator(getTransaction());
+    Injector getCommandLocator() {
+        Injector commandLocator = getDataStore().getCommandLocator(getTransaction());
         return commandLocator;
     }
 
@@ -336,7 +336,7 @@ class GeogitFeatureSource extends ContentFeatureSource {
         final String treePath = typeRef.path();
         final ObjectId metadataId = typeRef.getMetadataId();
 
-        CommandLocator commandLocator = getCommandLocator();
+        Injector commandLocator = getCommandLocator();
         Optional<RevFeatureType> revType = commandLocator.command(RevObjectParse.class)
                 .setObjectId(metadataId).call(RevFeatureType.class);
 
@@ -370,7 +370,7 @@ class GeogitFeatureSource extends ContentFeatureSource {
      */
     RevTree getTypeTree() {
         String refSpec = getRootRef() + ":" + getTypeTreePath();
-        CommandLocator commandLocator = getCommandLocator();
+        Injector commandLocator = getCommandLocator();
         Optional<RevTree> ref = commandLocator.command(RevObjectParse.class).setRefSpec(refSpec)
                 .call(RevTree.class);
         Preconditions.checkState(ref.isPresent(), "Ref %s not found on working tree", refSpec);
@@ -387,8 +387,8 @@ class GeogitFeatureSource extends ContentFeatureSource {
      * @return
      */
     WorkingTree getWorkingTree() {
-        CommandLocator commandLocator = getCommandLocator();
-        WorkingTree workingTree = commandLocator.getWorkingTree();
+        Injector commandLocator = getCommandLocator();
+        WorkingTree workingTree = commandLocator.workingTree();
         return workingTree;
     }
 }

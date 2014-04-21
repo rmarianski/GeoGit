@@ -4,9 +4,12 @@
  */
 package org.geogit.storage;
 
+import org.geogit.di.Singleton;
+
 /**
  * A service for providing deduplicators.
  */
+@Singleton
 public interface DeduplicationService {
     /**
      * Create a new Deduplicator.  Clients MUST ensure that the deduplicator's

@@ -18,7 +18,6 @@ import org.geogit.repository.WorkingTree;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 
 /**
  * Removes a feature or a tree from the working tree and index
@@ -29,7 +28,6 @@ public class RemoveOp extends AbstractGeoGitOp<WorkingTree> {
 
     private List<String> pathsToRemove;
 
-    @Inject
     public RemoveOp() {
         this.pathsToRemove = new ArrayList<String>();
     }
@@ -52,12 +50,12 @@ public class RemoveOp extends AbstractGeoGitOp<WorkingTree> {
         for (String pathToRemove : pathsToRemove) {
             NodeRef.checkValidPath(pathToRemove);
             Optional<NodeRef> node;
-            node = command(FindTreeChild.class).setParent(getWorkTree().getTree()).setIndex(true)
+            node = command(FindTreeChild.class).setParent(workingTree().getTree()).setIndex(true)
                     .setChildPath(pathToRemove).call();
-            List<Conflict> conflicts = getIndex().getConflicted(pathToRemove);
+            List<Conflict> conflicts = index().getConflicted(pathToRemove);
             if (conflicts.size() > 0) {
                 for (Conflict conflict : conflicts) {
-                    getIndex().getDatabase().removeConflict(null, conflict.getPath());
+                    stagingDatabase().removeConflict(null, conflict.getPath());
                 }
             } else {
                 Preconditions.checkArgument(node.isPresent(),
@@ -68,7 +66,7 @@ public class RemoveOp extends AbstractGeoGitOp<WorkingTree> {
         // separate trees from features an delete accordingly
         for (String pathToRemove : pathsToRemove) {
             Optional<NodeRef> node = command(FindTreeChild.class)
-                    .setParent(getWorkTree().getTree()).setIndex(true).setChildPath(pathToRemove)
+                    .setParent(workingTree().getTree()).setIndex(true).setChildPath(pathToRemove)
                     .call();
             if (!node.isPresent()) {
                 continue;
@@ -76,23 +74,23 @@ public class RemoveOp extends AbstractGeoGitOp<WorkingTree> {
 
             switch (node.get().getType()) {
             case TREE:
-                getWorkTree().delete(pathToRemove);
+                workingTree().delete(pathToRemove);
                 break;
             case FEATURE:
                 String parentPath = NodeRef.parentPath(pathToRemove);
                 String name = node.get().name();
-                getWorkTree().delete(parentPath, name);
+                workingTree().delete(parentPath, name);
                 break;
             default:
                 break;
             }
 
-            final long numChanges = getWorkTree().countUnstaged(pathToRemove).getCount();
-            Iterator<DiffEntry> unstaged = getWorkTree().getUnstaged(pathToRemove);
-            getIndex().stage(getProgressListener(), unstaged, numChanges);
+            final long numChanges = workingTree().countUnstaged(pathToRemove).getCount();
+            Iterator<DiffEntry> unstaged = workingTree().getUnstaged(pathToRemove);
+            index().stage(getProgressListener(), unstaged, numChanges);
         }
 
-        return getWorkTree();
+        return workingTree();
     }
 
 }

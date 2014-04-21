@@ -19,7 +19,6 @@ import org.geogit.api.plumbing.RevParse;
 import org.geogit.api.plumbing.UpdateRef;
 
 import com.google.common.base.Optional;
-import com.google.inject.Inject;
 
 /**
  * Creates a new head ref (branch) pointing to the specified tree-ish or the current HEAD if no
@@ -40,10 +39,6 @@ public class BranchCreateOp extends AbstractGeoGitOp<Ref> {
     private boolean orphan;
 
     private boolean force;
-
-    @Inject
-    public BranchCreateOp() {
-    }
 
     /**
      * @param branchName the name of the branch to create, must not already exist

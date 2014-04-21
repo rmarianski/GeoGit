@@ -75,8 +75,8 @@ public class PushManager {
         if (incomingData.containsKey(ipAddress)) {
             List<ObjectId> objectsToMove = incomingData.remove(ipAddress);
             for (ObjectId oid : objectsToMove) {
-                RevObject toAdd = geogit.getRepository().getIndex().getDatabase().get(oid);
-                geogit.getRepository().getObjectDatabase().put(toAdd);
+                RevObject toAdd = geogit.getRepository().stagingDatabase().get(oid);
+                geogit.getRepository().objectDatabase().put(toAdd);
             }
             Optional<Ref> oldRef = geogit.command(RefParse.class).setName(refspec).call();
             Optional<Ref> headRef = geogit.command(RefParse.class).setName(Ref.HEAD).call();

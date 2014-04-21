@@ -16,18 +16,12 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 /**
  * Returns a list of all tags
  * 
  */
 public class TagListOp extends AbstractGeoGitOp<ImmutableList<RevTag>> {
-
-    @Inject
-    public TagListOp() {
-
-    }
 
     public ImmutableList<RevTag> call() {
 

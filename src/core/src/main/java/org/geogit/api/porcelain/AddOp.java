@@ -27,7 +27,6 @@ import org.geogit.api.ProgressListener;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
-import com.google.inject.Inject;
 
 /**
  * Manipulates the index (staging area) by setting the unstaged changes that match this operation
@@ -46,7 +45,6 @@ public class AddOp extends AbstractGeoGitOp<WorkingTree> {
     /**
      * Constructs a new {@code AddOp} with the given parameters.
      */
-    @Inject
     public AddOp() {
         patterns = new HashSet<String>();
     }
@@ -64,7 +62,7 @@ public class AddOp extends AbstractGeoGitOp<WorkingTree> {
             path = patterns.iterator().next();
         }
         stage(getProgressListener(), path);
-        return getWorkTree();
+        return workingTree();
     }
 
     /**
@@ -85,8 +83,8 @@ public class AddOp extends AbstractGeoGitOp<WorkingTree> {
 
         // short cut for the case where the index is empty and we're staging all changes in the
         // working tree, so it's just a matter of updating the index ref to working tree RevTree id
-        if (null == pathFilter && !getIndex().getStaged(null).hasNext() && !updateOnly
-                && getIndex().countConflicted(null) == 0) {
+        if (null == pathFilter && !index().getStaged(null).hasNext() && !updateOnly
+                && index().countConflicted(null) == 0) {
             progress.started();
             Optional<ObjectId> workHead = command(RevParse.class).setRefSpec(Ref.WORK_HEAD).call();
             if (workHead.isPresent()) {
@@ -97,9 +95,9 @@ public class AddOp extends AbstractGeoGitOp<WorkingTree> {
             return;
         }
 
-        final long numChanges = getWorkTree().countUnstaged(pathFilter).getCount();
+        final long numChanges = workingTree().countUnstaged(pathFilter).getCount();
 
-        Iterator<DiffEntry> unstaged = getWorkTree().getUnstaged(pathFilter);
+        Iterator<DiffEntry> unstaged = workingTree().getUnstaged(pathFilter);
 
         if (updateOnly) {
             unstaged = Iterators.filter(unstaged, new Predicate<DiffEntry>() {
@@ -110,15 +108,15 @@ public class AddOp extends AbstractGeoGitOp<WorkingTree> {
             });
         }
 
-        getIndex().stage(progress, unstaged, numChanges);
+        index().stage(progress, unstaged, numChanges);
 
-        List<Conflict> conflicts = getIndex().getConflicted(pathFilter);
+        List<Conflict> conflicts = index().getConflicted(pathFilter);
         for (Conflict conflict : conflicts) {
             // if we are staging unmerged files, the conflict should get solved. However, if the
             // working index object is the same as the staging area one (for instance, after running
             // checkout --ours), it will not be reported by the getUnstaged method. We solve that
             // here.
-            getIndex().getDatabase().removeConflict(null, conflict.getPath());
+            stagingDatabase().removeConflict(null, conflict.getPath());
         }
     }
 

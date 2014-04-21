@@ -129,7 +129,7 @@ public class OSMUnmapOp extends AbstractGeoGitOp<RevTree> {
         Iterator<NodeRef> iter = command(LsTreeOp.class).setReference(path)
                 .setStrategy(Strategy.FEATURES_ONLY).call();
 
-        FeatureMapFlusher flusher = new FeatureMapFlusher(getWorkTree());
+        FeatureMapFlusher flusher = new FeatureMapFlusher(workingTree());
         while (iter.hasNext()) {
             NodeRef node = iter.next();
             RevFeature revFeature = command(RevObjectParse.class).setObjectId(node.objectId())
@@ -163,7 +163,7 @@ public class OSMUnmapOp extends AbstractGeoGitOp<RevTree> {
 
         if (entry.isPresent()) {
             Iterator<DiffEntry> diffs = command(DiffTree.class).setFilterPath(path)
-                    .setNewTree(getWorkTree().getTree().getId())
+                    .setNewTree(workingTree().getTree().getId())
                     .setOldTree(entry.get().getPostMappingId()).call();
 
             while (diffs.hasNext()) {
@@ -194,12 +194,12 @@ public class OSMUnmapOp extends AbstractGeoGitOp<RevTree> {
                     Class<?> clazz = feature.getDefaultGeometryProperty().getType().getBinding();
                     String deletePath = clazz.equals(Point.class) ? OSMUtils.NODE_TYPE_NAME
                             : OSMUtils.WAY_TYPE_NAME;
-                    getWorkTree().delete(deletePath, id);
+                    workingTree().delete(deletePath, id);
                 }
             }
         }
 
-        return getWorkTree().getTree();
+        return workingTree().getTree();
 
     }
 

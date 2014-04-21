@@ -54,7 +54,7 @@ class LocalFilteredDiffIterator extends FilteredDiffIterator {
     @Override
     protected void processObject(RevObject object) {
         if (object != null && !destinationRepo.blobExists(object.getId())) {
-            destinationRepo.getIndex().getDatabase().put(object);
+            destinationRepo.stagingDatabase().put(object);
         }
     }
 

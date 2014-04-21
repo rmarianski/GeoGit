@@ -10,11 +10,17 @@ import javax.annotation.Nullable;
 
 import org.geogit.api.plumbing.TransactionEnd;
 import org.geogit.api.porcelain.ConflictsException;
+import org.geogit.di.PluginDefaults;
 import org.geogit.repository.Index;
 import org.geogit.repository.Repository;
 import org.geogit.repository.StagingArea;
 import org.geogit.repository.WorkingTree;
+import org.geogit.storage.ConfigDatabase;
+import org.geogit.storage.DeduplicationService;
+import org.geogit.storage.GraphDatabase;
+import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.RefDatabase;
+import org.geogit.storage.StagingDatabase;
 import org.geogit.storage.TransactionRefDatabase;
 import org.geogit.storage.TransactionStagingArea;
 
@@ -27,7 +33,7 @@ import com.google.common.base.Preconditions;
  * @see org.geogit.api.plumbing.TransactionBegin
  * @see org.geogit.api.plumbing.TransactionEnd
  */
-public class GeogitTransaction implements CommandLocator {
+public class GeogitTransaction implements Injector {
 
     public static final String TRANSACTIONS_NAMESPACE = "transactions";
 
@@ -35,7 +41,7 @@ public class GeogitTransaction implements CommandLocator {
 
     private UUID transactionId;
 
-    private CommandLocator locator;
+    private Injector injector;
 
     private final StagingArea transactionIndex;
 
@@ -53,16 +59,14 @@ public class GeogitTransaction implements CommandLocator {
      * @param locator the non transactional command locator
      * @param transactionId the id of the transaction
      */
-    public GeogitTransaction(CommandLocator locator, Repository repository, UUID transactionId) {
+    public GeogitTransaction(Injector locator, UUID transactionId) {
         Preconditions.checkArgument(!(locator instanceof GeogitTransaction));
-        this.locator = locator;
+        this.injector = locator;
         this.transactionId = transactionId;
 
-        transactionIndex = new TransactionStagingArea(new Index(
-                repository.getIndex().getDatabase(), this), transactionId);
-        transactionWorkTree = new WorkingTree(repository.getIndex().getDatabase(), this);
-        transactionRefDatabase = new TransactionRefDatabase(repository.getRefDatabase(),
-                transactionId);
+        transactionIndex = new TransactionStagingArea(new Index(this), transactionId);
+        transactionWorkTree = new WorkingTree(this);
+        transactionRefDatabase = new TransactionRefDatabase(locator.refDatabase(), transactionId);
     }
 
     public void create() {
@@ -93,17 +97,17 @@ public class GeogitTransaction implements CommandLocator {
     }
 
     @Override
-    public WorkingTree getWorkingTree() {
+    public WorkingTree workingTree() {
         return transactionWorkTree;
     }
 
     @Override
-    public StagingArea getIndex() {
+    public StagingArea index() {
         return transactionIndex;
     }
 
     @Override
-    public RefDatabase getRefDatabase() {
+    public RefDatabase refDatabase() {
         return transactionRefDatabase;
     }
 
@@ -115,8 +119,8 @@ public class GeogitTransaction implements CommandLocator {
      */
     @Override
     public <T extends AbstractGeoGitOp<?>> T command(Class<T> commandClass) {
-        T instance = locator.command(commandClass);
-        instance.setCommandLocator(this);
+        T instance = injector.command(commandClass);
+        instance.setInjector(this);
         return instance;
     }
 
@@ -127,22 +131,56 @@ public class GeogitTransaction implements CommandLocator {
     }
 
     public void commit() throws ConflictsException {
-        locator.command(TransactionEnd.class).setAuthor(authorName.orNull(), authorEmail.orNull())
+        injector.command(TransactionEnd.class).setAuthor(authorName.orNull(), authorEmail.orNull())
                 .setTransaction(this).setCancel(false).setRebase(true).call();
     }
 
     public void commitSyncTransaction() throws ConflictsException {
-        locator.command(TransactionEnd.class).setAuthor(authorName.orNull(), authorEmail.orNull())
+        injector.command(TransactionEnd.class).setAuthor(authorName.orNull(), authorEmail.orNull())
                 .setTransaction(this).setCancel(false).call();
     }
 
     public void abort() {
-        locator.command(TransactionEnd.class).setTransaction(this).setCancel(true).call();
+        injector.command(TransactionEnd.class).setTransaction(this).setCancel(true).call();
     }
 
     @Override
-    public Platform getPlatform() {
-        return locator.getPlatform();
+    public Platform platform() {
+        return injector.platform();
     }
 
+    @Override
+    public ObjectDatabase objectDatabase() {
+        return injector.objectDatabase();
+    }
+
+    @Override
+    public StagingDatabase stagingDatabase() {
+        return injector.stagingDatabase();
+    }
+
+    @Override
+    public ConfigDatabase configDatabase() {
+        return injector.configDatabase();
+    }
+
+    @Override
+    public GraphDatabase graphDatabase() {
+        return injector.graphDatabase();
+    }
+
+    @Override
+    public Repository repository() {
+        return injector.repository();
+    }
+
+    @Override
+    public DeduplicationService deduplicationService() {
+        return injector.deduplicationService();
+    }
+
+    @Override
+    public PluginDefaults pluginDefaults() {
+        return injector.pluginDefaults();
+    }
 }

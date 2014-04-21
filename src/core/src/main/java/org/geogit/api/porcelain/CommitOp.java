@@ -17,7 +17,6 @@ import javax.annotation.Nullable;
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.CommitBuilder;
 import org.geogit.api.ObjectId;
-import org.geogit.api.Platform;
 import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevPerson;
@@ -37,7 +36,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 /**
  * Commits the staged changed in the index to the repository, creating a new commit pointing to the
@@ -51,10 +49,6 @@ import com.google.inject.Inject;
  * 
  */
 public class CommitOp extends AbstractGeoGitOp<RevCommit> {
-
-    private final ObjectDatabase objectDb;
-
-    private final Platform platform;
 
     private Optional<String> authorName;
 
@@ -86,17 +80,6 @@ public class CommitOp extends AbstractGeoGitOp<RevCommit> {
     private boolean amend;
 
     private final List<String> pathFilters = Lists.newLinkedList();
-
-    /**
-     * Constructs a new {@code CommitOp} with the given parameters.
-     * 
-     * @param platform the current platform
-     */
-    @Inject
-    public CommitOp(final ObjectDatabase objectDb, final Platform platform) {
-        this.objectDb = objectDb;
-        this.platform = platform;
-    }
 
     /**
      * If set, ignores other information for creating a commit and uses the passed one.
@@ -361,6 +344,7 @@ public class CommitOp extends AbstractGeoGitOp<RevCommit> {
         if (getProgressListener().isCanceled()) {
             return null;
         }
+        final ObjectDatabase objectDb = objectDatabase();
         objectDb.put(commit);
         // set the HEAD pointing to the new commit
         final Optional<Ref> branchHead = command(UpdateRef.class).setName(currentBranch)
@@ -415,7 +399,7 @@ public class CommitOp extends AbstractGeoGitOp<RevCommit> {
      */
     public long getCommitterTimeStamp() {
         if (committerTimeStamp == null) {
-            committerTimeStamp = platform.currentTimeMillis();
+            committerTimeStamp = platform().currentTimeMillis();
         }
         return committerTimeStamp.longValue();
     }
@@ -425,7 +409,7 @@ public class CommitOp extends AbstractGeoGitOp<RevCommit> {
      */
     public int getCommitterTimeZoneOffset() {
         if (committerTimeZoneOffset == null) {
-            committerTimeZoneOffset = platform.timeZoneOffset(getCommitterTimeStamp());
+            committerTimeZoneOffset = platform().timeZoneOffset(getCommitterTimeStamp());
         }
         return committerTimeZoneOffset.intValue();
     }

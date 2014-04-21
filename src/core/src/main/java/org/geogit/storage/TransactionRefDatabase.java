@@ -12,8 +12,8 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
-import org.geogit.api.CommandLocator;
 import org.geogit.api.GeogitTransaction;
+import org.geogit.api.Injector;
 import org.geogit.api.Ref;
 import org.geogit.api.plumbing.TransactionBegin;
 import org.geogit.api.plumbing.TransactionEnd;
@@ -31,7 +31,7 @@ import com.google.common.collect.Maps;
  * namespace.
  * <p>
  * This is so that every command created through the {@link GeogitTransaction transaction} used as a
- * {@link CommandLocator}, as well as the transaction specific {@link Index} and {@link WorkingTree}
+ * {@link Injector}, as well as the transaction specific {@link Index} and {@link WorkingTree}
  * , are given this instance of {@code RefDatabase} and can do its work without ever noticing its
  * "running inside a transaction". For the command nothing changes.
  * <p>

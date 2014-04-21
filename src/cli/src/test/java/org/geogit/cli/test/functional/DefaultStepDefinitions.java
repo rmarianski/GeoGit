@@ -438,7 +438,7 @@ public class DefaultStepDefinitions {
     public void I_have_unstaged_an_empty_feature_type() throws Throwable {
         insert(points1);
         GeoGIT geogit = geogitCLI.newGeoGIT();
-        final WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        final WorkingTree workTree = geogit.getRepository().workingTree();
         workTree.delete(pointsName, idP1);
         geogit.close();
     }

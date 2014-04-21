@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Iterators;
-import com.google.inject.Inject;
 
 /**
  * 
@@ -45,21 +44,9 @@ public class ResetOp extends AbstractGeoGitOp<Boolean> {
 
     private Supplier<ObjectId> commit;
 
-    private Repository repository;
-
     private ResetMode mode = ResetMode.NONE;
 
     private Set<String> patterns = new HashSet<String>();
-
-    /**
-     * Constructs a new {@code ResetOp} using the specified parameters.
-     * 
-     * @param repository the repository to use
-     */
-    @Inject
-    public ResetOp(Repository repository) {
-        this.repository = repository;
-    }
 
     /**
      * Sets the reset mode.
@@ -119,12 +106,13 @@ public class ResetOp extends AbstractGeoGitOp<Boolean> {
         Preconditions.checkState(!ObjectId.NULL.equals(commit.get()),
                 "Commit could not be resolved.");
 
+        Repository repository = repository();
         RevCommit oldCommit = repository.getCommit(commit.get());
 
         if (patterns.size() > 0) {
             for (String pattern : patterns) {
                 DiffTree diffOp = command(DiffTree.class)
-                        .setOldTree(repository.getIndex().getTree().getId())
+                        .setOldTree(repository.index().getTree().getId())
                         .setNewTree(oldCommit.getTreeId()).setFilterPath(pattern);
 
                 Iterator<DiffEntry> diff = diffOp.call();
@@ -134,9 +122,9 @@ public class ResetOp extends AbstractGeoGitOp<Boolean> {
                     // We are reseting to the current version, so there is nothing to do. However,
                     // if we are in a conflict state, the conflict should be removed and calling
                     // stage() will not do it, so we do it here
-                    repository.getIndex().getDatabase().removeConflict(null, pattern);
+                    repository.stagingDatabase().removeConflict(null, pattern);
                 } else {
-                    repository.getIndex().stage(subProgress((1.f / patterns.size()) * 100.f), diff,
+                    repository.index().stage(subProgress((1.f / patterns.size()) * 100.f), diff,
                             numChanges);
                 }
             }
@@ -147,15 +135,15 @@ public class ResetOp extends AbstractGeoGitOp<Boolean> {
             switch (mode) {
             case HARD:
                 // Update the index and the working tree to the target tree
-                getIndex().updateStageHead(oldCommit.getTreeId());
-                getWorkTree().updateWorkHead(oldCommit.getTreeId());
+                index().updateStageHead(oldCommit.getTreeId());
+                workingTree().updateWorkHead(oldCommit.getTreeId());
                 break;
             case SOFT:
                 // Do not update index or working tree to the target tree
                 break;
             case MIXED:
                 // Only update the index to the target tree
-                getIndex().updateStageHead(oldCommit.getTreeId());
+                index().updateStageHead(oldCommit.getTreeId());
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported reset mode.");

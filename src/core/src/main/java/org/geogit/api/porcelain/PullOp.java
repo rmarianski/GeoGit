@@ -22,7 +22,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.inject.Inject;
 
 /**
  * Incorporates changes from a remote repository into the current branch.
@@ -45,13 +44,6 @@ public class PullOp extends AbstractGeoGitOp<PullResult> {
     private Optional<String> authorName = Optional.absent();
 
     private Optional<String> authorEmail = Optional.absent();
-
-    /**
-     * Constructs a new {@code PullOp}.
-     */
-    @Inject
-    public PullOp() {
-    }
 
     /**
      * @param all if {@code true}, pull from all remotes.
@@ -202,7 +194,8 @@ public class PullOp extends AbstractGeoGitOp<PullResult> {
 
             Optional<Ref> destRef = command(RefParse.class).setName(destinationref).call();
             if (destRef.isPresent()) {
-                if (destRef.get().getObjectId().equals(sourceRef.get().getObjectId()) || sourceRef.get().getObjectId().equals(ObjectId.NULL)) {
+                if (destRef.get().getObjectId().equals(sourceRef.get().getObjectId())
+                        || sourceRef.get().getObjectId().equals(ObjectId.NULL)) {
                     // Already up to date.
                     result.setOldRef(destRef.get());
                     result.setNewRef(destRef.get());

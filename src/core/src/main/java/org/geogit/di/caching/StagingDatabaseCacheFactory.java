@@ -6,10 +6,12 @@ package org.geogit.di.caching;
 
 import org.geogit.storage.ConfigDatabase;
 
+import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 class StagingDatabaseCacheFactory extends CacheFactory {
 
+    @Inject
     public StagingDatabaseCacheFactory(Provider<ConfigDatabase> configDb) {
         super("stagingdb.cache", configDb);
     }

@@ -32,6 +32,7 @@ import org.geogit.api.DefaultPlatform;
 import org.geogit.api.DefaultProgressListener;
 import org.geogit.api.GeoGIT;
 import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.Injector;
 import org.geogit.api.Platform;
 import org.geogit.api.ProgressListener;
 import org.geogit.api.plumbing.ResolveGeogitDir;
@@ -68,7 +69,6 @@ import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.google.inject.Binding;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
 
@@ -91,7 +91,7 @@ public class GeogitCLI {
 
     private File geogitDirLoggingConfiguration;
 
-    private Injector commandsInjector;
+    private com.google.inject.Injector commandsInjector;
 
     private Injector geogitInjector;
 

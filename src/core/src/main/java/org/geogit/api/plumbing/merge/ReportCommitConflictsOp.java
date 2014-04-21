@@ -32,7 +32,6 @@ import org.opengis.feature.type.PropertyDescriptor;
 import com.google.common.base.Optional;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
 
 /**
  * Reports conflicts between changes introduced by a given commit and the last commit of the current
@@ -43,13 +42,6 @@ import com.google.inject.Inject;
 public class ReportCommitConflictsOp extends AbstractGeoGitOp<MergeScenarioReport> {
 
     private RevCommit commit;
-
-    private Repository repository;
-
-    @Inject
-    public ReportCommitConflictsOp(Repository repository) {
-        this.repository = repository;
-    }
 
     /**
      * @param commit the commit with the changes to apply {@link RevCommit}
@@ -69,6 +61,7 @@ public class ReportCommitConflictsOp extends AbstractGeoGitOp<MergeScenarioRepor
             parentCommitId = commit.getParentIds().get(0);
         }
         ObjectId parentTreeId = ObjectId.NULL;
+        Repository repository = repository();
         if (repository.commitExists(parentCommitId)) {
             parentTreeId = repository.getCommit(parentCommitId).getTreeId();
         }
@@ -132,9 +125,9 @@ public class ReportCommitConflictsOp extends AbstractGeoGitOp<MergeScenarioRepor
                         break;
                     }
                     RevFeature feature = (RevFeature) obj.get();
-                    DepthSearch depthSearch = new DepthSearch(repository.getObjectDatabase());
+                    DepthSearch depthSearch = new DepthSearch(repository.objectDatabase());
                     Optional<NodeRef> noderef = depthSearch
-                            .find(this.getWorkTree().getTree(), path);
+                            .find(this.workingTree().getTree(), path);
                     RevFeatureType featureType = command(RevObjectParse.class)
                             .setObjectId(noderef.get().getMetadataId()).call(RevFeatureType.class)
                             .get();

@@ -12,8 +12,8 @@ import org.geogit.api.porcelain.ConfigException.StatusCode;
 import org.geogit.di.CanRunDuringConflict;
 import org.geogit.storage.ConfigDatabase;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
-import com.google.inject.Inject;
 
 /**
  * Get and set repository or global options
@@ -52,16 +52,20 @@ public class ConfigOp extends AbstractGeoGitOp<Optional<Map<String, String>>> {
 
     private String value;
 
-    final private ConfigDatabase config;
+    private ConfigDatabase configDbOverride;
 
-    /**
-     * Constructs a new {@code ConfigOp} with the given {@link ConfigDatabase}.
-     * 
-     * @param config where to store the options
-     */
-    @Inject
-    public ConfigOp(ConfigDatabase config) {
-        this.config = config;
+    public ConfigOp() {
+        //
+    }
+
+    @VisibleForTesting
+    public ConfigOp(ConfigDatabase configDb) {
+        this.configDbOverride = configDb;
+    }
+
+    @Override
+    protected ConfigDatabase configDatabase() {
+        return configDbOverride == null ? super.configDatabase() : configDbOverride;
     }
 
     /**
@@ -74,6 +78,7 @@ public class ConfigOp extends AbstractGeoGitOp<Optional<Map<String, String>>> {
      */
     @Override
     public Optional<Map<String, String>> call() {
+        final ConfigDatabase config = configDatabase();
         switch (action) {
         case CONFIG_GET: {
             if (name == null || name.isEmpty())

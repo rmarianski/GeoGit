@@ -18,7 +18,7 @@ public class RefDatabaseTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        refDb = repo.getRefDatabase();
+        refDb = repo.refDatabase();
     }
 
     @Test

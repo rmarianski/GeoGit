@@ -22,7 +22,6 @@ import org.opengis.feature.type.PropertyDescriptor;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
@@ -41,14 +40,6 @@ public class MergeFeaturesOp extends AbstractGeoGitOp<Feature> {
     private NodeRef nodeRefA;
 
     private NodeRef ancestorRef;
-
-    /**
-     * Constructs a new {@code MergeFeaturesOp}
-     * 
-     */
-    @Inject
-    public MergeFeaturesOp() {
-    }
 
     @Override
     public Feature call() {

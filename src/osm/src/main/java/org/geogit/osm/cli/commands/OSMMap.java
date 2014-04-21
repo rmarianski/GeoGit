@@ -52,8 +52,8 @@ public class OSMMap extends AbstractCommand implements CLICommand {
             throw new CommandFailedException();
         }
 
-        checkState(cli.getGeogit().getRepository().getIndex().isClean()
-                && cli.getGeogit().getRepository().getWorkingTree().isClean(),
+        checkState(cli.getGeogit().getRepository().index().isClean()
+                && cli.getGeogit().getRepository().workingTree().isClean(),
                 "Working tree and index are not clean");
 
         String mappingFilepath = args.get(0);
@@ -62,7 +62,7 @@ public class OSMMap extends AbstractCommand implements CLICommand {
 
         geogit = cli.getGeogit();
 
-        ObjectId oldTreeId = geogit.getRepository().getWorkingTree().getTree().getId();
+        ObjectId oldTreeId = geogit.getRepository().workingTree().getTree().getId();
 
         message = message == null ? "Applied mapping " + new File(mappingFilepath).getName()
                 : message;

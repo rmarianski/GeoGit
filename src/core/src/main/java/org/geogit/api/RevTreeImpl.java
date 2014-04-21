@@ -8,7 +8,6 @@ package org.geogit.api;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeSet;
 
 import org.geogit.storage.NodeStorageOrder;
 import org.geogit.storage.ObjectDatabase;
@@ -18,7 +17,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Sets;
 
 /**
  *

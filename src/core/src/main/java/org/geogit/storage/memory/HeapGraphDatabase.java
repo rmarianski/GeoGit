@@ -20,6 +20,7 @@ import org.geogit.storage.GraphDatabase;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -92,7 +93,6 @@ public class HeapGraphDatabase implements GraphDatabase {
             return;
         }
         graph = null;
-
         Optional<URL> url = new ResolveGeogitDir(platform).call();
         if (url.isPresent()) {
             synchronized (graphs) {
@@ -156,7 +156,8 @@ public class HeapGraphDatabase implements GraphDatabase {
             }
 
             // only mark as updated if it is actually attached
-            return !Iterables.isEmpty(n.to());
+            boolean added = !Iterables.isEmpty(n.to());
+            return added;
         }
         return false;
     }
@@ -173,7 +174,12 @@ public class HeapGraphDatabase implements GraphDatabase {
 
     @Override
     public int getDepth(ObjectId commitId) {
-        PathToRootWalker walker = new PathToRootWalker(graph.get(commitId).get());
+        Preconditions.checkNotNull(commitId);
+        Optional<Node> nodeOpt = graph.get(commitId);
+        Preconditions.checkArgument(nodeOpt.isPresent(), "No graph entry for commit %s on %s",
+                commitId, this.toString());
+        Node node = nodeOpt.get();
+        PathToRootWalker walker = new PathToRootWalker(node);
         int depth = 0;
         O: while (walker.hasNext()) {
             for (Node n : walker.next()) {

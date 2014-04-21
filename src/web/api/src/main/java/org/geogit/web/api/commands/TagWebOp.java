@@ -6,7 +6,7 @@ package org.geogit.web.api.commands;
 
 import java.util.List;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.RevTag;
 import org.geogit.api.porcelain.TagListOp;
 import org.geogit.web.api.AbstractWebAPICommand;
@@ -41,7 +41,7 @@ public class TagWebOp extends AbstractWebAPICommand {
     @Override
     public void run(CommandContext context) {
         if (list) {
-            final CommandLocator geogit = this.getCommandLocator(context);
+            final Injector geogit = this.getCommandLocator(context);
             final List<RevTag> tags = geogit.command(TagListOp.class).call();
 
             context.setResponseContent(new CommandResponse() {

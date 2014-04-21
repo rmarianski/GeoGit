@@ -153,7 +153,7 @@ class HttpUtils {
                 ObjectReader reader = new ObjectReader();
                 RevObject revObject = reader.read(objectId, is);
                 if (localRepository != null) {
-                    localRepository.getObjectDatabase().put(revObject);
+                    localRepository.objectDatabase().put(revObject);
                 }
                 object = Optional.of(revObject);
             } finally {

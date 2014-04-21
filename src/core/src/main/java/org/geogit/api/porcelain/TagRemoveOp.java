@@ -15,7 +15,6 @@ import org.geogit.api.plumbing.UpdateRef;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 
 /**
  * Removes a tag
@@ -24,14 +23,6 @@ import com.google.inject.Inject;
 public class TagRemoveOp extends AbstractGeoGitOp<RevTag> {
 
     private String name;
-
-    /**
-     * Constructs a new {@code TagRemoveOp}
-     */
-    @Inject
-    public TagRemoveOp() {
-
-    }
 
     /**
      * Executes the tag removal operation.

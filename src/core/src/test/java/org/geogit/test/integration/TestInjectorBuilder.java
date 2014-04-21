@@ -4,6 +4,7 @@
  */
 package org.geogit.test.integration;
 
+import org.geogit.api.Injector;
 import org.geogit.api.InjectorBuilder;
 import org.geogit.api.MemoryModule;
 import org.geogit.api.Platform;
@@ -11,7 +12,6 @@ import org.geogit.di.GeogitModule;
 import org.geogit.repository.Hints;
 
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 public class TestInjectorBuilder extends InjectorBuilder {
@@ -24,8 +24,9 @@ public class TestInjectorBuilder extends InjectorBuilder {
 
     @Override
     public Injector build(Hints hints) {
-        return Guice.createInjector(Modules.override(new GeogitModule()).with(
-                new MemoryModule(platform), new HintsModule(hints)));
+        return Guice.createInjector(
+                Modules.override(new GeogitModule()).with(new MemoryModule(platform),
+                        new HintsModule(hints))).getInstance(Injector.class);
     }
 
 }

@@ -9,7 +9,7 @@ import java.net.URL;
 import java.util.Map;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -27,18 +27,21 @@ import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.api.plumbing.RevParse;
 import org.geogit.api.porcelain.ConfigOp;
 import org.geogit.api.porcelain.ConfigOp.ConfigAction;
+import org.geogit.di.PluginDefaults;
+import org.geogit.di.Singleton;
 import org.geogit.storage.ConfigDatabase;
+import org.geogit.storage.DeduplicationService;
 import org.geogit.storage.GraphDatabase;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.ObjectInserter;
 import org.geogit.storage.RefDatabase;
+import org.geogit.storage.StagingDatabase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * A repository is a collection of commits, each of which is an archive of what the project's
@@ -51,55 +54,37 @@ import com.google.inject.Injector;
  * 
  * @see WorkingTree
  */
-public class Repository implements CommandLocator {
-
+@Singleton
+public class Repository implements Injector {
     private static Logger LOGGER = LoggerFactory.getLogger(Repository.class);
 
-    @Inject
-    private StagingArea index;
-
-    @Inject
-    private WorkingTree workingTree;
-
-    @Inject
     private Injector injector;
-
-    @Inject
-    private ConfigDatabase configDatabase;
-
-    @Inject
-    private RefDatabase refDatabase;
-
-    @Inject
-    private ObjectDatabase objectDatabase;
-
-    @Inject
-    private GraphDatabase graphDatabase;
 
     private URL repositoryLocation;
 
     public static final String DEPTH_CONFIG_KEY = "core.depth";
 
-    Repository() {
-        //
+    @Inject
+    public Repository(Injector injector) {
+        this.injector = injector;
     }
 
     public void configure() throws RepositoryConnectionException {
-        refDatabase.configure();
-        objectDatabase.configure();
-        graphDatabase.configure();
-        index.getDatabase().configure();
+        injector.refDatabase().configure();
+        injector.objectDatabase().configure();
+        injector.graphDatabase().configure();
+        injector.stagingDatabase().configure();
     }
 
     public void open() throws RepositoryConnectionException {
-        refDatabase.checkConfig();
-        objectDatabase.checkConfig();
-        graphDatabase.checkConfig();
-        index.getDatabase().checkConfig();
-        refDatabase.create();
-        objectDatabase.open();
-        graphDatabase.open();
-        index.getDatabase().open();
+        injector.refDatabase().checkConfig();
+        injector.objectDatabase().checkConfig();
+        injector.graphDatabase().checkConfig();
+        injector.stagingDatabase().checkConfig();
+        injector.refDatabase().create();
+        injector.objectDatabase().open();
+        injector.graphDatabase().open();
+        injector.stagingDatabase().open();
         Optional<URL> repoUrl = command(ResolveGeogitDir.class).call();
         Preconditions.checkState(repoUrl.isPresent(), "Repository URL can't be located");
         this.repositoryLocation = repoUrl.get();
@@ -109,10 +94,10 @@ public class Repository implements CommandLocator {
      * Closes the repository.
      */
     public synchronized void close() {
-        close(refDatabase);
-        close(objectDatabase);
-        close(graphDatabase);
-        close(index.getDatabase());
+        close(injector.refDatabase());
+        close(injector.objectDatabase());
+        close(injector.graphDatabase());
+        close(injector.stagingDatabase());
     }
 
     private void close(Closeable db) {
@@ -128,58 +113,13 @@ public class Repository implements CommandLocator {
     }
 
     /**
-     * @return the {@link ConfigDatabase} for this repository
-     */
-    public ConfigDatabase getConfigDatabase() {
-        return configDatabase;
-    }
-
-    /**
-     * @return the {@link RefDatabase} for this repository
-     */
-    @Override
-    public RefDatabase getRefDatabase() {
-        return refDatabase;
-    }
-
-    /**
-     * @return the {@link ObjectDatabase} for this repository
-     */
-    public ObjectDatabase getObjectDatabase() {
-        return objectDatabase;
-    }
-
-    /**
-     * @return the {@link GraphDatabase} for this repository
-     */
-    public GraphDatabase getGraphDatabase() {
-        return graphDatabase;
-    }
-
-    /**
-     * @return the {@link StagingArea} for this repository
-     */
-    @Override
-    public StagingArea getIndex() {
-        return index;
-    }
-
-    /**
      * Finds and returns an instance of a command of the specified class.
      * 
      * @param commandClass the kind of command to locate and instantiate
      * @return a new instance of the requested command class, with its dependencies resolved
      */
     public <T extends AbstractGeoGitOp<?>> T command(Class<T> commandClass) {
-        return injector.getInstance(commandClass);
-    }
-
-    /**
-     * @return the {@link WorkingTree} for this repository
-     */
-    @Override
-    public WorkingTree getWorkingTree() {
-        return workingTree;
+        return injector.command(commandClass);
     }
 
     /**
@@ -189,7 +129,7 @@ public class Repository implements CommandLocator {
      * @return true if the blob exists with the parameter ID, false otherwise
      */
     public boolean blobExists(final ObjectId id) {
-        return getObjectDatabase().exists(id);
+        return objectDatabase().exists(id);
     }
 
     /**
@@ -217,7 +157,7 @@ public class Repository implements CommandLocator {
      */
     public boolean commitExists(final ObjectId id) {
         try {
-            RevObject revObject = getObjectDatabase().get(id);
+            RevObject revObject = objectDatabase().get(id);
             return revObject instanceof RevCommit;
         } catch (IllegalArgumentException e) {
             return false;
@@ -231,7 +171,7 @@ public class Repository implements CommandLocator {
      * @return the {@code RevCommit}
      */
     public RevCommit getCommit(final ObjectId commitId) {
-        RevCommit commit = getObjectDatabase().getCommit(commitId);
+        RevCommit commit = objectDatabase().getCommit(commitId);
 
         return commit;
     }
@@ -244,7 +184,7 @@ public class Repository implements CommandLocator {
      */
     public boolean treeExists(final ObjectId id) {
         try {
-            getObjectDatabase().getTree(id);
+            objectDatabase().getTree(id);
         } catch (IllegalArgumentException e) {
             return false;
         }
@@ -271,7 +211,7 @@ public class Repository implements CommandLocator {
      * @return an {@link ObjectInserter} to insert objects into the object database
      */
     public ObjectInserter newObjectInserter() {
-        return getObjectDatabase().newObjectInserter();
+        return objectDatabase().newObjectInserter();
     }
 
     /**
@@ -280,7 +220,7 @@ public class Repository implements CommandLocator {
      */
     public RevFeature getFeature(final ObjectId contentId) {
 
-        RevFeature revFeature = getObjectDatabase().getFeature(contentId);
+        RevFeature revFeature = objectDatabase().getFeature(contentId);
 
         return revFeature;
     }
@@ -369,7 +309,59 @@ public class Repository implements CommandLocator {
     }
 
     @Override
-    public Platform getPlatform() {
-        return injector.getInstance(Platform.class);
+    public WorkingTree workingTree() {
+        return injector.workingTree();
     }
+
+    @Override
+    public StagingArea index() {
+        return injector.index();
+    }
+
+    @Override
+    public RefDatabase refDatabase() {
+        return injector.refDatabase();
+    }
+
+    @Override
+    public Platform platform() {
+        return injector.platform();
+    }
+
+    @Override
+    public ObjectDatabase objectDatabase() {
+        return injector.objectDatabase();
+    }
+
+    @Override
+    public StagingDatabase stagingDatabase() {
+        return injector.stagingDatabase();
+    }
+
+    @Override
+    public ConfigDatabase configDatabase() {
+        return injector.configDatabase();
+    }
+
+    @Override
+    public GraphDatabase graphDatabase() {
+        return injector.graphDatabase();
+    }
+
+    @Deprecated
+    @Override
+    public Repository repository() {
+        return this;
+    }
+
+    @Override
+    public DeduplicationService deduplicationService() {
+        return injector.deduplicationService();
+    }
+
+    @Override
+    public PluginDefaults pluginDefaults() {
+        return injector.pluginDefaults();
+    }
+
 }

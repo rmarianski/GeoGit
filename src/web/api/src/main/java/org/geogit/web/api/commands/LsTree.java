@@ -7,7 +7,7 @@ package org.geogit.web.api.commands;
 import java.util.Iterator;
 import java.util.List;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.NodeRef;
 import org.geogit.api.plumbing.LsTreeOp;
 import org.geogit.web.api.AbstractWebAPICommand;
@@ -103,7 +103,7 @@ public class LsTree extends AbstractWebAPICommand {
             }
         }
 
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
 
         final Iterator<NodeRef> iter = geogit.command(LsTreeOp.class).setReference(ref)
                 .setStrategy(lsStrategy).call();

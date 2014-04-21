@@ -462,7 +462,7 @@ public class DiffOpTest extends RepositoryTestCase {
     @Test
     public void testReportTreesEmptyTree() throws Exception {
 
-        WorkingTree workingTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workingTree = geogit.getRepository().workingTree();
         workingTree.createTypeTree(linesName, linesType);
 
         List<DiffEntry> difflist = toList(diffOp.setReportTrees(true).setOldVersion(ObjectId.NULL)
@@ -492,7 +492,7 @@ public class DiffOpTest extends RepositoryTestCase {
                 "LINESTRING (1 1, 2 2)");
         delete(lines1);
         // insert(lines2);
-        WorkingTree workTree = repo.getWorkingTree();
+        WorkingTree workTree = repo.workingTree();
         Name name = lines1.getType().getName();
         String parentPath = name.getLocalPart();
         Node ref = workTree.insert(parentPath, lines1B);
@@ -562,7 +562,7 @@ public class DiffOpTest extends RepositoryTestCase {
     public void testChangedFeatureType() throws Exception {
 
         insertAndAdd(points1, points2);
-        geogit.getRepository().getWorkingTree().updateTypeTree(pointsName, modifiedPointsType);
+        geogit.getRepository().workingTree().updateTypeTree(pointsName, modifiedPointsType);
         List<DiffEntry> difflist = toList(diffOp.setReportTrees(true).call());
 
         assertNotNull(difflist);

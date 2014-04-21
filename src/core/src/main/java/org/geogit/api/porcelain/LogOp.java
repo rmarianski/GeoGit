@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -37,7 +36,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 /**
  * Operation to query the commits logs.
@@ -72,8 +70,6 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
 
     private Set<String> paths;
 
-    private Repository repository;
-
     private Pattern author;
 
     private Pattern commiter;
@@ -82,19 +78,9 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
 
     private boolean firstParent;
 
-    private GraphDatabase graphDb;
-
     private List<ObjectId> commits = Lists.newArrayList();
 
-    /**
-     * Constructs a new {@code LogOp} with the given {@link Repository}.
-     * 
-     * @param repository the repository to log commits from
-     */
-    @Inject
-    public LogOp(final Repository repository, GraphDatabase graphDb) {
-        this.repository = repository;
-        this.graphDb = graphDb;
+    public LogOp() {
         timeRange = ALWAYS;
     }
 
@@ -248,7 +234,7 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
             if (this.until == null) {
                 newestCommitId = command(RevParse.class).setRefSpec(Ref.HEAD).call().get();
             } else {
-                if (!repository.commitExists(this.until)) {
+                if (!repository().commitExists(this.until)) {
                     throw new IllegalArgumentException(
                             "Provided 'until' commit id does not exist: " + until.toString());
                 }
@@ -257,7 +243,7 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
             if (this.since == null) {
                 oldestCommitId = ObjectId.NULL;
             } else {
-                if (!repository.commitExists(this.since)) {
+                if (!repository().commitExists(this.since)) {
                     throw new IllegalArgumentException(
                             "Provided 'since' commit id does not exist: " + since.toString());
                 }
@@ -267,15 +253,15 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
 
         Iterator<RevCommit> history;
         if (firstParent) {
-            history = new LinearHistoryIterator(newestCommitId, repository);
+            history = new LinearHistoryIterator(newestCommitId, repository());
         } else {
             if (commits.isEmpty()) {
                 commits.add(newestCommitId);
             }
             if (topo) {
-                history = new TopologicalHistoryIterator(commits, repository, graphDb);
+                history = new TopologicalHistoryIterator(commits, repository(), graphDatabase());
             } else {
-                history = new ChronologicalHistoryIterator(commits, repository);
+                history = new ChronologicalHistoryIterator(commits, repository());
             }
         }
         LogFilter filter = new LogFilter(oldestCommitId, timeRange, paths, author, commiter);
@@ -569,6 +555,7 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
                 applies = false;
                 // did this commit touch any of the paths?
                 ObjectId parentId = commit.parentN(0).or(ObjectId.NULL);
+                final Repository repository = repository();
                 if (parentId.equals(ObjectId.NULL) || !repository.commitExists(parentId)) {
                     // we have reached the bottom of a shallow clone or the end of history.
                     for (String path : paths.keySet()) {
@@ -584,8 +571,8 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
                         }
                     }
                 } else {
-                    RevTree parentTree = repository.getTree(repository.getCommit(parentId)
-                            .getTreeId());
+                    RevTree parentTree = repository.getTree(
+                            repository.getCommit(parentId).getTreeId());
                     ObjectId hash = ObjectId.NULL;
                     ObjectId compare = null;
                     for (String path : paths.keySet()) {

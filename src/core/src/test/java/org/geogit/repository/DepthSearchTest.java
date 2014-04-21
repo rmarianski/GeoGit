@@ -12,11 +12,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.geogit.api.GeoGIT;
+import org.geogit.api.Injector;
 import org.geogit.api.MemoryModule;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
@@ -31,7 +34,6 @@ import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.api.plumbing.WriteBack;
 import org.geogit.di.GeogitModule;
 import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.StagingDatabase;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +41,6 @@ import org.junit.rules.TemporaryFolder;
 
 import com.google.common.base.Optional;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 /**
@@ -65,11 +66,11 @@ public class DepthSearchTest {
         File envHome = tempFolder.getRoot();
         Platform testPlatform = new TestPlatform(envHome);
         Injector injector = Guice.createInjector(Modules.override(new GeogitModule()).with(
-                new MemoryModule(testPlatform)));
+                new MemoryModule(testPlatform))).getInstance(Injector.class);
 
         fakeGeogit = new GeoGIT(injector);
         Repository fakeRepo = fakeGeogit.getOrCreateRepository();
-        odb = fakeRepo.getObjectDatabase();
+        odb = fakeRepo.objectDatabase();
         search = new DepthSearch(odb);
 
         RevTreeBuilder root = new RevTreeBuilder(odb);
@@ -84,8 +85,12 @@ public class DepthSearchTest {
     private RevTreeBuilder addTree(RevTreeBuilder root, final String treePath,
             String... singleNodeNames) {
 
-        RevTreeBuilder subTreeBuilder = new CreateTree(odb, (StagingDatabase) null).setIndex(false)
-                .call();
+        Injector mockInjector = mock(Injector.class);
+        when(mockInjector.objectDatabase()).thenReturn(odb);
+        CreateTree op = new CreateTree().setIndex(false);
+        op.setInjector(mockInjector);
+        RevTreeBuilder subTreeBuilder =op.call();
+        
         if (singleNodeNames != null) {
             for (String singleNodeName : singleNodeNames) {
                 String nodePath = NodeRef.appendChild(treePath, singleNodeName);

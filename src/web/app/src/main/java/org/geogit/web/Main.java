@@ -12,6 +12,7 @@ import java.util.Map;
 import org.geogit.api.DefaultPlatform;
 import org.geogit.api.GeoGIT;
 import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.Injector;
 import org.geogit.api.InjectorBuilder;
 import org.geogit.api.Platform;
 import org.geogit.api.plumbing.ResolveGeogitDir;
@@ -31,7 +32,6 @@ import org.restlet.data.Request;
 import org.restlet.data.Response;
 
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 /**
@@ -132,10 +132,10 @@ public class Main extends Application {
         GlobalInjectorBuilder.builder = new InjectorBuilder() {
             @Override
             public Injector build(Hints hints) {
-                return Guice
-                        .createInjector(Modules.override(new GeogitModule()).with(
-                                new JEStorageModule(), new BlueprintsGraphModule(),
-                                new HintsModule(hints)));
+                return Guice.createInjector(
+                        Modules.override(new GeogitModule()).with(new JEStorageModule(),
+                                new BlueprintsGraphModule(), new HintsModule(hints))).getInstance(
+                        Injector.class);
             }
         };
     }

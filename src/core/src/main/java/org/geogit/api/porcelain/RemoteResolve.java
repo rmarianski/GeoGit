@@ -13,7 +13,6 @@ import org.geogit.storage.ConfigDatabase;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
-import com.google.inject.Inject;
 
 /**
  * Finds a remote
@@ -24,18 +23,6 @@ public class RemoteResolve extends AbstractGeoGitOp<Optional<Remote>> implements
         Supplier<Optional<Remote>> {
 
     private String name;
-
-    final private ConfigDatabase config;
-
-    /**
-     * Constructs a new {@code RemoteResolve} with the given config database.
-     * 
-     * @param config where to store the remote
-     */
-    @Inject
-    public RemoteResolve(ConfigDatabase config) {
-        this.config = config;
-    }
 
     /**
      * @param name the name of the remote
@@ -59,6 +46,7 @@ public class RemoteResolve extends AbstractGeoGitOp<Optional<Remote>> implements
 
         Optional<Remote> result = Optional.absent();
 
+        ConfigDatabase config = configDatabase();
         List<String> allRemotes = config.getAllSubsections("remote");
         if (allRemotes.contains(name)) {
 

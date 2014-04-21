@@ -46,7 +46,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("node").getCount();
         assertTrue(unstaged > 0);
         unstaged = workTree.countUnstaged("way").getCount();
@@ -92,7 +92,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         fb.set("id", 31347480l);
         fb.set("nodes", values.get(3).get());
         SimpleFeature newFeature = fb.buildFeature("31347480");
-        geogit.getRepository().getWorkingTree().insert("residential", newFeature);
+        geogit.getRepository().workingTree().insert("residential", newFeature);
         Optional<RevFeature> mapped = geogit.command(RevObjectParse.class)
                 .setRefSpec("WORK_HEAD:residential/31347480").call(RevFeature.class);
         assertTrue(mapped.isPresent());
@@ -143,7 +143,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways_restriction.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
         unstaged = workTree.countUnstaged("node").getCount();
@@ -178,7 +178,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         assertFalse(revFeature.isPresent());
 
         // delete the original feature
-        geogit.getRepository().getWorkingTree().delete("way/31045880");
+        geogit.getRepository().workingTree().delete("way/31045880");
         Optional<RevFeature> original = geogit.command(RevObjectParse.class)
                 .setRefSpec("WORK_HEAD:way/31045880").call(RevFeature.class);
         assertFalse(original.isPresent());
@@ -239,7 +239,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         fb.set("name", "newname");
         fb.set("id", 507464799l);
         SimpleFeature newFeature = fb.buildFeature("507464799");
-        geogit.getRepository().getWorkingTree().insert("busstops", newFeature);
+        geogit.getRepository().workingTree().insert("busstops", newFeature);
 
         // check that it was correctly inserted in the working tree
         Optional<RevFeature> mapped = geogit.command(RevObjectParse.class)
@@ -306,7 +306,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         assertEquals(507464799l, values.get(0).get());
 
         // Delete a node
-        geogit.getRepository().getWorkingTree().delete("busstops", "507464799");
+        geogit.getRepository().workingTree().delete("busstops", "507464799");
 
         // check that it was correctly deleted in the working tree
         Optional<RevFeature> mapped = geogit.command(RevObjectParse.class)
@@ -359,7 +359,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         // unmap without having made any changes and check that the canonical folders are not
         // modified
         geogit.command(OSMUnmapOp.class).setPath("busstops").call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertEquals(0, unstaged);
         unstaged = workTree.countUnstaged("node").getCount();
@@ -373,7 +373,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         fb.set("name_alias", "newname");
         fb.set("id", 507464799l);
         SimpleFeature newFeature = fb.buildFeature("507464799");
-        geogit.getRepository().getWorkingTree().insert("busstops", newFeature);
+        geogit.getRepository().workingTree().insert("busstops", newFeature);
 
         // check that it was correctly inserted in the working tree
         Optional<RevFeature> mapped = geogit.command(RevObjectParse.class)
@@ -456,7 +456,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
                 "VRS:gemeinde:BONN|VRS:ortsteil:Hoholz|VRS:ref:68566|bus:yes|highway:bus_stop|name:Gielgen|public_transport:platform");
         fb.set("timestamp", 1355097351000l);
         SimpleFeature newFeature = fb.buildFeature("507464799");
-        geogit.getRepository().getWorkingTree().insert("busstops", newFeature);
+        geogit.getRepository().workingTree().insert("busstops", newFeature);
 
         // check that it was correctly inserted in the working tree
         Optional<RevFeature> mapped = geogit.command(RevObjectParse.class)
@@ -474,7 +474,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         // unmap
         geogit.command(OSMUnmapOp.class).setPath("busstops").call();
 
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("node").getCount();
         assertEquals(1, unstaged);
 
@@ -531,7 +531,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
 
         // unmap without having made any changes and check that the canonical folders are not
         // modified
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         geogit.command(OSMUnmapOp.class)/* .setMapping(mapping) */.setPath("residential").call();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertEquals(0, unstaged);
@@ -551,7 +551,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         fb.set("id", 31347480l);
         fb.set("nodes", values.get(3).get());
         SimpleFeature newFeature = fb.buildFeature("31347480");
-        geogit.getRepository().getWorkingTree().insert("residential", newFeature);
+        geogit.getRepository().workingTree().insert("residential", newFeature);
         Optional<RevFeature> mapped = geogit.command(RevObjectParse.class)
                 .setRefSpec("WORK_HEAD:residential/31347480").call(RevFeature.class);
         assertTrue(mapped.isPresent());

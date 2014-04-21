@@ -21,7 +21,6 @@ import org.geogit.storage.GraphDatabase.GraphNode;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 
 /**
  * Finds the common {@link RevCommit commit} ancestor of two commits.
@@ -31,18 +30,6 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
     private ObjectId left;
 
     private ObjectId right;
-
-    private GraphDatabase graphDb;
-
-    /**
-     * Construct a new {@code FindCommonAncestor} using the specified {@link GraphDatabase}.
-     * 
-     * @param repository the repository
-     */
-    @Inject
-    public FindCommonAncestor(GraphDatabase graphDb) {
-        this.graphDb = graphDb;
-    }
 
     /**
      * @param left the left {@link ObjectId}
@@ -116,6 +103,7 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
         Queue<GraphNode> leftQueue = new LinkedList<GraphNode>();
         Queue<GraphNode> rightQueue = new LinkedList<GraphNode>();
 
+        GraphDatabase graphDb = graphDatabase();
         GraphNode leftNode = graphDb.getNode(leftId);
         leftQueue.add(leftNode);
 

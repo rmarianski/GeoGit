@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.GeoGIT;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -215,7 +215,7 @@ public class Log extends AbstractWebAPICommand {
      */
     @Override
     public void run(final CommandContext context) {
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
 
         LogOp op = geogit.command(LogOp.class).setFirstParentOnly(firstParentOnly);
 
@@ -283,7 +283,7 @@ public class Log extends AbstractWebAPICommand {
 
                     // If it's a shallow clone, the commit may not exist
                     if (parent.equals(ObjectId.NULL)
-                            || geogit.getIndex().getDatabase().exists(parent)) {
+                            || geogit.stagingDatabase().exists(parent)) {
                         final Iterator<DiffEntry> diff = geogit.command(DiffOp.class)
                                 .setOldVersion(parent).setNewVersion(input.getId())
                                 .setFilter(pathFilter).call();
@@ -348,7 +348,7 @@ public class Log extends AbstractWebAPICommand {
         String path = paths.get(0);
         // This is the feature type object
         Optional<NodeRef> ref = geogit.command(FindTreeChild.class).setChildPath(path)
-                .setParent(geogit.getRepository().getWorkingTree().getTree()).call();
+                .setParent(geogit.getRepository().workingTree().getTree()).call();
         Optional<RevObject> type = Optional.absent();
         if (ref.isPresent()) {
             type = geogit.command(RevObjectParse.class)

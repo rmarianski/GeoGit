@@ -58,10 +58,10 @@ class LocalCopyingDiffIterator extends AbstractIterator<DiffEntry> {
                 }
 
                 if (!destinationRepo.blobExists(object.getId())) {
-                    destinationRepo.getObjectDatabase().put(object);
+                    destinationRepo.objectDatabase().put(object);
                 }
                 if (metadata != null && !destinationRepo.blobExists(metadata.getId())) {
-                    destinationRepo.getObjectDatabase().put(metadata);
+                    destinationRepo.objectDatabase().put(metadata);
                 }
             }
             return next;

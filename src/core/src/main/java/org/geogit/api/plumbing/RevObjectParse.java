@@ -8,11 +8,9 @@ package org.geogit.api.plumbing;
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevObject;
-import org.geogit.storage.StagingDatabase;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 
 /**
  * Resolves the reference given by a ref spec to the {@link RevObject} it finally points to,
@@ -23,21 +21,9 @@ import com.google.inject.Inject;
  */
 public class RevObjectParse extends AbstractGeoGitOp<Optional<RevObject>> {
 
-    private StagingDatabase indexDb;
-
     private ObjectId objectId;
 
     private String refSpec;
-
-    /**
-     * Constructs a new {@code RevObjectParse} operation with the given parameters.
-     * 
-     * @param indexDb the staging database
-     */
-    @Inject
-    public RevObjectParse(StagingDatabase indexDb) {
-        this.indexDb = indexDb;
-    }
 
     /**
      * @param refSpec the ref spec to resolve
@@ -90,7 +76,7 @@ public class RevObjectParse extends AbstractGeoGitOp<Optional<RevObject>> {
             return Optional.absent();
         }
 
-        RevObject revObject = indexDb.get(resolvedObjectId);
+        RevObject revObject = stagingDatabase().get(resolvedObjectId);
         Preconditions.checkArgument(clazz.isAssignableFrom(revObject.getClass()),
                 "Wrong return class for RevObjectParse operation");
 

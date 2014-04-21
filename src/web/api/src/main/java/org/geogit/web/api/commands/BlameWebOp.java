@@ -6,7 +6,7 @@ package org.geogit.web.api.commands;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.ObjectId;
 import org.geogit.api.plumbing.RevParse;
 import org.geogit.api.porcelain.BlameException;
@@ -57,7 +57,7 @@ public class BlameWebOp extends AbstractWebAPICommand {
      */
     @Override
     public void run(CommandContext context) {
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
 
         Optional<ObjectId> commit = Optional.absent();
         if (branchOrCommit != null) {

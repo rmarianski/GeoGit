@@ -4,7 +4,7 @@
  */
 package org.geogit.web.api.commands;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.porcelain.PushOp;
 import org.geogit.api.porcelain.SynchronizationException;
 import org.geogit.web.api.AbstractWebAPICommand;
@@ -58,7 +58,7 @@ public class PushWebOp extends AbstractWebAPICommand {
      */
     @Override
     public void run(CommandContext context) {
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
 
         PushOp command = geogit.command(PushOp.class);
 

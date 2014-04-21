@@ -10,32 +10,19 @@ import java.net.URL;
 import java.util.List;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.Platform;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
-import com.google.inject.Inject;
 
 /**
  * Returns the set of entries of the OSM log in the current repository.
  */
 public class ReadOSMLogEntries extends AbstractGeoGitOp<List<OSMLogEntry>> {
 
-    private Platform platform;
-
     private OSMLogEntry entry;
-
-    /**
-     * Constructs a new instance of {@code ResolveOSMLogfile} with the specified platform.
-     * 
-     */
-    @Inject
-    public ReadOSMLogEntries() {
-
-    }
 
     public ReadOSMLogEntries setEntry(OSMLogEntry entry) {
         this.entry = entry;

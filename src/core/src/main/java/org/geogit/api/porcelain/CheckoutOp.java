@@ -40,7 +40,6 @@ import org.geogit.di.CanRunDuringConflict;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 /**
  * Updates objects in the working tree to match the version in the index or the specified tree. If
@@ -62,7 +61,6 @@ public class CheckoutOp extends AbstractGeoGitOp<CheckoutResult> {
 
     private boolean theirs;
 
-    @Inject
     public CheckoutOp() {
         paths = Sets.newTreeSet();
     }
@@ -114,7 +112,7 @@ public class CheckoutOp extends AbstractGeoGitOp<CheckoutResult> {
 
         CheckoutResult result = new CheckoutResult();
 
-        List<Conflict> conflicts = getIndex().getDatabase().getConflicts(null, null);
+        List<Conflict> conflicts = stagingDatabase().getConflicts(null, null);
         if (!paths.isEmpty()) {
             result.setResult(CheckoutResult.Results.UPDATE_OBJECTS);
             Optional<RevTree> tree = Optional.absent();
@@ -136,7 +134,7 @@ public class CheckoutOp extends AbstractGeoGitOp<CheckoutResult> {
                 tree = command(RevObjectParse.class).setObjectId(id.get()).call(RevTree.class);
 
             } else {
-                tree = Optional.of(getIndex().getTree());
+                tree = Optional.of(index().getTree());
             }
 
             Optional<RevTree> mainTree = tree;
@@ -169,18 +167,18 @@ public class CheckoutOp extends AbstractGeoGitOp<CheckoutResult> {
                             + "' didn't match a feature in the tree");
 
                     if (node.get().getType() == TYPE.TREE) {
-                        RevTreeBuilder treeBuilder = new RevTreeBuilder(getIndex().getDatabase(),
-                                getWorkTree().getTree());
+                        RevTreeBuilder treeBuilder = new RevTreeBuilder(stagingDatabase(),
+                                workingTree().getTree());
                         treeBuilder.remove(st);
                         treeBuilder.put(node.get().getNode());
                         RevTree newRoot = treeBuilder.build();
-                        getIndex().getDatabase().put(newRoot);
-                        getWorkTree().updateWorkHead(newRoot.getId());
+                        stagingDatabase().put(newRoot);
+                        workingTree().updateWorkHead(newRoot.getId());
                     } else {
 
                         ObjectId metadataId = ObjectId.NULL;
                         Optional<NodeRef> parentNode = command(FindTreeChild.class)
-                                .setParent(getWorkTree().getTree())
+                                .setParent(workingTree().getTree())
                                 .setChildPath(node.get().getParentPath()).setIndex(true).call();
                         RevTreeBuilder treeBuilder = null;
                         if (parentNode.isPresent()) {
@@ -189,18 +187,18 @@ public class CheckoutOp extends AbstractGeoGitOp<CheckoutResult> {
                                     parentNode.get().getNode().getObjectId()).call(RevTree.class);
                             checkState(parsed.isPresent(),
                                     "Parent tree couldn't be found in the repository.");
-                            treeBuilder = new RevTreeBuilder(getIndex().getDatabase(), parsed.get());
+                            treeBuilder = new RevTreeBuilder(stagingDatabase(), parsed.get());
                             treeBuilder.remove(node.get().getNode().getName());
                         } else {
-                            treeBuilder = new RevTreeBuilder(getIndex().getDatabase());
+                            treeBuilder = new RevTreeBuilder(stagingDatabase());
                         }
                         treeBuilder.put(node.get().getNode());
                         ObjectId newTreeId = command(WriteBack.class)
                                 .setAncestor(
-                                        getWorkTree().getTree().builder(getIndex().getDatabase()))
+                                        workingTree().getTree().builder(stagingDatabase()))
                                 .setChildPath(node.get().getParentPath()).setToIndex(true)
                                 .setTree(treeBuilder.build()).setMetadataId(metadataId).call();
-                        getWorkTree().updateWorkHead(newTreeId);
+                        workingTree().updateWorkHead(newTreeId);
                     }
                 }
             }
@@ -282,14 +280,14 @@ public class CheckoutOp extends AbstractGeoGitOp<CheckoutResult> {
             }
             if (targetTreeId.isPresent()) {
                 if (!force) {
-                    if (!getIndex().isClean() || !getWorkTree().isClean()) {
+                    if (!index().isClean() || !workingTree().isClean()) {
                         throw new CheckoutException(StatusCode.LOCAL_CHANGES_NOT_COMMITTED);
                     }
                 }
                 // update work tree
                 ObjectId treeId = targetTreeId.get();
-                getWorkTree().updateWorkHead(treeId);
-                getIndex().updateStageHead(treeId);
+                workingTree().updateWorkHead(treeId);
+                index().updateStageHead(treeId);
                 result.setNewTree(treeId);
                 if (targetRef.isPresent()) {
                     // update HEAD
@@ -320,7 +318,7 @@ public class CheckoutOp extends AbstractGeoGitOp<CheckoutResult> {
             }
 
         }
-        result.setNewTree(getWorkTree().getTree().getId());
+        result.setNewTree(workingTree().getTree().getId());
         return result;
     }
 

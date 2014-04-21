@@ -50,7 +50,7 @@ public class OSMUnmap extends AbstractCommand implements CLICommand {
 
         geogit = cli.getGeogit();
 
-        ObjectId oldTreeId = geogit.getRepository().getWorkingTree().getTree().getId();
+        ObjectId oldTreeId = geogit.getRepository().workingTree().getTree().getId();
 
         ObjectId newTreeId = geogit.command(OSMUnmapOp.class).setPath(path).call().getId();
 

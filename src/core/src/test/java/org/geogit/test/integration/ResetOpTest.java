@@ -50,33 +50,33 @@ public class ResetOpTest extends RepositoryTestCase {
         ObjectId oId1 = insertAndAdd(points1);
         geogit.command(CommitOp.class).setMessage("commit for " + idP1).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
 
         ObjectId oId1_modified = insertAndAdd(points1_modified);
         ObjectId oId2 = insertAndAdd(points2);
         ObjectId oId3 = insertAndAdd(points3);
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getIndex().findStaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.index().findStaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getIndex().findStaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.index().findStaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
         geogit.command(ResetOp.class).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertFalse(repo.getIndex().findStaged(appendChild(pointsName, idP2)).isPresent());
-        assertFalse(repo.getIndex().findStaged(appendChild(pointsName, idP3)).isPresent());
+        assertFalse(repo.index().findStaged(appendChild(pointsName, idP2)).isPresent());
+        assertFalse(repo.index().findStaged(appendChild(pointsName, idP3)).isPresent());
 
         assertEquals(oId1_modified,
-                repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP1)).get()
+                repo.workingTree().findUnstaged(appendChild(pointsName, idP1)).get()
                         .getObjectId());
-        assertEquals(oId2, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.workingTree().findUnstaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.workingTree().findUnstaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
     }
@@ -86,7 +86,7 @@ public class ResetOpTest extends RepositoryTestCase {
         ObjectId oId1 = insertAndAdd(points1);
         geogit.command(CommitOp.class).setMessage("commit for " + idP1).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
 
         ObjectId oId1_modified = insertAndAdd(points1_modified);
@@ -94,31 +94,31 @@ public class ResetOpTest extends RepositoryTestCase {
         ObjectId oId3 = insertAndAdd(points3);
         ObjectId oId4 = insertAndAdd(lines1);
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getIndex().findStaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.index().findStaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getIndex().findStaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.index().findStaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
-        assertEquals(oId4, repo.getIndex().findStaged(appendChild(linesName, idL1)).get()
+        assertEquals(oId4, repo.index().findStaged(appendChild(linesName, idL1)).get()
                 .getObjectId());
 
         geogit.command(ResetOp.class).addPattern(pointsName).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertFalse(repo.getIndex().findStaged(appendChild(pointsName, idP2)).isPresent());
-        assertFalse(repo.getIndex().findStaged(appendChild(pointsName, idP3)).isPresent());
-        assertTrue(repo.getIndex().findStaged(appendChild(linesName, idL1)).isPresent());
+        assertFalse(repo.index().findStaged(appendChild(pointsName, idP2)).isPresent());
+        assertFalse(repo.index().findStaged(appendChild(pointsName, idP3)).isPresent());
+        assertTrue(repo.index().findStaged(appendChild(linesName, idL1)).isPresent());
 
         assertEquals(oId1_modified,
-                repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP1)).get()
+                repo.workingTree().findUnstaged(appendChild(pointsName, idP1)).get()
                         .getObjectId());
-        assertEquals(oId2, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.workingTree().findUnstaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.workingTree().findUnstaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
-        assertEquals(oId4, repo.getWorkingTree().findUnstaged(appendChild(linesName, idL1)).get()
+        assertEquals(oId4, repo.workingTree().findUnstaged(appendChild(linesName, idL1)).get()
                 .getObjectId());
 
     }
@@ -128,33 +128,33 @@ public class ResetOpTest extends RepositoryTestCase {
         ObjectId oId1 = insertAndAdd(points1);
         geogit.command(CommitOp.class).setMessage("commit for " + idP1).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
 
         ObjectId oId1_modified = insertAndAdd(points1_modified);
         ObjectId oId2 = insertAndAdd(points2);
         ObjectId oId3 = insertAndAdd(points3);
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getIndex().findStaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.index().findStaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getIndex().findStaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.index().findStaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
         geogit.command(ResetOp.class).addPattern(appendChild(pointsName, idP2)).call();
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertFalse(repo.getIndex().findStaged(appendChild(pointsName, idP2)).isPresent());
-        assertTrue(repo.getIndex().findStaged(appendChild(pointsName, idP3)).isPresent());
+        assertFalse(repo.index().findStaged(appendChild(pointsName, idP2)).isPresent());
+        assertTrue(repo.index().findStaged(appendChild(pointsName, idP3)).isPresent());
 
         assertEquals(oId1_modified,
-                repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP1)).get()
+                repo.workingTree().findUnstaged(appendChild(pointsName, idP1)).get()
                         .getObjectId());
-        assertEquals(oId2, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.workingTree().findUnstaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.workingTree().findUnstaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
     }
 
@@ -163,31 +163,31 @@ public class ResetOpTest extends RepositoryTestCase {
         ObjectId oId1 = insertAndAdd(points1);
         geogit.command(CommitOp.class).setMessage("commit for " + idP1).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
 
         ObjectId oId1_modified = insertAndAdd(points1_modified);
         ObjectId oId2 = insertAndAdd(points2);
         ObjectId oId3 = insertAndAdd(points3);
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getIndex().findStaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.index().findStaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getIndex().findStaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.index().findStaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
         geogit.command(ResetOp.class).setMode(ResetMode.HARD).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertFalse(repo.getIndex().findStaged(appendChild(pointsName, idP2)).isPresent());
-        assertFalse(repo.getIndex().findStaged(appendChild(pointsName, idP3)).isPresent());
+        assertFalse(repo.index().findStaged(appendChild(pointsName, idP2)).isPresent());
+        assertFalse(repo.index().findStaged(appendChild(pointsName, idP3)).isPresent());
 
-        assertEquals(oId1, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.workingTree().findUnstaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertFalse(repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP2)).isPresent());
-        assertFalse(repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP3)).isPresent());
+        assertFalse(repo.workingTree().findUnstaged(appendChild(pointsName, idP2)).isPresent());
+        assertFalse(repo.workingTree().findUnstaged(appendChild(pointsName, idP3)).isPresent());
 
     }
 
@@ -196,18 +196,18 @@ public class ResetOpTest extends RepositoryTestCase {
         ObjectId oId1 = insertAndAdd(points1);
         geogit.command(CommitOp.class).setMessage("commit for " + idP1).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
 
         ObjectId oId1_modified = insertAndAdd(points1_modified);
         ObjectId oId2 = insertAndAdd(points2);
         ObjectId oId3 = insertAndAdd(points3);
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getIndex().findStaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.index().findStaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getIndex().findStaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.index().findStaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
         final Optional<Ref> currHead = geogit.command(RefParse.class).setName(Ref.HEAD).call();
@@ -215,19 +215,19 @@ public class ResetOpTest extends RepositoryTestCase {
         geogit.command(ResetOp.class).setCommit(Suppliers.ofInstance(currHead.get().getObjectId()))
                 .setMode(ResetMode.SOFT).call();
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getIndex().findStaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.index().findStaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getIndex().findStaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.index().findStaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
         assertEquals(oId1_modified,
-                repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP1)).get()
+                repo.workingTree().findUnstaged(appendChild(pointsName, idP1)).get()
                         .getObjectId());
-        assertEquals(oId2, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.workingTree().findUnstaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.workingTree().findUnstaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
     }
@@ -237,18 +237,18 @@ public class ResetOpTest extends RepositoryTestCase {
         ObjectId oId1 = insertAndAdd(points1);
         geogit.command(CommitOp.class).setMessage("commit for " + idP1).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
 
         ObjectId oId1_modified = insertAndAdd(points1_modified);
         ObjectId oId2 = insertAndAdd(points2);
         ObjectId oId3 = insertAndAdd(points3);
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getIndex().findStaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.index().findStaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getIndex().findStaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.index().findStaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
         exception.expect(IllegalStateException.class);
@@ -261,18 +261,18 @@ public class ResetOpTest extends RepositoryTestCase {
         ObjectId oId1 = insertAndAdd(points1);
         geogit.command(CommitOp.class).setMessage("commit for " + idP1).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
 
         ObjectId oId1_modified = insertAndAdd(points1_modified);
         ObjectId oId2 = insertAndAdd(points2);
         ObjectId oId3 = insertAndAdd(points3);
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getIndex().findStaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.index().findStaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getIndex().findStaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.index().findStaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
         exception.expect(UnsupportedOperationException.class);
@@ -285,18 +285,18 @@ public class ResetOpTest extends RepositoryTestCase {
         ObjectId oId1 = insertAndAdd(points1);
         geogit.command(CommitOp.class).setMessage("commit for " + idP1).call();
 
-        assertEquals(oId1, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
 
         ObjectId oId1_modified = insertAndAdd(points1_modified);
         ObjectId oId2 = insertAndAdd(points2);
         ObjectId oId3 = insertAndAdd(points3);
 
-        assertEquals(oId1_modified, repo.getIndex().findStaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1_modified, repo.index().findStaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getIndex().findStaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.index().findStaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
-        assertEquals(oId3, repo.getIndex().findStaged(appendChild(pointsName, idP3)).get()
+        assertEquals(oId3, repo.index().findStaged(appendChild(pointsName, idP3)).get()
                 .getObjectId());
 
         exception.expect(UnsupportedOperationException.class);
@@ -345,7 +345,7 @@ public class ResetOpTest extends RepositoryTestCase {
 
         geogit.command(ResetOp.class).setMode(ResetMode.HARD)
                 .setCommit(Suppliers.ofInstance(resetCommit.getId())).call();
-        List<Conflict> conflicts = geogit.getRepository().getIndex().getDatabase()
+        List<Conflict> conflicts = geogit.getRepository().stagingDatabase()
                 .getConflicts(null, null);
         assertTrue(conflicts.isEmpty());
         Optional<Ref> ref = geogit.command(RefParse.class).setName(Ref.MERGE_HEAD).call();
@@ -380,7 +380,7 @@ public class ResetOpTest extends RepositoryTestCase {
 
         geogit.command(ResetOp.class).addPattern(pointsName + "/" + idP1)
                 .setCommit(Suppliers.ofInstance(resetCommit.getId())).call();
-        List<Conflict> conflicts = geogit.getRepository().getIndex().getDatabase()
+        List<Conflict> conflicts = geogit.getRepository().stagingDatabase()
                 .getConflicts(null, null);
         assertTrue(conflicts.isEmpty());
     }
@@ -412,7 +412,7 @@ public class ResetOpTest extends RepositoryTestCase {
         }
 
         geogit.command(ResetOp.class).addPattern(pointsName + "/" + idP1).call();
-        List<Conflict> conflicts = geogit.getRepository().getIndex().getDatabase()
+        List<Conflict> conflicts = geogit.getRepository().stagingDatabase()
                 .getConflicts(null, null);
         assertTrue(conflicts.isEmpty());
     }

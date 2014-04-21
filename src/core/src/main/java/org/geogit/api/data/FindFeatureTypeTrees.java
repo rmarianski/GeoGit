@@ -41,7 +41,7 @@ public class FindFeatureTypeTrees extends AbstractGeoGitOp<List<NodeRef>> {
         Preconditions.checkNotNull(refSpec, "refSpec was not provided");
         Iterator<NodeRef> allTrees;
         try {
-            allTrees = commandLocator.command(LsTreeOp.class).setReference(refSpec)
+            allTrees = injector.command(LsTreeOp.class).setReference(refSpec)
                     .setStrategy(LsTreeOp.Strategy.DEPTHFIRST_ONLY_TREES).call();
         } catch (IllegalArgumentException noWorkHead) {
             return ImmutableList.of();

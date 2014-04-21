@@ -53,7 +53,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import com.vividsolutions.jts.geom.CoordinateSequenceFactory;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
 
@@ -101,13 +100,6 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
     private boolean usePaging = true;
 
     /**
-     * Constructs a new {@code ImportOp} operation.
-     */
-    @Inject
-    public ImportOp() {
-    }
-
-    /**
      * Executes the import operation using the parameters that have been specified. Features will be
      * added to the working tree, and a new working tree will be constructed. Either {@code all} or
      * {@code table}, but not both, must be set prior to the import process.
@@ -129,7 +121,7 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
             overwrite = false;
         }
 
-        final WorkingTree workTree = getWorkTree();
+        final WorkingTree workTree = workingTree();
 
         final boolean destPathProvided = destPath != null;
         if (destPathProvided && overwrite) {

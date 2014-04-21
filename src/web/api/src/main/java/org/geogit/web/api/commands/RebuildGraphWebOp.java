@@ -4,7 +4,7 @@
  */
 package org.geogit.web.api.commands;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.ObjectId;
 import org.geogit.api.plumbing.RebuildGraphOp;
 import org.geogit.web.api.AbstractWebAPICommand;
@@ -40,7 +40,7 @@ public class RebuildGraphWebOp extends AbstractWebAPICommand {
      */
     @Override
     public void run(CommandContext context) {
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
 
         final ImmutableList<ObjectId> updatedObjects = geogit.command(RebuildGraphOp.class).call();
 

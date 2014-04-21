@@ -8,12 +8,14 @@ import java.io.Closeable;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import org.geogit.di.Singleton;
 import org.geogit.repository.RepositoryConnectionException;
 
 /**
  * Provides an interface for GeoGit reference databases.
  * 
  */
+@Singleton
 public interface RefDatabase extends Closeable{
 
     /**

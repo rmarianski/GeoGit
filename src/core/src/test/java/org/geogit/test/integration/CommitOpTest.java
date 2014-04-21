@@ -49,8 +49,8 @@ public class CommitOpTest extends RepositoryTestCase {
         // These values should be used during a commit to set author/committer
         // TODO: author/committer roles need to be defined better, but for
         // now they are the same thing.
-        repo.getConfigDatabase().put("user.name", "groldan");
-        repo.getConfigDatabase().put("user.email", "groldan@opengeo.org");
+        injector.configDatabase().put("user.name", "groldan");
+        injector.configDatabase().put("user.email", "groldan@opengeo.org");
     }
 
     @Test
@@ -112,7 +112,7 @@ public class CommitOpTest extends RepositoryTestCase {
         geogit.command(AddOp.class).addPattern(".").call();
         RevCommit commit = geogit.command(CommitOp.class).call();
         assertNotNull(commit);
-        RevFeatureType type = geogit.getRepository().getObjectDatabase().getFeatureType(id);
+        RevFeatureType type = geogit.getRepository().objectDatabase().getFeatureType(id);
         assertEquals(id, type.getId());
     }
 
@@ -130,7 +130,7 @@ public class CommitOpTest extends RepositoryTestCase {
             assertEquals(oId1_1, repo.getRootTreeChild(appendChild(pointsName, idP1)).get()
                     .getObjectId());
             // and check the objects were actually copied
-            assertNotNull(repo.getObjectDatabase().get(oId1_1));
+            assertNotNull(repo.objectDatabase().get(oId1_1));
         }
         // insert and commit points2, points3 and lines1
         final ObjectId oId1_2 = insertAndAdd(points2);
@@ -143,7 +143,7 @@ public class CommitOpTest extends RepositoryTestCase {
             assertCommit(commit2, commit1.getId(), "groldan", "msg");
 
             // repo.getHeadTree().accept(
-            // new PrintVisitor(repo.getObjectDatabase(), new PrintWriter(System.out)));
+            // new PrintVisitor(repo.objectDatabase(), new PrintWriter(System.out)));
 
             // check points2, points3 and lines1
             assertEquals(oId1_2, repo.getRootTreeChild(appendChild(pointsName, idP2)).get()
@@ -153,9 +153,9 @@ public class CommitOpTest extends RepositoryTestCase {
             assertEquals(oId2_1, repo.getRootTreeChild(appendChild(linesName, idL1)).get()
                     .getObjectId());
             // and check the objects were actually copied
-            assertNotNull(repo.getObjectDatabase().get(oId1_2));
-            assertNotNull(repo.getObjectDatabase().get(oId1_3));
-            assertNotNull(repo.getObjectDatabase().get(oId2_1));
+            assertNotNull(repo.objectDatabase().get(oId1_2));
+            assertNotNull(repo.objectDatabase().get(oId1_3));
+            assertNotNull(repo.objectDatabase().get(oId2_1));
 
             // as well as feature1_1 from the previous commit
             assertEquals(oId1_1, repo.getRootTreeChild(appendChild(pointsName, idP1)).get()
@@ -174,7 +174,7 @@ public class CommitOpTest extends RepositoryTestCase {
             assertCommit(commit3, commit2.getId(), "groldan", null);
 
             // repo.getHeadTree().accept(
-            // new PrintVisitor(repo.getObjectDatabase(), new PrintWriter(System.out)));
+            // new PrintVisitor(repo.objectDatabase(), new PrintWriter(System.out)));
 
             // check only points2 and lines2 remain
             assertFalse(repo.getRootTreeChild(appendChild(pointsName, idP1)).isPresent());
@@ -186,8 +186,8 @@ public class CommitOpTest extends RepositoryTestCase {
             assertEquals(oId2_2, repo.getRootTreeChild(appendChild(linesName, idL2)).get()
                     .getObjectId());
             // and check the objects were actually copied
-            assertNotNull(repo.getObjectDatabase().get(oId1_2));
-            assertNotNull(repo.getObjectDatabase().get(oId2_2));
+            assertNotNull(repo.objectDatabase().get(oId1_2));
+            assertNotNull(repo.objectDatabase().get(oId2_2));
         }
     }
 
@@ -380,7 +380,7 @@ public class CommitOpTest extends RepositoryTestCase {
             assertTrue(true);
         }
 
-        repo.getConfigDatabase().remove("user.name");
+        injector.configDatabase().remove("user.name");
 
         CommitOp commitCommand = geogit.command(CommitOp.class);
         exception.expect(IllegalStateException.class);
@@ -397,7 +397,7 @@ public class CommitOpTest extends RepositoryTestCase {
             assertTrue(true);
         }
 
-        repo.getConfigDatabase().remove("user.email");
+        injector.configDatabase().remove("user.email");
 
         CommitOp commitCommand = geogit.command(CommitOp.class);
         exception.expect(IllegalStateException.class);
@@ -438,7 +438,7 @@ public class CommitOpTest extends RepositoryTestCase {
 
     @Test
     public void testCommitEmptyTreeOnEmptyRepo() throws Exception {
-        WorkingTree workingTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workingTree = geogit.getRepository().workingTree();
         final String emptyTreeName = "emptyTree";
 
         workingTree.createTypeTree(emptyTreeName, pointsType);
@@ -462,7 +462,7 @@ public class CommitOpTest extends RepositoryTestCase {
 
         // insertAndAdd(lines1, lines2);
 
-        WorkingTree workingTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workingTree = geogit.getRepository().workingTree();
         final String emptyTreeName = "emptyTree";
 
         workingTree.createTypeTree(emptyTreeName, pointsType);
@@ -474,7 +474,7 @@ public class CommitOpTest extends RepositoryTestCase {
         }
         geogit.command(AddOp.class).call();
         {
-            StagingArea index = geogit.getRepository().getIndex();
+            StagingArea index = geogit.getRepository().index();
             List<DiffEntry> staged = toList(index.getStaged(null));
             assertEquals(staged.toString(), 1, staged.size());
             // assertEquals(NodeRef.ROOT, staged.get(0).newName());
@@ -529,7 +529,7 @@ public class CommitOpTest extends RepositoryTestCase {
         assertTrue(tree1.trees().isPresent());
         assertEquals(2, tree1.trees().get().size());
 
-        WorkingTree workingTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workingTree = geogit.getRepository().workingTree();
         workingTree.delete(pointsName);
         geogit.command(AddOp.class).call();
 
@@ -551,7 +551,7 @@ public class CommitOpTest extends RepositoryTestCase {
             assertCommit(commit1, null, null, null);
             assertEquals(id, repo.getRootTreeChild(appendChild(pointsName, idP1)).get()
                     .getObjectId());
-            assertNotNull(repo.getObjectDatabase().get(id));
+            assertNotNull(repo.objectDatabase().get(id));
         }
 
         final ObjectId id2 = insertAndAdd(points2);

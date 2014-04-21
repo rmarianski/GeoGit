@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.geogit.api.GeoGIT;
+import org.geogit.api.Injector;
 import org.geogit.api.RevCommit;
 import org.geogit.api.TestPlatform;
 import org.geogit.api.porcelain.ConfigOp;
@@ -41,7 +42,6 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.inject.Injector;
 
 public class DataStoreConcurrencyTest {
 

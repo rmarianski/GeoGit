@@ -65,7 +65,7 @@ public class Remove extends AbstractCommand implements CLICommand {
             NodeRef.checkValidPath(pathToRemove);
 
             Optional<NodeRef> node = repository.command(FindTreeChild.class)
-                    .setParent(repository.getWorkingTree().getTree()).setIndex(true)
+                    .setParent(repository.workingTree().getTree()).setIndex(true)
                     .setChildPath(pathToRemove).call();
             checkParameter(node.isPresent(), "pathspec '%s' did not match any feature or tree",
                     pathToRemove);

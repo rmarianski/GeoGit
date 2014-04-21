@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
 import org.geogit.api.plumbing.merge.Conflict;
 import org.geogit.repository.RepositoryConnectionException;
 import org.geogit.storage.AbstractObjectDatabase;
-import org.geogit.storage.ForwardingStagingDatabase;
+import org.geogit.storage.AbstractStagingDatabase;
 import org.geogit.storage.ObjectDatabase;
 
 import com.google.common.base.Optional;
@@ -31,7 +31,7 @@ import com.google.inject.Inject;
  * 
  * @see AbstractObjectDatabase
  */
-public class HeapStagingDatabase extends ForwardingStagingDatabase {
+public class HeapStagingDatabase extends AbstractStagingDatabase {
     private Map<String, Map<String, Conflict>> conflicts = Maps.newHashMap();
 
     /**

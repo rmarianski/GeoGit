@@ -40,7 +40,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
 /**
  * Applies a patch to the working tree. If partial application of the patch is allowed, it returns a
@@ -53,24 +52,9 @@ public class ApplyPatchOp extends AbstractGeoGitOp<Patch> {
 
     private Patch patch;
 
-    private WorkingTree workTree;
-
     private boolean applyPartial;
 
-    private StagingDatabase indexDb;
-
     private boolean reverse;
-
-    /**
-     * Constructs a new {@code ApplyPatchOp} with the given parameters.
-     * 
-     * @param workTree the working tree to modify when applying the patch
-     */
-    @Inject
-    public ApplyPatchOp(final WorkingTree workTree, StagingDatabase indexDb) {
-        this.workTree = workTree;
-        this.indexDb = indexDb;
-    }
 
     /**
      * Sets the patch to apply
@@ -149,7 +133,8 @@ public class ApplyPatchOp extends AbstractGeoGitOp<Patch> {
     }
 
     private void applyPatch(Patch patch) {
-
+        final WorkingTree workTree = workingTree();
+        final StagingDatabase indexDb = stagingDatabase();
         if (reverse) {
             patch = patch.reversed();
         }

@@ -57,7 +57,6 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.UnmodifiableIterator;
-import com.google.inject.Inject;
 
 /**
  * Internal operation for creating a FeatureCollection from a tree content.
@@ -80,8 +79,6 @@ public class ExportOp extends AbstractGeoGitOp<SimpleFeatureStore> {
 
     private Supplier<SimpleFeatureStore> targetStoreProvider;
 
-    private StagingDatabase database;
-
     private Function<Feature, Optional<Feature>> function = IDENTITY;
 
     private ObjectId filterFeatureTypeId;
@@ -95,9 +92,7 @@ public class ExportOp extends AbstractGeoGitOp<SimpleFeatureStore> {
     /**
      * Constructs a new export operation.
      */
-    @Inject
-    public ExportOp(StagingDatabase database) {
-        this.database = database;
+    public ExportOp() {
         this.transactional = true;
     }
 
@@ -109,7 +104,7 @@ public class ExportOp extends AbstractGeoGitOp<SimpleFeatureStore> {
     @SuppressWarnings("deprecation")
     @Override
     public SimpleFeatureStore call() {
-
+        final StagingDatabase database = stagingDatabase();
         if (filterFeatureTypeId != null) {
             RevObject filterType = database.getIfPresent(filterFeatureTypeId);
             checkArgument(filterType instanceof RevFeatureType,
@@ -311,7 +306,7 @@ public class ExportOp extends AbstractGeoGitOp<SimpleFeatureStore> {
     private Iterator<SimpleFeature> alter(Iterator<SimpleFeature> plainFeatures,
             final ObjectId targetFeatureTypeId) {
 
-        final RevFeatureType targetType = database.getFeatureType(targetFeatureTypeId);
+        final RevFeatureType targetType = stagingDatabase().getFeatureType(targetFeatureTypeId);
 
         Function<SimpleFeature, SimpleFeature> alterFunction = new Function<SimpleFeature, SimpleFeature>() {
             @Override
@@ -369,7 +364,7 @@ public class ExportOp extends AbstractGeoGitOp<SimpleFeatureStore> {
         checkArgument(rootTreeId.isPresent(), "Invalid tree spec: %s",
                 refspec.substring(0, refspec.indexOf(':')));
 
-        RevTree rootTree = database.getTree(rootTreeId.get());
+        RevTree rootTree = stagingDatabase().getTree(rootTreeId.get());
         return rootTree;
     }
 

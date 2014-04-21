@@ -8,12 +8,14 @@ import java.io.Closeable;
 import java.util.List;
 
 import org.geogit.api.ObjectId;
+import org.geogit.di.Singleton;
 import org.geogit.repository.RepositoryConnectionException;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 
 @Beta
+@Singleton
 public interface GraphDatabase extends Closeable {
 
     public static final String SPARSE_FLAG = "sparse";

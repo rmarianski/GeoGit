@@ -70,7 +70,7 @@ public class Insert extends AbstractCommand implements CLICommand {
         for (String key : features.keySet()) {
             List<Feature> treeFeatures = features.get(key);
             geogit.getRepository()
-                    .getWorkingTree()
+                    .workingTree()
                     .insert(key, treeFeatures.iterator(), cli.getProgressListener(), null,
                             treeFeatures.size());
             count += treeFeatures.size();

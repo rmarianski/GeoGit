@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 
+import org.geogit.api.Injector;
 import org.geogit.api.Remote;
 import org.geogit.repository.Repository;
 import org.geogit.storage.DeduplicationService;
@@ -19,7 +20,6 @@ import org.geogit.storage.DeduplicationService;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
-import com.google.inject.Injector;
 
 /**
  * Provides utilities for creating interfaces to remote repositories.

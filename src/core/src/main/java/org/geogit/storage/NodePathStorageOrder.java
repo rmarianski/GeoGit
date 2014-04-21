@@ -15,7 +15,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
-import com.google.common.primitives.UnsignedBytes;
 import com.google.common.primitives.UnsignedLong;
 
 /**

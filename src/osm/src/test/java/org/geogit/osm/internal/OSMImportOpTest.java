@@ -32,8 +32,8 @@ public class OSMImportOpTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        repo.getConfigDatabase().put("user.name", "groldan");
-        repo.getConfigDatabase().put("user.email", "groldan@opengeo.org");
+        repo.configDatabase().put("user.name", "groldan");
+        repo.configDatabase().put("user.email", "groldan@opengeo.org");
     }
 
     @Rule
@@ -44,9 +44,9 @@ public class OSMImportOpTest extends RepositoryTestCase {
         String filename = getClass().getResource("ways.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        long unstaged = geogit.getRepository().getWorkingTree().countUnstaged("node").getCount();
+        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").getCount();
         assertTrue(unstaged > 0);
-        unstaged = geogit.getRepository().getWorkingTree().countUnstaged("way").getCount();
+        unstaged = geogit.getRepository().workingTree().countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
     }
 
@@ -61,9 +61,9 @@ public class OSMImportOpTest extends RepositoryTestCase {
         file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).setAdd(true).call();
         // Check that the working tree contains elements from both imports
-        long unstaged = geogit.getRepository().getWorkingTree().countUnstaged("node").getCount();
+        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").getCount();
         assertEquals(30, unstaged);
-        unstaged = geogit.getRepository().getWorkingTree().countUnstaged("way").getCount();
+        unstaged = geogit.getRepository().workingTree().countUnstaged("way").getCount();
         assertEquals(4, unstaged);
     }
 
@@ -102,7 +102,7 @@ public class OSMImportOpTest extends RepositoryTestCase {
         assertTrue(tree.get().size() > 0);
 
         // check that the mapping was correctly performed
-        Optional<Node> feature = geogit.getRepository().getWorkingTree()
+        Optional<Node> feature = geogit.getRepository().workingTree()
                 .findUnstaged("onewaystreets/31045880");
         assertTrue(feature.isPresent());
         Optional<RevFeature> revFeature = geogit.command(RevObjectParse.class)
@@ -137,14 +137,14 @@ public class OSMImportOpTest extends RepositoryTestCase {
         // import with mapping and check import went ok and canonical folders were not created
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).setMapping(mapping)
                 .setNoRaw(true).call();
-        long unstaged = geogit.getRepository().getWorkingTree().countUnstaged("node").getCount();
+        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").getCount();
         assertEquals(0, unstaged);
-        unstaged = geogit.getRepository().getWorkingTree().countUnstaged("way").getCount();
+        unstaged = geogit.getRepository().workingTree().countUnstaged("way").getCount();
         assertEquals(0, unstaged);
-        unstaged = geogit.getRepository().getWorkingTree().countUnstaged("onewaystreets")
+        unstaged = geogit.getRepository().workingTree().countUnstaged("onewaystreets")
                 .getCount();
         assertEquals(2, unstaged);
-        Optional<Node> feature = geogit.getRepository().getWorkingTree()
+        Optional<Node> feature = geogit.getRepository().workingTree()
                 .findUnstaged("onewaystreets/31045880");
         assertTrue(feature.isPresent());
 
@@ -162,7 +162,7 @@ public class OSMImportOpTest extends RepositoryTestCase {
         File osmMapFolder = geogit.command(ResolveOSMMappingLogFolder.class).call();
         file = new File(osmMapFolder, "onewaystreets");
         assertFalse(file.exists());
-        file = new File(osmMapFolder, geogit.getRepository().getWorkingTree().getTree().getId()
+        file = new File(osmMapFolder, geogit.getRepository().workingTree().getTree().getId()
                 .toString());
         assertFalse(file.exists());
     }

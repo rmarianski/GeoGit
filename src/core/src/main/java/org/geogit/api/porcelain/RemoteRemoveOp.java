@@ -17,7 +17,6 @@ import org.geogit.storage.ConfigDatabase;
 import com.google.common.base.Optional;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
 
 /**
  * Removes a remote from the local config database.
@@ -27,18 +26,6 @@ import com.google.inject.Inject;
 public class RemoteRemoveOp extends AbstractGeoGitOp<Remote> {
 
     private String name;
-
-    final private ConfigDatabase config;
-
-    /**
-     * Constructs a new {@code RemoteRemoveOp} with the given config database.
-     * 
-     * @param config where the remote is stored
-     */
-    @Inject
-    public RemoteRemoveOp(ConfigDatabase config) {
-        this.config = config;
-    }
 
     /**
      * Executes the remote-remove operation.
@@ -51,6 +38,7 @@ public class RemoteRemoveOp extends AbstractGeoGitOp<Remote> {
         if (name == null || name.isEmpty()) {
             throw new RemoteException(StatusCode.MISSING_NAME);
         }
+        ConfigDatabase config = configDatabase();
         List<String> allRemotes = config.getAllSubsections("remote");
         if (!allRemotes.contains(name)) {
             throw new RemoteException(StatusCode.REMOTE_NOT_FOUND);

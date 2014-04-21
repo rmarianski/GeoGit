@@ -4,7 +4,7 @@
  */
 package org.geogit.web.api.commands;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.Ref;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.DiffIndex;
@@ -55,7 +55,7 @@ public class Status extends AbstractWebAPICommand {
      */
     @Override
     public void run(CommandContext context) {
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
 
         final String pathFilter = null;
         final Optional<Ref> currHead = geogit.command(RefParse.class).setName(Ref.HEAD).call();

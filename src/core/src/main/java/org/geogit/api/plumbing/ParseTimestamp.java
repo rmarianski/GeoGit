@@ -16,7 +16,6 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.Platform;
 
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 
 /**
  * Parses a string representing a timestamp.
@@ -34,8 +33,6 @@ public class ParseTimestamp extends AbstractGeoGitOp<Long> {
 
     private String string;
 
-    private Platform platform;
-
     private static HashMap<String, Integer> units = new HashMap<String, Integer>();
 
     static {
@@ -45,11 +42,6 @@ public class ParseTimestamp extends AbstractGeoGitOp<Long> {
         units.put("day", 1000 * 60 * 60 * 24);
         units.put("week", 1000 * 60 * 60 * 24 * 7);
         units.put("year", 1000 * 60 * 60 * 24 * 365);
-    }
-
-    @Inject
-    public ParseTimestamp(Platform platform) {
-        this.platform = platform;
     }
 
     /**
@@ -77,6 +69,7 @@ public class ParseTimestamp extends AbstractGeoGitOp<Long> {
         }
 
         SimpleDateFormat formatter;
+        final Platform platform = platform();
         if (string.equals("yesterday")) { // return the beginning of yesterday, not just 24h ago
                                           // from current time
             try {

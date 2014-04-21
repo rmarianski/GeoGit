@@ -202,7 +202,7 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
             }
         } catch (Exception e) {
             for (ObjectId oid : fetchedIds) {
-                localRepository.getObjectDatabase().delete(oid);
+                localRepository.objectDatabase().delete(oid);
             }
             Throwables.propagate(e);
         } finally {
@@ -272,7 +272,7 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
                     }
                 };
                 BinaryPackedObjects packer = new BinaryPackedObjects(
-                        localRepository.getObjectDatabase());
+                        localRepository.objectDatabase());
                 packer.write(out, toSend, ImmutableList.copyOf(roots), sent, callback, false,
                         deduplicator);
                 out.flush();
@@ -346,7 +346,7 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
             throw Throwables.propagate(e);
         }
 
-        BinaryPackedObjects unpacker = new BinaryPackedObjects(localRepository.getObjectDatabase());
+        BinaryPackedObjects unpacker = new BinaryPackedObjects(localRepository.objectDatabase());
         BinaryPackedObjects.Callback<Void> callback = new BinaryPackedObjects.Callback<Void>() {
             @Override
             public Void callback(RevObject object, Void state) {

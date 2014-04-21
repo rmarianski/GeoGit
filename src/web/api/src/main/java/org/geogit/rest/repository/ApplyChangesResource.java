@@ -116,7 +116,7 @@ public class ApplyChangesResource extends Finder {
                 builder.setTreeId(newTreeId);
 
                 RevCommit mapped = builder.build();
-                repository.getObjectDatabase().put(mapped);
+                repository.objectDatabase().put(mapped);
                 newCommitId = mapped.getId();
 
             } catch (IOException e) {

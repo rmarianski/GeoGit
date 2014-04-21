@@ -36,14 +36,14 @@ public class AddOpTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        repo.getConfigDatabase().put("user.name", "groldan");
-        repo.getConfigDatabase().put("user.email", "groldan@opengeo.org");
+        injector.configDatabase().put("user.name", "groldan");
+        injector.configDatabase().put("user.email", "groldan@opengeo.org");
     }
 
     @Test
     public void testAddSingleFile() throws Exception {
         insert(points1);
-        List<DiffEntry> diffs = toList(repo.getWorkingTree().getUnstaged(null));
+        List<DiffEntry> diffs = toList(repo.workingTree().getUnstaged(null));
         assertEquals(2, diffs.size());
         assertEquals(pointsName, diffs.get(0).newPath());
         assertEquals(NodeRef.appendChild(pointsName, idP1), diffs.get(1).newPath());
@@ -55,7 +55,7 @@ public class AddOpTest extends RepositoryTestCase {
         insert(points2);
         insert(points3);
         geogit.command(AddOp.class).call();
-        List<DiffEntry> unstaged = toList(repo.getWorkingTree().getUnstaged(null));
+        List<DiffEntry> unstaged = toList(repo.workingTree().getUnstaged(null));
         assertEquals(ImmutableList.of(), unstaged);
     }
 
@@ -65,12 +65,12 @@ public class AddOpTest extends RepositoryTestCase {
         insert(points2);
         insert(points3);
         geogit.command(AddOp.class).call();
-        Iterator<DiffEntry> iterator = repo.getWorkingTree().getUnstaged(null);
+        Iterator<DiffEntry> iterator = repo.workingTree().getUnstaged(null);
         assertFalse(iterator.hasNext());
         insert(lines1);
         insert(lines2);
         geogit.command(AddOp.class).call();
-        iterator = repo.getWorkingTree().getUnstaged(null);
+        iterator = repo.workingTree().getUnstaged(null);
         assertFalse(iterator.hasNext());
     }
 
@@ -79,7 +79,7 @@ public class AddOpTest extends RepositoryTestCase {
         insert(points1);
         insert(points2);
         geogit.command(AddOp.class).addPattern("Points/Points.1").call();
-        List<DiffEntry> unstaged = toList(repo.getIndex().getStaged(null));
+        List<DiffEntry> unstaged = toList(repo.index().getStaged(null));
         assertEquals(unstaged.toString(), 2, unstaged.size());
 
         assertEquals(ChangeType.ADDED, unstaged.get(0).changeType());
@@ -102,7 +102,7 @@ public class AddOpTest extends RepositoryTestCase {
         insert(points2);
         insert(lines1);
         geogit.command(AddOp.class).addPattern("Points").call();
-        List<DiffEntry> unstaged = toList(repo.getWorkingTree().getUnstaged(null));
+        List<DiffEntry> unstaged = toList(repo.workingTree().getUnstaged(null));
         assertEquals(2, unstaged.size());
         assertEquals(linesName, unstaged.get(0).newName());
         assertEquals(ChangeType.ADDED, unstaged.get(0).changeType());
@@ -114,11 +114,11 @@ public class AddOpTest extends RepositoryTestCase {
         insert(points1);
         insert(points2);
         geogit.command(AddOp.class).call();
-        List<DiffEntry> staged = toList(repo.getIndex().getStaged(Lists.newArrayList(pointsName)));
+        List<DiffEntry> staged = toList(repo.index().getStaged(Lists.newArrayList(pointsName)));
         assertEquals(3, staged.size());
         delete(points1);
         geogit.command(AddOp.class).call();
-        staged = toList(repo.getIndex().getStaged(Lists.newArrayList(pointsName)));
+        staged = toList(repo.index().getStaged(Lists.newArrayList(pointsName)));
         assertEquals(2, staged.size());
     }
 
@@ -127,11 +127,11 @@ public class AddOpTest extends RepositoryTestCase {
         insert(points1);
         insert(points2);
         geogit.command(AddOp.class).call();
-        repo.getWorkingTree().delete(pointsName);
+        repo.workingTree().delete(pointsName);
         geogit.command(AddOp.class).call();
-        List<DiffEntry> staged = toList(repo.getIndex().getStaged(Lists.newArrayList(pointsName)));
+        List<DiffEntry> staged = toList(repo.index().getStaged(Lists.newArrayList(pointsName)));
         assertEquals(0, staged.size());
-        assertEquals(0, repo.getIndex().countStaged(null).getCount());
+        assertEquals(0, repo.index().countStaged(null).getCount());
     }
 
     @Test
@@ -143,7 +143,7 @@ public class AddOpTest extends RepositoryTestCase {
         insert(points1_modified);
         insert(lines1);
         geogit.command(AddOp.class).setUpdateOnly(true).call();
-        List<DiffEntry> unstaged = toList(repo.getWorkingTree().getUnstaged(null));
+        List<DiffEntry> unstaged = toList(repo.workingTree().getUnstaged(null));
         assertEquals(2, unstaged.size());
         assertEquals(linesName, unstaged.get(0).newName());
         assertEquals(lines1.getIdentifier().getID(), unstaged.get(1).newName());
@@ -158,18 +158,18 @@ public class AddOpTest extends RepositoryTestCase {
 
         // stage only Lines changed
         geogit.command(AddOp.class).setUpdateOnly(true).addPattern(pointsName).call();
-        List<DiffEntry> staged = toList(repo.getIndex().getStaged(null));
+        List<DiffEntry> staged = toList(repo.index().getStaged(null));
         assertEquals(1, staged.size());
         assertEquals(idP1, staged.get(0).newName());
 
-        List<DiffEntry> unstaged = toList(repo.getWorkingTree().getUnstaged(null));
+        List<DiffEntry> unstaged = toList(repo.workingTree().getUnstaged(null));
 
         assertEquals(2, unstaged.size());
         assertEquals(linesName, unstaged.get(0).newName());
         assertEquals(idL1, unstaged.get(1).newName());
 
         geogit.command(AddOp.class).setUpdateOnly(true).addPattern("Points").call();
-        unstaged = toList(repo.getWorkingTree().getUnstaged(null));
+        unstaged = toList(repo.workingTree().getUnstaged(null));
 
         assertEquals(2, unstaged.size());
         assertEquals(linesName, unstaged.get(0).newName());
@@ -203,7 +203,7 @@ public class AddOpTest extends RepositoryTestCase {
         }
         insert(points1);
         geogit.command(AddOp.class).call();
-        List<Conflict> conflicts = geogit.getRepository().getIndex().getDatabase()
+        List<Conflict> conflicts = geogit.getRepository().stagingDatabase()
                 .getConflicts(null, null);
         assertTrue(conflicts.isEmpty());
         geogit.command(CommitOp.class).call();
@@ -237,7 +237,7 @@ public class AddOpTest extends RepositoryTestCase {
             assertTrue(true);
         }
         geogit.command(AddOp.class).call();
-        List<Conflict> conflicts = geogit.getRepository().getIndex().getDatabase()
+        List<Conflict> conflicts = geogit.getRepository().stagingDatabase()
                 .getConflicts(null, null);
         assertTrue(conflicts.isEmpty());
         geogit.command(CommitOp.class).call();
@@ -249,18 +249,18 @@ public class AddOpTest extends RepositoryTestCase {
     public void testAddModifiedFeatureType() throws Exception {
         insertAndAdd(points2, points1B);
         geogit.command(CommitOp.class).call();
-        geogit.getRepository().getWorkingTree().updateTypeTree(pointsName, modifiedPointsType);
+        geogit.getRepository().workingTree().updateTypeTree(pointsName, modifiedPointsType);
         geogit.command(AddOp.class).call();
-        List<DiffEntry> list = toList(geogit.getRepository().getIndex().getStaged(null));
+        List<DiffEntry> list = toList(geogit.getRepository().index().getStaged(null));
         assertFalse(list.isEmpty());
         String path = NodeRef.appendChild(pointsName, idP1);
         Optional<NodeRef> ref = geogit.command(FindTreeChild.class).setChildPath(path)
-                .setIndex(true).setParent(geogit.getRepository().getIndex().getTree()).call();
+                .setIndex(true).setParent(geogit.getRepository().index().getTree()).call();
         assertTrue(ref.isPresent());
         assertFalse(ref.get().getNode().getMetadataId().isPresent());
         path = NodeRef.appendChild(pointsName, idP2);
         ref = geogit.command(FindTreeChild.class).setChildPath(path).setIndex(true)
-                .setParent(geogit.getRepository().getIndex().getTree()).call();
+                .setParent(geogit.getRepository().index().getTree()).call();
         assertTrue(ref.isPresent());
         assertTrue(ref.get().getNode().getMetadataId().isPresent());
 

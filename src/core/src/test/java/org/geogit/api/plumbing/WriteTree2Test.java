@@ -34,7 +34,6 @@ import org.geogit.storage.StagingDatabase;
 import org.geogit.test.integration.RepositoryTestCase;
 import org.junit.Test;
 import org.opengis.feature.Feature;
-import org.opengis.geometry.BoundingBox;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
@@ -67,8 +66,8 @@ public class WriteTree2Test extends RepositoryTestCase {
     protected void setUpInternal() throws Exception {
         geogit = getGeogit();
         command = geogit.command(WriteTree2.class);
-        indexDb = geogit.getRepository().getIndex().getDatabase();
-        objectDb = geogit.getRepository().getObjectDatabase();
+        indexDb = geogit.getRepository().stagingDatabase();
+        objectDb = geogit.getRepository().objectDatabase();
     }
 
     @Override

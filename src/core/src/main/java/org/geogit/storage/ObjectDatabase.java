@@ -17,11 +17,13 @@ import org.geogit.api.RevFeatureType;
 import org.geogit.api.RevObject;
 import org.geogit.api.RevTag;
 import org.geogit.api.RevTree;
+import org.geogit.di.Singleton;
 import org.geogit.repository.RepositoryConnectionException;
 
 /**
  * Provides an interface for implementations of GeoGit object databases.
  */
+@Singleton
 public interface ObjectDatabase extends Closeable {
 
     /**
@@ -137,6 +139,7 @@ public interface ObjectDatabase extends Closeable {
     /**
      * @return a newly constructed {@link ObjectInserter} for this database
      */
+    @Deprecated
     public ObjectInserter newObjectInserter();
 
     /**

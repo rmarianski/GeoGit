@@ -19,13 +19,11 @@ import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffTreeWalk;
 import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.StagingDatabase;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 /**
  * Compares the content and metadata links of blobs found via two tree objects on the repository's
@@ -33,8 +31,6 @@ import com.google.inject.Inject;
  */
 public class DiffTree extends AbstractGeoGitOp<Iterator<DiffEntry>> implements
         Supplier<Iterator<DiffEntry>> {
-
-    private StagingDatabase objectDb;
 
     private final List<String> pathFilters = Lists.newLinkedList();
 
@@ -48,12 +44,8 @@ public class DiffTree extends AbstractGeoGitOp<Iterator<DiffEntry>> implements
 
     /**
      * Constructs a new instance of the {@code DiffTree} operation with the given parameters.
-     * 
-     * @param objectDb the repository object database
      */
-    @Inject
-    public DiffTree(StagingDatabase objectDb) {
-        this.objectDb = objectDb;
+    public DiffTree() {
         this.recursive = true;
     }
 
@@ -157,7 +149,7 @@ public class DiffTree extends AbstractGeoGitOp<Iterator<DiffEntry>> implements
             newTree = RevTree.EMPTY;
         }
 
-        DiffTreeWalk treeWalk = new DiffTreeWalk(objectDb, oldTree, newTree);
+        DiffTreeWalk treeWalk = new DiffTreeWalk(stagingDatabase(), oldTree, newTree);
         treeWalk.setFilter(pathFilters);
         treeWalk.setReportTrees(reportTrees);
         treeWalk.setRecursive(recursive);

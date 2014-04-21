@@ -15,7 +15,6 @@ import org.geogit.api.plumbing.ResolveGeogitDir;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
-import com.google.inject.Inject;
 
 /**
  * Resolves the location of the {@code osm} log file directory relative to the
@@ -26,15 +25,6 @@ import com.google.inject.Inject;
  * 
  */
 public class ResolveOSMLogfile extends AbstractGeoGitOp<URL> {
-
-    /**
-     * Constructs a new instance of {@code ResolveOSMLogfile} with the specified platform.
-     * 
-     */
-    @Inject
-    public ResolveOSMLogfile() {
-
-    }
 
     @Override
     public URL call() {

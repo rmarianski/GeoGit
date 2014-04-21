@@ -13,7 +13,7 @@ import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.GeoGIT;
 import org.geogit.api.GeogitTransaction;
 import org.geogit.api.NodeRef;
@@ -227,8 +227,8 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
         return ImmutableList.copyOf(list);
     }
 
-    public CommandLocator getCommandLocator(@Nullable Transaction transaction) {
-        CommandLocator commandLocator = null;
+    public Injector getCommandLocator(@Nullable Transaction transaction) {
+        Injector commandLocator = null;
 
         if (transaction != null && !Transaction.AUTO_COMMIT.equals(transaction)) {
             GeogitTransactionState state;
@@ -297,7 +297,7 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
     private List<NodeRef> findTypeRefs(@Nullable Transaction tx) {
 
         final String rootRef = getRootRef(tx);
-        CommandLocator commandLocator = getCommandLocator(tx);
+        Injector commandLocator = getCommandLocator(tx);
         List<NodeRef> typeTrees = commandLocator.command(FindFeatureTypeTrees.class)
                 .setRootTreeRef(rootRef).call();
         return typeTrees;
@@ -340,7 +340,7 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
             final String branch = getOrFigureOutBranch();
             tx.command(CheckoutOp.class).setForce(true).setSource(branch).call();
             // now we can use the transaction working tree with the correct branch checked out
-            WorkingTree workingTree = tx.getWorkingTree();
+            WorkingTree workingTree = tx.workingTree();
             workingTree.createTypeTree(treePath, featureType);
             tx.command(AddOp.class).addPattern(treePath).call();
             tx.command(CommitOp.class).setMessage("Created feature type tree " + treePath).call();

@@ -4,16 +4,9 @@
  */
 package org.geogit.di;
 
-import static com.google.inject.matcher.Matchers.subclassesOf;
-
-import java.lang.reflect.Method;
-import java.util.Iterator;
-
-import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.CommandLocator;
 import org.geogit.api.DefaultPlatform;
+import org.geogit.api.Injector;
 import org.geogit.api.Platform;
-import org.geogit.api.RevObject;
 import org.geogit.repository.Index;
 import org.geogit.repository.Repository;
 import org.geogit.repository.StagingArea;
@@ -33,16 +26,15 @@ import org.geogit.storage.memory.HeapDeduplicationService;
 import org.geogit.storage.memory.HeapGraphDatabase;
 import org.geogit.storage.memory.HeapStagingDatabase;
 
-import com.google.common.base.Throwables;
 import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
 import com.google.inject.Scopes;
-import com.google.inject.matcher.AbstractMatcher;
-import com.google.inject.matcher.Matcher;
+import com.google.inject.multibindings.Multibinder;
 
 /**
  * Provides bindings for GeoGit singletons.
  * 
- * @see CommandLocator
+ * @see Injector
  * @see Platform
  * @see Repository
  * @see ConfigDatabase
@@ -65,7 +57,10 @@ public class GeogitModule extends AbstractModule {
     @Override
     protected void configure() {
 
-        bind(CommandLocator.class).to(GuiceCommandLocator.class).in(Scopes.SINGLETON);
+        bind(Injector.class).to(GuiceInjector.class).in(Scopes.SINGLETON);
+
+        Multibinder.newSetBinder(binder(), Decorator.class);
+        bind(DecoratorProvider.class).in(Scopes.SINGLETON);
 
         bind(Platform.class).to(DefaultPlatform.class).asEagerSingleton();
 
@@ -90,40 +85,20 @@ public class GeogitModule extends AbstractModule {
     }
 
     private void bindConflictCheckingInterceptor() {
-        final Method callMethod;
-        try {
-            callMethod = AbstractGeoGitOp.class.getMethod("call");
-        } catch (Exception e) {
-            throw Throwables.propagate(e);
-        }
-        Matcher<Method> callMatcher = new MethodMatcher(callMethod);
-
-        Matcher<Class<?>> canRunDuringCommitMatcher = new AbstractMatcher<Class<?>>() {
-
-            @Override
-            public boolean matches(Class<?> clazz) {
-                // TODO: this is not a very clean way of doing this...
-                return !(clazz.getPackage().getName().contains("plumbing") || clazz
-                        .isAnnotationPresent(CanRunDuringConflict.class));
-            }
-        };
-
-        bindInterceptor(canRunDuringCommitMatcher, callMatcher, new ConflictInterceptor());
+        bindDecorator(binder(), new ConflictInterceptor());
     }
 
     private void bindCommitGraphInterceptor() {
-        final Method putRevObject;
-        final Method putAll;
-        try {
-            putRevObject = ObjectDatabase.class.getMethod("put", RevObject.class);
-            putAll = ObjectDatabase.class.getMethod("putAll", Iterator.class);
-        } catch (Exception e) {
-            throw Throwables.propagate(e);
-        }
-        Matcher<Method> methodMatcher = new MethodMatcher(putRevObject)
-                .or(new MethodMatcher(putAll));
 
-        bindInterceptor(subclassesOf(ObjectDatabase.class), methodMatcher,
-                new ObjectDatabasePutInterceptor(getProvider(GraphDatabase.class)));
+        ObjectDatabasePutInterceptor commitGraphUpdater = new ObjectDatabasePutInterceptor(
+                getProvider(GraphDatabase.class));
+
+        bindDecorator(binder(), commitGraphUpdater);
+    }
+
+    public static void bindDecorator(Binder binder, Decorator decorator) {
+
+        Multibinder.newSetBinder(binder, Decorator.class).addBinding().toInstance(decorator);
+
     }
 }

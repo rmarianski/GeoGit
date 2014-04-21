@@ -122,9 +122,8 @@ class HttpMappedRemoteRepo extends AbstractMappedRemoteRepo {
                         Ref remoteRef = HttpUtils.parseRef(line);
                         Ref newRef = remoteRef;
                         if (!(newRef instanceof SymRef)
-                                && localRepository.getGraphDatabase().exists(
-                                        remoteRef.getObjectId())) {
-                            ObjectId mappedCommit = localRepository.getGraphDatabase().getMapping(
+                                && localRepository.graphDatabase().exists(remoteRef.getObjectId())) {
+                            ObjectId mappedCommit = localRepository.graphDatabase().getMapping(
                                     remoteRef.getObjectId());
                             if (mappedCommit != null) {
                                 newRef = new Ref(remoteRef.getName(), mappedCommit);
@@ -337,15 +336,15 @@ class HttpMappedRemoteRepo extends AbstractMappedRemoteRepo {
                                 .setEnd(commonAncestor.get()).call()) {
                             // This should be the base commit to preserve changes that were filtered
                             // out.
-                            newParents.add(0, from.getGraphDatabase().getMapping(parentId));
+                            newParents.add(0, from.graphDatabase().getMapping(parentId));
                             continue;
                         }
                     }
                 }
-                newParents.add(from.getGraphDatabase().getMapping(parentId));
+                newParents.add(from.graphDatabase().getMapping(parentId));
             }
             if (newParents.size() > 0) {
-                parent = from.getGraphDatabase().getMapping(newParents.get(0));
+                parent = from.graphDatabase().getMapping(newParents.get(0));
             }
             Iterator<DiffEntry> diffIter = from.command(DiffOp.class).setNewVersion(commitId)
                     .setOldVersion(parent).setReportTrees(true).call();
@@ -392,8 +391,8 @@ class HttpMappedRemoteRepo extends AbstractMappedRemoteRepo {
                 String line = rd.readLine();
                 if (line != null) {
                     ObjectId remoteCommitId = ObjectId.valueOf(line);
-                    from.getGraphDatabase().map(commit.getId(), remoteCommitId);
-                    from.getGraphDatabase().map(remoteCommitId, commit.getId());
+                    from.graphDatabase().map(commit.getId(), remoteCommitId);
+                    from.graphDatabase().map(remoteCommitId, commit.getId());
                 }
 
             } catch (IOException e) {

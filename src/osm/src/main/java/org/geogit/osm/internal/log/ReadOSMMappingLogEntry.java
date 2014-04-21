@@ -13,7 +13,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
-import com.google.inject.Inject;
 
 /**
  * Returns the stored information about a mapping for a given tree path. Returns an absent object if
@@ -22,15 +21,6 @@ import com.google.inject.Inject;
 public class ReadOSMMappingLogEntry extends AbstractGeoGitOp<Optional<OSMMappingLogEntry>> {
 
     private String path;
-
-    /**
-     * Constructs a new instance of {@code ResolveOSMLogfile} with the specified platform.
-     * 
-     */
-    @Inject
-    public ReadOSMMappingLogEntry() {
-
-    }
 
     public ReadOSMMappingLogEntry setPath(String path) {
         this.path = path;

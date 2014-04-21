@@ -36,7 +36,7 @@ public class SendObjectResource extends Resource {
             input = getRequest().getEntity().getStream();
             final GeoGIT ggit = getGeogit(getRequest()).get();
             final BinaryPackedObjects unpacker = new BinaryPackedObjects(ggit.getRepository()
-                    .getObjectDatabase());
+                    .objectDatabase());
             unpacker.ingest(input);
 
         } catch (IOException e) {

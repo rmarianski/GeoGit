@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.opengis.feature.type.PropertyDescriptor;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedSet;
 
 public class DescribeFeatureTypeTest extends RepositoryTestCase {
 

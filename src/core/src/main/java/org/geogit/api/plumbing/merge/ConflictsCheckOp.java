@@ -14,11 +14,11 @@ import com.google.common.base.Optional;
 public class ConflictsCheckOp extends AbstractGeoGitOp<Boolean> {
     @Override
     public Boolean call() {
-        final Optional<URL> repoUrl = getCommandLocator().command(ResolveGeogitDir.class).call();
+        final Optional<URL> repoUrl = command(ResolveGeogitDir.class).call();
         Boolean hasConflicts = Boolean.FALSE;
 
         if (repoUrl.isPresent()) {
-            boolean conflicts = getIndex().getDatabase().hasConflicts(null);
+            boolean conflicts = stagingDatabase().hasConflicts(null);
             hasConflicts = Boolean.valueOf(conflicts);
         }
         return hasConflicts;

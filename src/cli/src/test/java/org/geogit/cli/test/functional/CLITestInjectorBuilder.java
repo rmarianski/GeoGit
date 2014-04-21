@@ -4,6 +4,7 @@
  */
 package org.geogit.cli.test.functional;
 
+import org.geogit.api.Injector;
 import org.geogit.api.InjectorBuilder;
 import org.geogit.api.TestPlatform;
 import org.geogit.di.GeogitModule;
@@ -11,7 +12,6 @@ import org.geogit.repository.Hints;
 import org.geogit.test.integration.je.JETestStorageModule;
 
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 public class CLITestInjectorBuilder extends InjectorBuilder {
@@ -27,8 +27,9 @@ public class CLITestInjectorBuilder extends InjectorBuilder {
         JETestStorageModule jeStorageModule = new JETestStorageModule();
         FunctionalTestModule functionalTestModule = new FunctionalTestModule(platform.clone());
 
-        Injector injector = Guice.createInjector(Modules.override(new GeogitModule()).with(
-                jeStorageModule, functionalTestModule, new HintsModule(hints)));
+        Injector injector = Guice.createInjector(
+                Modules.override(new GeogitModule()).with(jeStorageModule, functionalTestModule,
+                        new HintsModule(hints))).getInstance(org.geogit.api.Injector.class);
         return injector;
     }
 

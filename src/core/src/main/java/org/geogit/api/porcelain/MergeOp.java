@@ -32,13 +32,11 @@ import org.geogit.api.plumbing.merge.ConflictsWriteOp;
 import org.geogit.api.plumbing.merge.MergeScenarioReport;
 import org.geogit.api.plumbing.merge.ReportMergeScenarioOp;
 import org.geogit.api.plumbing.merge.SaveMergeCommitMessageOp;
-import org.geogit.repository.Repository;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 /**
  * 
@@ -51,8 +49,6 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
 
     private String message = null;
 
-    private Repository repository;
-
     private boolean ours;
 
     private boolean theirs;
@@ -62,16 +58,6 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
     private Optional<String> authorName = Optional.absent();
 
     private Optional<String> authorEmail = Optional.absent();
-
-    /**
-     * Constructs a new {@code MergeOp} using the specified parameters.
-     * 
-     * @param repository the repository to use
-     */
-    @Inject
-    public MergeOp(Repository repository) {
-        this.repository = repository;
-    }
 
     /**
      * @param message the message for the merge commit
@@ -170,10 +156,10 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
         boolean hasConflictsOrAutomerge;
         List<RevCommit> revCommits = Lists.newArrayList();
         if (!ObjectId.NULL.equals(headRef.getObjectId())) {
-            revCommits.add(repository.getCommit(headRef.getObjectId()));
+            revCommits.add(repository().getCommit(headRef.getObjectId()));
         }
         for (ObjectId commitId : commits) {
-            revCommits.add(repository.getCommit(commitId));
+            revCommits.add(repository().getCommit(commitId));
         }
         hasConflictsOrAutomerge = command(CheckMergeScenarioOp.class).setCommits(revCommits).call()
                 .booleanValue();
@@ -183,14 +169,14 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
                     "Conflicted merge.\nCannot merge more than two commits when conflicts exist"
                             + " or features have been modified in several histories");
 
-            RevCommit headCommit = repository.getCommit(headRef.getObjectId());
+            RevCommit headCommit = repository().getCommit(headRef.getObjectId());
             ObjectId commitId = commits.get(0);
             Preconditions.checkArgument(!ObjectId.NULL.equals(commitId),
                     "Cannot merge a NULL commit.");
-            Preconditions.checkArgument(repository.commitExists(commitId), "Not a valid commit: "
+            Preconditions.checkArgument(repository().commitExists(commitId), "Not a valid commit: "
                     + commitId.toString());
 
-            final RevCommit targetCommit = repository.getCommit(commitId);
+            final RevCommit targetCommit = repository().getCommit(commitId);
             Optional<ObjectId> ancestorCommit = command(FindCommonAncestor.class)
                     .setLeft(headCommit).setRight(targetCommit).call();
 
@@ -201,21 +187,21 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
 
             List<FeatureInfo> merged = mergeScenario.get().getMerged();
             for (FeatureInfo feature : merged) {
-                this.getWorkTree().insert(NodeRef.parentPath(feature.getPath()),
+                this.workingTree().insert(NodeRef.parentPath(feature.getPath()),
                         feature.getFeature());
-                Iterator<DiffEntry> unstaged = getWorkTree().getUnstaged(null);
-                getIndex().stage(getProgressListener(), unstaged, 0);
+                Iterator<DiffEntry> unstaged = workingTree().getUnstaged(null);
+                index().stage(getProgressListener(), unstaged, 0);
                 changed = true;
                 fastForward = false;
             }
             List<DiffEntry> unconflicting = mergeScenario.get().getUnconflicted();
             if (!unconflicting.isEmpty()) {
-                getIndex().stage(getProgressListener(), unconflicting.iterator(), 0);
+                index().stage(getProgressListener(), unconflicting.iterator(), 0);
                 changed = true;
                 fastForward = false;
             }
 
-            getWorkTree().updateWorkHead(getIndex().getTree().getId());
+            workingTree().updateWorkHead(index().getTree().getId());
 
             List<Conflict> conflicts = mergeScenario.get().getConflicts();
             if (!ours && !conflicts.isEmpty()) {
@@ -257,7 +243,7 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
 
                 Preconditions.checkArgument(!ObjectId.NULL.equals(commitId),
                         "Cannot merge a NULL commit.");
-                Preconditions.checkArgument(repository.commitExists(commitId),
+                Preconditions.checkArgument(repository().commitExists(commitId),
                         "Not a valid commit: " + commitId.toString());
 
                 subProgress.started();
@@ -274,15 +260,15 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
                                 .setNewValue(commitId).call().get();
                     }
 
-                    getWorkTree().updateWorkHead(commitId);
-                    getIndex().updateStageHead(commitId);
+                    workingTree().updateWorkHead(commitId);
+                    index().updateStageHead(commitId);
                     subProgress.complete();
                     changed = true;
                     continue;
                 }
 
-                RevCommit headCommit = repository.getCommit(headRef.getObjectId());
-                final RevCommit targetCommit = repository.getCommit(commitId);
+                RevCommit headCommit = repository().getCommit(headRef.getObjectId());
+                final RevCommit targetCommit = repository().getCommit(commitId);
 
                 Optional<ObjectId> ancestorCommit = command(FindCommonAncestor.class)
                         .setLeft(headCommit).setRight(targetCommit).call();
@@ -310,8 +296,8 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
                                     .setNewValue(commitId).call().get();
                         }
 
-                        getWorkTree().updateWorkHead(commitId);
-                        getIndex().updateStageHead(commitId);
+                        workingTree().updateWorkHead(commitId);
+                        index().updateStageHead(commitId);
                         subProgress.complete();
                         changed = true;
                         continue;
@@ -324,11 +310,11 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
                 Iterator<DiffEntry> diff = command(DiffTree.class).setOldTree(ancestorCommit.get())
                         .setNewTree(targetCommit.getId()).setReportTrees(true).call();
                 // stage changes
-                getIndex().stage(new SubProgressListener(subProgress, 100.f), diff, 0);
+                index().stage(new SubProgressListener(subProgress, 100.f), diff, 0);
                 changed = true;
                 fastForward = false;
 
-                getWorkTree().updateWorkHead(getIndex().getTree().getId());
+                workingTree().updateWorkHead(index().getTree().getId());
 
                 subProgress.complete();
 
@@ -352,7 +338,7 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
 
         RevCommit mergeCommit;
         if (fastForward) {
-            mergeCommit = repository.getCommit(commits.get(0));
+            mergeCommit = repository().getCommit(commits.get(0));
         } else {
             String commitMessage = message;
             if (commitMessage == null) {
@@ -369,7 +355,7 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
             if (noCommit) {
                 final Optional<Ref> currHead = command(RefParse.class).setName(Ref.HEAD).call();
                 SymRef headRef = (SymRef) currHead.get();
-                RevCommit headCommit = repository.getCommit(headRef.getObjectId());
+                RevCommit headCommit = repository().getCommit(headRef.getObjectId());
                 command(UpdateRef.class).setName(Ref.MERGE_HEAD).setNewValue(commits.get(0)).call();
                 // TODO:how to store multiple ids when octopus merge
                 command(UpdateRef.class).setName(Ref.ORIG_HEAD).setNewValue(headCommit.getId())

@@ -17,7 +17,6 @@ import org.geogit.storage.NodeStorageOrder;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.test.integration.RepositoryTestCase;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.base.Stopwatch;
@@ -69,7 +68,7 @@ public class RevTreeBuilderPerformanceTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        odb = repo.getObjectDatabase();
+        odb = repo.objectDatabase();
     }
 
     @Test

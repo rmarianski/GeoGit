@@ -25,7 +25,6 @@ import org.geogit.repository.Repository;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
-import com.google.inject.Inject;
 
 /**
  * 
@@ -36,16 +35,6 @@ import com.google.inject.Inject;
 public class CherryPickOp extends AbstractGeoGitOp<RevCommit> {
 
     private ObjectId commit;
-
-    private Repository repository;
-
-    /**
-     * Constructs a new {@code CherryPickOp}.
-     */
-    @Inject
-    public CherryPickOp(Repository repository) {
-        this.repository = repository;
-    }
 
     /**
      * Sets the commit to replay commits onto.
@@ -67,6 +56,7 @@ public class CherryPickOp extends AbstractGeoGitOp<RevCommit> {
      */
     @Override
     public RevCommit call() {
+        final Repository repository = repository();
         final Optional<Ref> currHead = command(RefParse.class).setName(Ref.HEAD).call();
         Preconditions
                 .checkState(currHead.isPresent(), "Repository has no HEAD, can't cherry pick.");
@@ -74,7 +64,7 @@ public class CherryPickOp extends AbstractGeoGitOp<RevCommit> {
                 "Can't cherry pick from detached HEAD");
         final SymRef headRef = (SymRef) currHead.get();
 
-        Preconditions.checkState(getIndex().isClean() && getWorkTree().isClean(),
+        Preconditions.checkState(index().isClean() && workingTree().isClean(),
                 "You must have a clean working tree and index to perform a cherry pick.");
 
         getProgressListener().started();
@@ -102,13 +92,13 @@ public class CherryPickOp extends AbstractGeoGitOp<RevCommit> {
                 .setCommit(commitToApply).call();
         if (report.getConflicts().isEmpty()) {
             // stage changes
-            getIndex().stage(getProgressListener(), diff, 0);
+            index().stage(getProgressListener(), diff, 0);
             // write new tree
             ObjectId newTreeId = command(WriteTree.class).call();
             RevCommit newCommit = command(CommitOp.class).setCommit(commitToApply).call();
 
-            repository.getWorkingTree().updateWorkHead(newTreeId);
-            repository.getIndex().updateStageHead(newTreeId);
+            repository.workingTree().updateWorkHead(newTreeId);
+            repository.index().updateStageHead(newTreeId);
 
             getProgressListener().complete();
 
@@ -116,8 +106,8 @@ public class CherryPickOp extends AbstractGeoGitOp<RevCommit> {
         } else {
             Iterator<DiffEntry> unconflicted = report.getUnconflicted().iterator();
             // stage changes
-            getIndex().stage(getProgressListener(), unconflicted, 0);
-            getWorkTree().updateWorkHead(getIndex().getTree().getId());
+            index().stage(getProgressListener(), unconflicted, 0);
+            workingTree().updateWorkHead(index().getTree().getId());
 
             command(UpdateRef.class).setName(Ref.CHERRY_PICK_HEAD).setNewValue(commit).call();
             command(UpdateRef.class).setName(Ref.ORIG_HEAD).setNewValue(headId).call();

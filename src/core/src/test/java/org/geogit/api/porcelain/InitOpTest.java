@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.api.Ref;
@@ -39,7 +39,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import com.google.common.base.Optional;
-import com.google.inject.Injector;
 
 /**
  *
@@ -72,7 +71,7 @@ public class InitOpTest {
 
     @Before
     public void setUp() throws IOException {
-        CommandLocator mockCommands = mock(CommandLocator.class);
+        injector = mock(Injector.class);
 
         mockRefParse = mock(RefParse.class);
         when(mockRefParse.setName(anyString())).thenReturn(mockRefParse);
@@ -91,15 +90,15 @@ public class InitOpTest {
         when(mockUpdateSymRef.setOldValue(anyString())).thenReturn(mockUpdateSymRef);
         when(mockUpdateSymRef.setReason(anyString())).thenReturn(mockUpdateSymRef);
 
-        when(mockCommands.command(eq(RefParse.class))).thenReturn(mockRefParse);
-        when(mockCommands.command(eq(UpdateRef.class))).thenReturn(mockUpdateRef);
-        when(mockCommands.command(eq(UpdateSymRef.class))).thenReturn(mockUpdateSymRef);
+        when(injector.command(eq(RefParse.class))).thenReturn(mockRefParse);
+        when(injector.command(eq(UpdateRef.class))).thenReturn(mockUpdateRef);
+        when(injector.command(eq(UpdateSymRef.class))).thenReturn(mockUpdateSymRef);
 
         platform = mock(Platform.class);
-        injector = mock(Injector.class);
+        when(injector.platform()).thenReturn(platform);
         defaults = PluginDefaults.NO_PLUGINS;
-        init = new InitOp(platform, injector, defaults);
-        init.setCommandLocator(mockCommands);
+        init = new InitOp(defaults);
+        init.setInjector(injector);
 
         mockRepo = mock(Repository.class);
 
@@ -119,7 +118,7 @@ public class InitOpTest {
 
     @Test
     public void testCreateNewRepo() throws Exception {
-        when(injector.getInstance(eq(Repository.class))).thenReturn(mockRepo);
+        when(injector.repository()).thenReturn(mockRepo);
         Optional<Ref> absent = Optional.absent();
         when(mockRefParse.call()).thenReturn(absent);
 
@@ -128,7 +127,7 @@ public class InitOpTest {
         assertTrue(new File(workingDir, ".geogit").exists());
         assertTrue(new File(workingDir, ".geogit").isDirectory());
 
-        verify(injector, times(1)).getInstance(eq(Repository.class));
+        verify(injector, times(1)).repository();
         verify(platform, atLeastOnce()).pwd();
 
         verify(mockUpdateRef, times(1)).setName(eq(Ref.MASTER));
@@ -145,7 +144,7 @@ public class InitOpTest {
 
     @Test
     public void testReinitializeExistingRepo() throws Exception {
-        when(injector.getInstance(eq(Repository.class))).thenReturn(mockRepo);
+        when(injector.repository()).thenReturn(mockRepo);
         Optional<Ref> absent = Optional.absent();
         when(mockRefParse.call()).thenReturn(absent);
 
@@ -162,17 +161,19 @@ public class InitOpTest {
 
         when(mockRefParse.call()).thenReturn(Optional.of(master));
 
-        CommandLocator mockCommands = mock(CommandLocator.class);
-        when(mockCommands.command(eq(RefParse.class))).thenReturn(mockRefParse);
-        init.setCommandLocator(mockCommands);
+        Injector injector = mock(Injector.class);
+        when(injector.command(eq(RefParse.class))).thenReturn(mockRefParse);
+        when(injector.platform()).thenReturn(platform);
+        when(injector.repository()).thenReturn(mockRepo);
+        init.setInjector(injector);
 
         assertTrue(ResolveGeogitDir.lookup(platform.pwd()).isPresent());
         assertNotNull(init.call());
         verify(platform, atLeastOnce()).pwd();
         assertTrue(ResolveGeogitDir.lookup(platform.pwd()).isPresent());
 
-        verify(mockCommands, never()).command(eq(UpdateRef.class));
-        verify(mockCommands, never()).command(eq(UpdateSymRef.class));
+        verify(injector, never()).command(eq(UpdateRef.class));
+        verify(injector, never()).command(eq(UpdateSymRef.class));
     }
 
     @Test

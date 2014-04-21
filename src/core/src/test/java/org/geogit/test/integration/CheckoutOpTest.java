@@ -80,7 +80,7 @@ public class CheckoutOpTest extends RepositoryTestCase {
                 NodeRef.appendChild(pointsName, points1.getIdentifier().getID()),
                 NodeRef.appendChild(linesName, lines1.getIdentifier().getID()));
 
-        RevTree root = repo.getWorkingTree().getTree();
+        RevTree root = repo.workingTree().getTree();
 
         Optional<Node> featureBlob1 = repo.getTreeChild(root, paths.get(0));
         assertEquals(oID1Modified, featureBlob1.get().getObjectId());
@@ -98,7 +98,7 @@ public class CheckoutOpTest extends RepositoryTestCase {
 
         geogit.command(CheckoutOp.class).setSource("master").addPaths(paths).call();
 
-        root = repo.getWorkingTree().getTree();
+        root = repo.workingTree().getTree();
 
         featureBlob1 = repo.getTreeChild(root, paths.get(0));
         assertEquals(oID1, featureBlob1.get().getObjectId());
@@ -409,7 +409,7 @@ public class CheckoutOpTest extends RepositoryTestCase {
         createConflictedState();
         String path = NodeRef.appendChild(pointsName, idP1);
         geogit.command(CheckoutOp.class).addPath(path).setOurs(true).call();
-        Optional<Node> node = geogit.getRepository().getWorkingTree().findUnstaged(path);
+        Optional<Node> node = geogit.getRepository().workingTree().findUnstaged(path);
         String headPath = Ref.HEAD + ":" + path;
         Optional<ObjectId> id = geogit.command(RevParse.class).setRefSpec(headPath).call();
         assertEquals(id.get(), node.get().getObjectId());
@@ -420,7 +420,7 @@ public class CheckoutOpTest extends RepositoryTestCase {
         createDeleteOursConflictedState();
         String path = NodeRef.appendChild(pointsName, idP1);
         geogit.command(CheckoutOp.class).addPath(path).setOurs(true).call();
-        Optional<Node> node = geogit.getRepository().getIndex().findStaged(path);
+        Optional<Node> node = geogit.getRepository().index().findStaged(path);
         assertFalse(node.isPresent());
         String headPath = Ref.HEAD + ":" + path;
         Optional<ObjectId> id = geogit.command(RevParse.class).setRefSpec(headPath).call();
@@ -432,7 +432,7 @@ public class CheckoutOpTest extends RepositoryTestCase {
         createConflictedState();
         String path = NodeRef.appendChild(pointsName, idP1);
         geogit.command(CheckoutOp.class).addPath(path).setTheirs(true).call();
-        Optional<Node> node = geogit.getRepository().getWorkingTree().findUnstaged(path);
+        Optional<Node> node = geogit.getRepository().workingTree().findUnstaged(path);
         String headPath = Ref.MERGE_HEAD + ":" + path;
         Optional<ObjectId> id = geogit.command(RevParse.class).setRefSpec(headPath).call();
         assertEquals(id.get(), node.get().getObjectId());
@@ -443,7 +443,7 @@ public class CheckoutOpTest extends RepositoryTestCase {
         createDeleteTheirsConflictedState();
         String path = NodeRef.appendChild(pointsName, idP1);
         geogit.command(CheckoutOp.class).addPath(path).setTheirs(true).call();
-        Optional<Node> node = geogit.getRepository().getIndex().findStaged(path);
+        Optional<Node> node = geogit.getRepository().index().findStaged(path);
         assertFalse(node.isPresent());
         String headPath = Ref.MERGE_HEAD + ":" + path;
         Optional<ObjectId> id = geogit.command(RevParse.class).setRefSpec(headPath).call();

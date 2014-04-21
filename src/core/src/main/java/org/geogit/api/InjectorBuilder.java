@@ -9,7 +9,6 @@ import org.geogit.repository.Hints;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 public class InjectorBuilder {
 
@@ -22,7 +21,8 @@ public class InjectorBuilder {
      *        can make use of it
      */
     public Injector build(Hints hints) {
-        return Guice.createInjector(new GeogitModule(), new HintsModule(hints));
+        return Guice.createInjector(new GeogitModule(), new HintsModule(hints)).getInstance(
+                org.geogit.api.Injector.class);
     }
 
     protected static class HintsModule extends AbstractModule {

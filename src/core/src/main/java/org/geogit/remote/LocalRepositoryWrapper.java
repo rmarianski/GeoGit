@@ -34,7 +34,7 @@ class LocalRepositoryWrapper implements RepositoryWrapper {
      */
     @Override
     public boolean objectExists(ObjectId objectId) {
-        return objectId.isNull() || localRepository.getObjectDatabase().exists(objectId);
+        return objectId.isNull() || localRepository.objectDatabase().exists(objectId);
     }
 
     /**
@@ -45,7 +45,7 @@ class LocalRepositoryWrapper implements RepositoryWrapper {
      */
     @Override
     public ImmutableList<ObjectId> getParents(ObjectId commitId) {
-        return localRepository.getGraphDatabase().getParents(commitId);
+        return localRepository.graphDatabase().getParents(commitId);
     }
 
     /**
@@ -56,7 +56,7 @@ class LocalRepositoryWrapper implements RepositoryWrapper {
      */
     @Override
     public int getDepth(ObjectId commitId) {
-        return localRepository.getGraphDatabase().getDepth(commitId);
+        return localRepository.graphDatabase().getDepth(commitId);
     }
 
     /**

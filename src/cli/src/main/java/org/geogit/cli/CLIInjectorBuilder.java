@@ -4,6 +4,7 @@
  */
 package org.geogit.cli;
 
+import org.geogit.api.Injector;
 import org.geogit.api.InjectorBuilder;
 import org.geogit.di.GeogitModule;
 import org.geogit.di.PluginDefaults;
@@ -31,7 +32,6 @@ import org.geogit.storage.sqlite.XerialStagingDatabase;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.Scopes;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.util.Modules;
@@ -53,9 +53,10 @@ public class CLIInjectorBuilder extends InjectorBuilder {
 
     @Override
     public Injector build(Hints hints) {
-        return Guice.createInjector(Modules.override(new GeogitModule(), new CachingModule()).with(
-                new MetricsModule(), new PluginsModule(), new DefaultPlugins(),
-                new HintsModule(hints)));
+        return Guice.createInjector(
+                Modules.override(new GeogitModule(), new CachingModule()).with(new MetricsModule(),
+                        new PluginsModule(), new DefaultPlugins(), new HintsModule(hints)))
+                .getInstance(org.geogit.api.Injector.class);
     }
 
     private class DefaultPlugins extends AbstractModule {

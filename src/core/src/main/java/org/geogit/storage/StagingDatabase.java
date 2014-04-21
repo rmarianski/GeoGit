@@ -9,6 +9,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.geogit.api.plumbing.merge.Conflict;
+import org.geogit.di.Singleton;
 
 import com.google.common.base.Optional;
 
@@ -16,6 +17,7 @@ import com.google.common.base.Optional;
  * Provides an interface for GeoGit staging databases.
  * 
  */
+@Singleton
 public interface StagingDatabase extends ObjectDatabase {
 
     /**

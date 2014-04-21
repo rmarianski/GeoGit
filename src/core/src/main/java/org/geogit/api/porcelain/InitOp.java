@@ -43,7 +43,6 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * Creates or "initializes" a repository in the {@link Platform#pwd() working directory}.
@@ -62,12 +61,8 @@ import com.google.inject.Injector;
 @CanRunDuringConflict
 public class InitOp extends AbstractGeoGitOp<Repository> {
 
-    private Platform platform;
-
-    private Injector injector;
-
     private Map<String, String> config;
-    
+
     private PluginDefaults defaults;
 
     private String filterFile;
@@ -83,12 +78,8 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
      *        the {@code .geogit} repository directory is found or created.
      */
     @Inject
-    public InitOp(Platform platform, Injector injector, PluginDefaults defaults) {
-        checkNotNull(platform);
-        checkNotNull(injector);
+    public InitOp(PluginDefaults defaults) {
         checkNotNull(defaults);
-        this.platform = platform;
-        this.injector = injector;
         this.defaults = defaults;
         this.config = Maps.newTreeMap();
     }
@@ -118,6 +109,7 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
      */
     @Override
     public Repository call() {
+        final Platform platform = platform();
         final File workingDirectory = platform.pwd();
         checkState(workingDirectory != null, "working directory is null");
 
@@ -138,6 +130,7 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
     }
 
     private Repository callInternal() {
+        final Platform platform = platform();
         final File workingDirectory = platform.pwd();
         final Optional<URL> repoUrl = new ResolveGeogitDir(platform).call();
 
@@ -210,14 +203,14 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
         Repository repository;
         try {
             if (!repoExisted) {
-                ConfigDatabase configDB = injector.getInstance(ConfigDatabase.class);
+                ConfigDatabase configDB = injector.configDatabase();
                 try {
                     for (Entry<String, String> pair : effectiveConfigBuilder.entrySet()) {
                         String key = pair.getKey();
                         String value = pair.getValue();
                         configDB.put(key, value);
                     }
-                    repository = injector.getInstance(Repository.class);
+                    repository = repository();
                     repository.configure();
                 } catch (RepositoryConnectionException e) {
                     throw new IllegalStateException(
@@ -225,7 +218,7 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
                             e);
                 }
             } else {
-                repository = injector.getInstance(Repository.class);
+                repository = repository();
             }
             try {
                 repository.open();

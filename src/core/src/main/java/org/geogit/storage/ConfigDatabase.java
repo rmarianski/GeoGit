@@ -8,12 +8,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.geogit.api.porcelain.ConfigException;
+import org.geogit.di.Singleton;
 
 import com.google.common.base.Optional;
 
 /**
  * Provides an interface for implementations of config databases, which manage GeoGit config files.
  */
+@Singleton
 public interface ConfigDatabase {
 
     /**

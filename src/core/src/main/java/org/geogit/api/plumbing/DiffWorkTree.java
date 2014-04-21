@@ -36,12 +36,6 @@ public class DiffWorkTree extends AbstractGeoGitOp<Iterator<DiffEntry>> implemen
     private boolean reportTrees;
 
     /**
-     * Constructs a new instance of the {@code DiffWorkTree} operation with the given parameters.
-     */
-    public DiffWorkTree() {
-    }
-
-    /**
      * @param refSpec the name of the root tree object in the to compare the working tree against.
      *        If {@code null} or not specified, defaults to the current state of the index.
      * @return {@code this}
@@ -73,10 +67,10 @@ public class DiffWorkTree extends AbstractGeoGitOp<Iterator<DiffEntry>> implemen
 
         final Optional<String> ref = Optional.fromNullable(refSpec);
 
-        final RevTree oldTree = ref.isPresent() ? getOldTree() : getIndex().getTree();
-        final RevTree newTree = getWorkTree().getTree();
+        final RevTree oldTree = ref.isPresent() ? getOldTree() : index().getTree();
+        final RevTree newTree = workingTree().getTree();
 
-        DiffTreeWalk treeWalk = new DiffTreeWalk(getIndex().getDatabase(), oldTree, newTree);
+        DiffTreeWalk treeWalk = new DiffTreeWalk(stagingDatabase(), oldTree, newTree);
         treeWalk.addFilter(pathFilter);
         treeWalk.setReportTrees(reportTrees);
 

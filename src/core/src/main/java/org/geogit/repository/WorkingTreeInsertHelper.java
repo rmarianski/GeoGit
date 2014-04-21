@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -37,7 +37,7 @@ class WorkingTreeInsertHelper {
 
     private final ObjectDatabase indexDatabase;
 
-    private final CommandLocator commandLocator;
+    private final Injector commandLocator;
 
     private final RevTree workHead;
 
@@ -47,7 +47,7 @@ class WorkingTreeInsertHelper {
 
     private final ExecutorService executorService;
 
-    public WorkingTreeInsertHelper(ObjectDatabase db, CommandLocator cmdLocator, RevTree workHead,
+    public WorkingTreeInsertHelper(ObjectDatabase db, Injector cmdLocator, RevTree workHead,
             final Function<Feature, String> treePathResolver, final ExecutorService executorService) {
 
         this.indexDatabase = db;

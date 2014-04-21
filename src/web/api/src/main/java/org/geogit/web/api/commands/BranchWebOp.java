@@ -6,7 +6,7 @@ package org.geogit.web.api.commands;
 
 import java.util.List;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.Ref;
 import org.geogit.api.porcelain.BranchListOp;
 import org.geogit.web.api.AbstractWebAPICommand;
@@ -55,7 +55,7 @@ public class BranchWebOp extends AbstractWebAPICommand {
     @Override
     public void run(CommandContext context) {
         if (list) {
-            final CommandLocator geogit = this.getCommandLocator(context);
+            final Injector geogit = this.getCommandLocator(context);
             final List<Ref> localBranches = geogit.command(BranchListOp.class).call();
             final List<Ref> remoteBranches;
             if (remotes) {

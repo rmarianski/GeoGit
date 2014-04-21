@@ -22,7 +22,7 @@ import org.geogit.api.plumbing.merge.Conflict;
 import org.geogit.repository.Hints;
 import org.geogit.repository.RepositoryConnectionException;
 import org.geogit.storage.ConfigDatabase;
-import org.geogit.storage.ForwardingStagingDatabase;
+import org.geogit.storage.AbstractStagingDatabase;
 import org.geogit.storage.ObjectDatabase;
 
 import com.google.common.base.Charsets;
@@ -59,7 +59,7 @@ import com.google.inject.Inject;
  * list of staged objects.
  * 
  */
-public class JEStagingDatabase extends ForwardingStagingDatabase {
+public class JEStagingDatabase extends AbstractStagingDatabase {
 
     /**
      * Name of the BDB JE environment inside the .geogit folder used for the staging database

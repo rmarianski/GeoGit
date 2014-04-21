@@ -20,7 +20,6 @@ import org.geogit.storage.StagingDatabase;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.inject.Inject;
 
 /**
  * Finds a {@link Node} by searching the given {@link RevTree} for the given path, returns the
@@ -39,27 +38,6 @@ public class FindTreeChild extends AbstractGeoGitOp<Optional<NodeRef>> {
     private String parentPath;
 
     private boolean indexDb;
-
-    private ObjectDatabase index;
-
-    private ObjectDatabase odb;
-
-    /**
-     * Constructs a new {@code FindTreeChild} instance with the specified parameters.
-     * 
-     * @param odb the repository object database
-     * @param index the staging database
-     */
-    @Inject
-    public FindTreeChild(ObjectDatabase odb, StagingDatabase index) {
-        this.odb = odb;
-        this.index = index;
-    }
-
-    public FindTreeChild(ObjectDatabase odb) {
-        this.odb = odb;
-        this.index = odb;
-    }
 
     /**
      * @param indexDb whether to look up in the {@link StagingDatabase index db} ({@code true}) or
@@ -129,7 +107,7 @@ public class FindTreeChild extends AbstractGeoGitOp<Optional<NodeRef>> {
         }
         final String path = childPath;
         final String parentPath = this.parentPath == null ? "" : this.parentPath;
-        final ObjectDatabase target = indexDb ? index : odb;
+        final ObjectDatabase target = indexDb ? stagingDatabase() : objectDatabase();
 
         DepthSearch depthSearch = new DepthSearch(target);
         Optional<NodeRef> childRef = depthSearch.find(tree, parentPath, path);

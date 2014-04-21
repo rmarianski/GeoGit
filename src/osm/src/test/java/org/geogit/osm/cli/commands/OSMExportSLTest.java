@@ -102,7 +102,7 @@ public class OSMExportSLTest extends Assert {
         assertTrue(exportFile.exists());
         cli.execute("sl", "import", "-t", "onewaystreets", "--database",
                 exportFile.getAbsolutePath());
-        long unstaged = cli.getGeogit().getRepository().getWorkingTree()
+        long unstaged = cli.getGeogit().getRepository().workingTree()
                 .countUnstaged("onewaystreets").getCount();
         assertTrue(unstaged > 0);
     }

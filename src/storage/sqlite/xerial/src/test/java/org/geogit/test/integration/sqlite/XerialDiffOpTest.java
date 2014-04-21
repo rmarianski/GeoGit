@@ -6,12 +6,12 @@ package org.geogit.test.integration.sqlite;
 
 import static org.geogit.test.integration.sqlite.XerialTests.injector;
 
+import org.geogit.api.Injector;
 import org.geogit.api.TestPlatform;
 import org.geogit.test.integration.DiffOpTest;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.inject.Injector;
 
 public class XerialDiffOpTest extends DiffOpTest {
     @Rule

@@ -4,28 +4,13 @@
  */
 package org.geogit.metrics;
 
-import static com.google.inject.matcher.Matchers.subclassesOf;
-
 import java.lang.management.ManagementFactory;
-import java.util.Iterator;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.Platform;
 import org.geogit.di.GeogitModule;
-import org.geogit.di.MethodMatcher;
-import org.geogit.repository.Repository;
-import org.geogit.storage.ConfigDatabase;
-import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.StagingDatabase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Provider;
-import com.google.inject.matcher.Matcher;
-import com.google.inject.matcher.Matchers;
 
 /**
  * Guice module to be used jointly with {@link GeogitModule}, that logs command ellapsed time to a
@@ -75,7 +60,7 @@ public class MetricsModule extends AbstractModule {
     @SuppressWarnings("rawtypes")
     @Override
     protected void configure() {
-
+/*
         Provider<Platform> platform = getProvider(Platform.class);
         Provider<ConfigDatabase> configDb = getProvider(ConfigDatabase.class);
 
@@ -123,5 +108,7 @@ public class MetricsModule extends AbstractModule {
                 return invocation.proceed();
             }
         });
+    */
     }
+    
 }

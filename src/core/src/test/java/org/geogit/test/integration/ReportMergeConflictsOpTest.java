@@ -251,7 +251,7 @@ public class ReportMergeConflictsOpTest extends RepositoryTestCase {
         insertAndAdd(points1);
         geogit.command(CommitOp.class).call();
         geogit.command(BranchCreateOp.class).setName("TestBranch").call();
-        geogit.getRepository().getWorkingTree().updateTypeTree(pointsName, modifiedPointsType);
+        geogit.getRepository().workingTree().updateTypeTree(pointsName, modifiedPointsType);
         insert(points1B);
         geogit.command(AddOp.class).call();
         RevCommit masterCommit = geogit.command(CommitOp.class).call();
@@ -259,7 +259,7 @@ public class ReportMergeConflictsOpTest extends RepositoryTestCase {
         String modifiedPointsTypeSpecB = "sp:String,ip:Integer,pp:Point:srid=4326,extraB:String";
         SimpleFeatureType modifiedPointsTypeB = DataUtilities.createType(pointsNs, pointsName,
                 modifiedPointsTypeSpecB);
-        geogit.getRepository().getWorkingTree().updateTypeTree(pointsName, modifiedPointsTypeB);
+        geogit.getRepository().workingTree().updateTypeTree(pointsName, modifiedPointsTypeB);
         insert(points1B);
         geogit.command(AddOp.class).call();
         RevCommit branchCommit = geogit.command(CommitOp.class).call();

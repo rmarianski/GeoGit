@@ -26,6 +26,7 @@ import jline.console.ConsoleReader;
 
 import org.geogit.api.GeoGIT;
 import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.Injector;
 import org.geogit.api.InjectorBuilder;
 import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
@@ -44,7 +45,6 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
-import com.google.inject.Injector;
 
 /**
  */
@@ -113,7 +113,7 @@ public class GlobalState {
 
         geogitCLI = new GeogitCLI(GlobalState.consoleReader);
         GlobalInjectorBuilder.builder = injectorBuilder;
-        Platform platform = injector.getInstance(Platform.class);
+        Platform platform = injector.platform();
         geogitCLI.setPlatform(platform);
     }
 
@@ -186,7 +186,7 @@ public class GlobalState {
 
         GeoGIT geogit = geogitCLI.newGeoGIT();
         try {
-            final WorkingTree workTree = geogit.getRepository().getWorkingTree();
+            final WorkingTree workTree = geogit.getRepository().workingTree();
             workTree.delete(points1.getType().getName());
             Name name = points1_FTmodified.getType().getName();
             String parentPath = name.getLocalPart();
@@ -226,7 +226,7 @@ public class GlobalState {
         List<ObjectId> ids = Lists.newArrayListWithCapacity(features.length);
         try {
             Repository repository = geogit.getRepository();
-            final WorkingTree workTree = repository.getWorkingTree();
+            final WorkingTree workTree = repository.workingTree();
             for (Feature f : features) {
                 Name name = f.getType().getName();
                 String parentPath = name.getLocalPart();
@@ -259,7 +259,7 @@ public class GlobalState {
     public static boolean delete(Feature f) throws Exception {
         GeoGIT geogit = geogitCLI.newGeoGIT();
         try {
-            final WorkingTree workTree = geogit.getRepository().getWorkingTree();
+            final WorkingTree workTree = geogit.getRepository().workingTree();
             Name name = f.getType().getName();
             String localPart = name.getLocalPart();
             String id = f.getIdentifier().getID();

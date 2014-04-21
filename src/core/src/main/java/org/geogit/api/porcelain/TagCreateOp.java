@@ -16,11 +16,9 @@ import org.geogit.api.RevTag;
 import org.geogit.api.plumbing.HashObject;
 import org.geogit.api.plumbing.RefParse;
 import org.geogit.api.plumbing.UpdateRef;
-import org.geogit.storage.ObjectDatabase;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 
 /**
  * Creates a new tag
@@ -28,26 +26,11 @@ import com.google.inject.Inject;
  */
 public class TagCreateOp extends AbstractGeoGitOp<RevTag> {
 
-    private final ObjectDatabase objectDb;
-
     private String name;
 
     private ObjectId commitId;
 
     private String message;
-
-    private Platform platform;
-
-    /**
-     * Constructs a new {@code TagCreateOp} with the given parameters.
-     * 
-     * @param platform the current platform
-     */
-    @Inject
-    public TagCreateOp(final ObjectDatabase objectDb, final Platform platform) {
-        this.objectDb = objectDb;
-        this.platform = platform;
-    }
 
     /**
      * Executes the tag creation operation.
@@ -71,7 +54,7 @@ public class TagCreateOp extends AbstractGeoGitOp<RevTag> {
         RevTag tag = new RevTag(ObjectId.NULL, name, commitId, message, tagger);
         ObjectId id = command(HashObject.class).setObject(tag).call();
         tag = new RevTag(id, name, commitId, message, tagger);
-        objectDb.put(tag);
+        objectDatabase().put(tag);
         Optional<Ref> branchRef = command(UpdateRef.class).setName(tagRefPath)
                 .setNewValue(tag.getId()).call();
         checkState(branchRef.isPresent());
@@ -114,6 +97,7 @@ public class TagCreateOp extends AbstractGeoGitOp<RevTag> {
         String taggerName = name.get();
         String taggerEmail = email.get();
 
+        Platform platform = platform();
         long taggerTimeStamp = platform.currentTimeMillis();
         int taggerTimeZoneOffset = platform.timeZoneOffset(taggerTimeStamp);
         return new RevPerson(taggerName, taggerEmail, taggerTimeStamp, taggerTimeZoneOffset);

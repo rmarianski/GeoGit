@@ -15,7 +15,6 @@ import org.geogit.api.AbstractGeoGitOp;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
-import com.google.inject.Inject;
 
 /**
  * Writes the file filter associated to an OSM import operation.
@@ -25,11 +24,6 @@ public class WriteOSMFilterFile extends AbstractGeoGitOp<Void> {
     private OSMLogEntry entry;
 
     private String filter;
-
-    @Inject
-    public WriteOSMFilterFile() {
-
-    }
 
     public WriteOSMFilterFile setEntry(OSMLogEntry entry) {
         this.entry = entry;

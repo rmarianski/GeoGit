@@ -19,7 +19,6 @@ import org.geogit.repository.Repository;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.inject.Injector;
 
 /**
  * A facade to Geo-GIT operations.
@@ -50,7 +49,7 @@ public class GeoGIT {
      */
     public GeoGIT(File workingDir) {
         this();
-        injector.getInstance(Platform.class).setWorkingDir(workingDir);
+        injector.platform().setWorkingDir(workingDir);
     }
 
     /**
@@ -75,7 +74,7 @@ public class GeoGIT {
         Preconditions.checkNotNull(injector, "injector");
         this.injector = injector;
         if (workingDir != null) {
-            Platform instance = injector.getInstance(Platform.class);
+            Platform instance = injector.platform();
             instance.setWorkingDir(workingDir);
         }
     }
@@ -98,7 +97,7 @@ public class GeoGIT {
      * @return a new instance of the requested command class, with its dependencies resolved
      */
     public <T extends AbstractGeoGitOp<?>> T command(Class<T> commandClass) {
-        return injector.getInstance(commandClass);
+        return injector.command(commandClass);
     }
 
     /**
@@ -143,7 +142,7 @@ public class GeoGIT {
         final Optional<URL> repoLocation = command(ResolveGeogitDir.class).call();
         if (repoLocation.isPresent()) {
             try {
-                repository = injector.getInstance(Repository.class);
+                repository = injector.repository();
                 repository.open();
             } catch (Exception e) {
                 throw Throwables.propagate(e);
@@ -156,22 +155,22 @@ public class GeoGIT {
      * @return the platform for this GeoGit facade
      */
     public Platform getPlatform() {
-        return injector.getInstance(Platform.class);
+        return injector.platform();
     }
 
     /**
      * @return
      */
-    public CommandLocator getCommandLocator() {
-        return injector.getInstance(CommandLocator.class);
+    public Injector getCommandLocator() {
+        return injector;
     }
 
     public DiffObjectCount countUnstaged() {
-        return getRepository().getWorkingTree().countUnstaged(null);
+        return getRepository().workingTree().countUnstaged(null);
     }
 
     public DiffObjectCount countStaged() {
-        return getRepository().getIndex().countStaged(null);
+        return getRepository().index().countStaged(null);
     }
 
     public boolean isOpen() {

@@ -6,8 +6,8 @@ package org.geogit.api.plumbing.merge;
 
 import org.geogit.api.ObjectId;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 /**
  * A class to store a merge conflict. It stores the information needed to solve the conflict, saving

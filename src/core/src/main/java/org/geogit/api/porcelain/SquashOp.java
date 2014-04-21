@@ -40,7 +40,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
 /**
  * Operation to squash commits into one.
@@ -51,25 +50,7 @@ public class SquashOp extends AbstractGeoGitOp<ObjectId> {
 
     private RevCommit until;
 
-    private Repository repository;
-
-    private Platform platform;
-
     private String message;
-
-    private GraphDatabase graphDb;
-
-    /**
-     * Constructs a new {@code SquashOp} with the given {@link Repository}.
-     * 
-     * @param repository the repository where the commits to squash are found
-     */
-    @Inject
-    public SquashOp(final Repository repository, Platform platform, GraphDatabase graphDb) {
-        this.repository = repository;
-        this.platform = platform;
-        this.graphDb = graphDb;
-    }
 
     /**
      * Indicates the first commit to squash. If no message is provided, the message from this commit
@@ -118,6 +99,10 @@ public class SquashOp extends AbstractGeoGitOp<ObjectId> {
         Preconditions.checkNotNull(since);
         Preconditions.checkNotNull(until);
 
+        GraphDatabase graphDb = graphDatabase();
+        Repository repository = repository();
+        Platform platform = platform();
+
         final Optional<Ref> currHead = command(RefParse.class).setName(Ref.HEAD).call();
         Preconditions.checkState(currHead.isPresent(), "Repository has no HEAD, can't squash.");
         Preconditions.checkState(currHead.get() instanceof SymRef,
@@ -125,7 +110,7 @@ public class SquashOp extends AbstractGeoGitOp<ObjectId> {
         final SymRef headRef = (SymRef) currHead.get();
         final String currentBranch = headRef.getTarget();
 
-        Preconditions.checkState(getIndex().isClean() && getWorkTree().isClean(),
+        Preconditions.checkState(index().isClean() && workingTree().isClean(),
                 "You must have a clean working tree and index to perform a squash.");
 
         Optional<ObjectId> ancestor = command(FindCommonAncestor.class).setLeft(since)
@@ -237,7 +222,7 @@ public class SquashOp extends AbstractGeoGitOp<ObjectId> {
         builder.setAuthorTimestamp(until.getAuthor().getTimestamp());
 
         RevCommit newCommit = builder.build();
-        repository.getObjectDatabase().put(newCommit);
+        repository.objectDatabase().put(newCommit);
 
         newHead = newCommit.getId();
         ObjectId newTreeId = newCommit.getTreeId();
@@ -245,8 +230,8 @@ public class SquashOp extends AbstractGeoGitOp<ObjectId> {
         command(UpdateRef.class).setName(currentBranch).setNewValue(newHead).call();
         command(UpdateSymRef.class).setName(Ref.HEAD).setNewValue(currentBranch).call();
 
-        getWorkTree().updateWorkHead(newTreeId);
-        getIndex().updateStageHead(newTreeId);
+        workingTree().updateWorkHead(newTreeId);
+        index().updateStageHead(newTreeId);
 
         // now put the other commits after the squashed one
         newHead = addCommits(commits, currentBranch, newHead);
@@ -257,6 +242,8 @@ public class SquashOp extends AbstractGeoGitOp<ObjectId> {
 
     private ObjectId addCommits(List<RevCommit> commits, String currentBranch,
             final ObjectId squashedId) {
+
+        final Platform platform = platform();
         final Map<ObjectId, ObjectId> replacedCommits = Maps.newHashMap();
         replacedCommits.put(until.getId(), squashedId);
         ObjectId head = squashedId;
@@ -282,15 +269,15 @@ public class SquashOp extends AbstractGeoGitOp<ObjectId> {
 
             RevCommit newCommit = builder.build();
             replacedCommits.put(commit.getId(), newCommit.getId());
-            repository.getObjectDatabase().put(newCommit);
+            objectDatabase().put(newCommit);
             head = newCommit.getId();
             ObjectId newTreeId = newCommit.getTreeId();
 
             command(UpdateRef.class).setName(currentBranch).setNewValue(head).call();
             command(UpdateSymRef.class).setName(Ref.HEAD).setNewValue(currentBranch).call();
 
-            getWorkTree().updateWorkHead(newTreeId);
-            getIndex().updateStageHead(newTreeId);
+            workingTree().updateWorkHead(newTreeId);
+            index().updateStageHead(newTreeId);
         }
 
         return head;

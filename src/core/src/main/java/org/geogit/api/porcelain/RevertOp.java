@@ -18,7 +18,6 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.CommitBuilder;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
-import org.geogit.api.Platform;
 import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevTree;
@@ -46,7 +45,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import com.google.inject.Inject;
 
 /**
  * Given one or more existing commits, revert the changes that the related patches introduce, and
@@ -59,10 +57,6 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
 
     private List<ObjectId> commits;
 
-    private Repository repository;
-
-    private Platform platform;
-
     private boolean createCommit = true;
 
     private String currentBranch;
@@ -72,20 +66,6 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
     private boolean abort;
 
     private boolean continueRevert;
-
-    /**
-     * Constructs a new {@code RevertOp} using the specified parameters.
-     * 
-     * @param repository the repository to use
-     * @param index the staging area
-     * @param workTree the working tree
-     * @param platform the platform to use
-     */
-    @Inject
-    public RevertOp(Repository repository, Platform platform) {
-        this.repository = repository;
-        this.platform = platform;
-    }
 
     /**
      * Adds a commit to revert.
@@ -161,8 +141,8 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
                 "Cannot continue and abort at the same time");
 
         // count staged and unstaged changes
-        long staged = getIndex().countStaged(null).getCount();
-        long unstaged = getWorkTree().countUnstaged(null).getCount();
+        long staged = index().countStaged(null).getCount();
+        long unstaged = workingTree().countUnstaged(null).getCount();
         Preconditions.checkState((staged == 0 && unstaged == 0) || abort || continueRevert,
                 "You must have a clean working tree and index to perform a revert.");
 
@@ -200,6 +180,7 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
 
             // Here we prepare the files with the info about the commits to apply in reverse
             List<RevCommit> commitsToRevert = Lists.newArrayList();
+            Repository repository = repository();
             for (ObjectId id : commits) {
                 Preconditions.checkArgument(repository.commitExists(id),
                         "Commit was not found in the repository: " + id.toString());
@@ -255,6 +236,7 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
     private boolean applyNextCommit(boolean useCommitChanges) {
         File rebaseFolder = getRevertFolder();
         File nextFile = new File(rebaseFolder, "next");
+        Repository repository = repository();
         try {
             String idx = Files.readFirstLine(nextFile, Charsets.UTF_8);
             File commitFile = new File(rebaseFolder, idx);
@@ -268,7 +250,7 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
                 if (createCommit && conflicts.isEmpty()) {
                     createCommit(commit);
                 } else {
-                    getWorkTree().updateWorkHead(repository.getIndex().getTree().getId());
+                    workingTree().updateWorkHead(repository.index().getTree().getId());
                     if (!conflicts.isEmpty()) {
                         // mark conflicted elements
                         command(ConflictsWriteOp.class).setConflicts(conflicts).call();
@@ -306,6 +288,7 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
             parentCommitId = commit.getParentIds().get(0);
         }
         ObjectId parentTreeId = ObjectId.NULL;
+        Repository repository = repository();
         if (repository.commitExists(parentCommitId)) {
             parentTreeId = repository.getCommit(parentCommitId).getTreeId();
         }
@@ -330,7 +313,7 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
                     conflicts.add(new Conflict(diff.newPath(), diff.oldObjectId(), node.get()
                             .objectId(), diff.newObjectId()));
                 } else {
-                    getIndex().stage(getProgressListener(), Iterators.singletonIterator(diff), 1);
+                    index().stage(getProgressListener(), Iterators.singletonIterator(diff), 1);
                 }
             } else {
                 // Feature was added or modified
@@ -339,7 +322,7 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
                 ObjectId nodeId = node.get().getNode().getObjectId();
                 // Make sure it wasn't changed
                 if (node.isPresent() && nodeId.equals(diff.oldObjectId())) {
-                    getIndex().stage(getProgressListener(), Iterators.singletonIterator(diff), 1);
+                    index().stage(getProgressListener(), Iterators.singletonIterator(diff), 1);
                 } else {
                     // do not mark as conflict if reverting to the same feature currently in HEAD
                     if (!nodeId.equals(diff.newObjectId())) {
@@ -360,7 +343,7 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
 
         // write new tree
         ObjectId newTreeId = command(WriteTree.class).call();
-        long timestamp = platform.currentTimeMillis();
+        long timestamp = platform().currentTimeMillis();
         String committerName = resolveCommitter();
         String committerEmail = resolveCommitterEmail();
         // Create new commit
@@ -376,15 +359,15 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
         builder.setAuthorEmail(committerEmail);
 
         RevCommit newCommit = builder.build();
-        repository.getObjectDatabase().put(newCommit);
+        objectDatabase().put(newCommit);
 
         revertHead = newCommit.getId();
 
         command(UpdateRef.class).setName(currentBranch).setNewValue(revertHead).call();
         command(UpdateSymRef.class).setName(Ref.HEAD).setNewValue(currentBranch).call();
 
-        getWorkTree().updateWorkHead(newTreeId);
-        getIndex().updateStageHead(newTreeId);
+        workingTree().updateWorkHead(newTreeId);
+        index().updateStageHead(newTreeId);
 
     }
 

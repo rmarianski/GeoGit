@@ -32,7 +32,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 /**
  * Creates a new root tree in the {@link ObjectDatabase object database} from the current index,
@@ -56,23 +55,11 @@ import com.google.inject.Inject;
  */
 public class WriteTree extends AbstractGeoGitOp<ObjectId> {
 
-    private ObjectDatabase repositoryDatabase;
-
     private Supplier<RevTree> oldRoot;
 
     private final List<String> pathFilters = Lists.newLinkedList();
 
     private Supplier<Iterator<DiffEntry>> diffSupplier = null;
-
-    /**
-     * Creates a new {@code WriteTree} operation using the specified parameters.
-     * 
-     * @param repositoryDatabase the object database to use
-     */
-    @Inject
-    public WriteTree(ObjectDatabase repositoryDatabase) {
-        this.repositoryDatabase = repositoryDatabase;
-    }
 
     /**
      * @param oldRoot a supplier for the old root tree
@@ -120,12 +107,13 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
         final ProgressListener progress = getProgressListener();
 
         final RevTree oldRootTree = resolveRootTree();
+        final ObjectDatabase repositoryDatabase = objectDatabase();
 
         Iterator<DiffEntry> diffs = null;
         long numChanges = 0;
         if (diffSupplier == null) {
-            diffs = getIndex().getStaged(pathFilters);
-            numChanges = getIndex().countStaged(pathFilters).getCount();
+            diffs = index().getStaged(pathFilters);
+            numChanges = index().countStaged(pathFilters).getCount();
         } else {
             diffs = diffSupplier.get();
         }
@@ -171,11 +159,11 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
                 continue;
             }
             RevTreeBuilder parentTree = resolveTargetTree(oldRootTree, parentPath,
-                    repositoryChangedTrees, changedTreesMetadataId, ObjectId.NULL);
+                    repositoryChangedTrees, changedTreesMetadataId, ObjectId.NULL, repositoryDatabase);
             if (type == TYPE.TREE && !isDelete) {
                 // cache the tree
                 resolveTargetTree(oldRootTree, ref.name(), repositoryChangedTrees,
-                        changedTreesMetadataId, ref.getMetadataId());
+                        changedTreesMetadataId, ref.getMetadataId(), repositoryDatabase);
             }
 
             resolveSourceTreeRef(parentPath, indexChangedTrees, changedTreesMetadataId);
@@ -190,9 +178,9 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
                 }
             } else {
                 if (ref.getType().equals(TYPE.TREE)) {
-                    RevTree tree = getIndex().getDatabase().getTree(ref.objectId());
+                    RevTree tree = stagingDatabase().getTree(ref.objectId());
                     if (ref.getMetadataId() != null && !ref.getMetadataId().equals(ObjectId.NULL)) {
-                        repositoryDatabase.put(getIndex().getDatabase().getFeatureType(
+                        repositoryDatabase.put(stagingDatabase().getFeatureType(
                                 ref.getMetadataId()));
                     }
                     if (tree.isEmpty()) {
@@ -250,7 +238,7 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
         NodeRef indexTreeRef = indexChangedTrees.get(parentPath);
 
         if (indexTreeRef == null) {
-            RevTree stageHead = getIndex().getTree();
+            RevTree stageHead = index().getTree();
             Optional<NodeRef> treeRef = command(FindTreeChild.class).setIndex(true)
                     .setParent(stageHead).setChildPath(parentPath).call();
             if (treeRef.isPresent()) {// may not be in case of a delete
@@ -267,11 +255,12 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
      * @param treePath
      * @param treeCache
      * @param metadataCache
+     * @param repositoryDatabase 
      * @return
      */
     private RevTreeBuilder resolveTargetTree(final RevTree root, String treePath,
             Map<String, RevTreeBuilder> treeCache, Map<String, ObjectId> metadataCache,
-            ObjectId fallbackMetadataId) {
+            ObjectId fallbackMetadataId, ObjectDatabase repositoryDatabase) {
 
         RevTreeBuilder treeBuilder = treeCache.get(treePath);
         if (treeBuilder == null) {

@@ -21,7 +21,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 /**
  * Compares content and metadata links of blobs between the index and repository
@@ -34,13 +33,6 @@ public class DiffIndex extends AbstractGeoGitOp<Iterator<DiffEntry>> implements
     private final List<String> pathFilters = Lists.newLinkedList();
 
     private boolean reportTrees;
-
-    /**
-     * Constructs a new {@code DiffIndex}.
-     */
-    @Inject
-    public DiffIndex() {
-    }
 
     /**
      * @param pathFilter the path filter to use during the diff operation
@@ -93,9 +85,9 @@ public class DiffIndex extends AbstractGeoGitOp<Iterator<DiffEntry>> implements
                     .call(RevTree.class).get();
         }
 
-        final RevTree newTree = getIndex().getTree();
+        final RevTree newTree = index().getTree();
 
-        DiffTreeWalk treeWalk = new DiffTreeWalk(getIndex().getDatabase(), rootTree, newTree);
+        DiffTreeWalk treeWalk = new DiffTreeWalk(stagingDatabase(), rootTree, newTree);
         treeWalk.setFilter(this.pathFilters);
         treeWalk.setReportTrees(reportTrees);
         return treeWalk.get();

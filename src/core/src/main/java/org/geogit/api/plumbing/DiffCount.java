@@ -25,7 +25,6 @@ import org.geogit.storage.StagingDatabase;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 /**
  * A faster alternative to count the number of diffs between two trees than walking a
@@ -35,8 +34,6 @@ import com.google.inject.Inject;
  */
 public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
 
-    private StagingDatabase index;
-
     private final List<String> pathFilters = Lists.newLinkedList();
 
     private String oldRefSpec;
@@ -44,11 +41,6 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
     private String newRefSpec;
 
     private boolean reportTrees;
-
-    @Inject
-    public DiffCount(StagingDatabase index) {
-        this.index = index;
-    }
 
     public DiffCount setOldVersion(@Nullable String refSpec) {
         this.oldRefSpec = refSpec;
@@ -92,6 +84,7 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
         final RevTree newTree = getTree(newRefSpec);
 
         DiffObjectCount diffCount;
+        StagingDatabase index = stagingDatabase();
         if (pathFilters.isEmpty()) {
             DiffTreeVisitor visitor = new DiffTreeVisitor(oldTree, newTree, index, index);
             DiffCountConsumer counter = new DiffCountConsumer(index);

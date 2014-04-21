@@ -106,8 +106,7 @@ public class BatchedObjectResource extends Finder {
             final Repository repository = ggit.getRepository();
             final Deduplicator deduplicator = ggit.command(CreateDeduplicator.class).call();
 
-            BinaryPackedObjects packer = new BinaryPackedObjects(repository.getIndex()
-                    .getDatabase());
+            BinaryPackedObjects packer = new BinaryPackedObjects(repository.stagingDatabase());
             getResponse().setEntity(new RevObjectBinaryRepresentation(packer, want, have, deduplicator));
         }
     }

@@ -15,7 +15,7 @@ import org.geogit.api.Platform;
 import org.geogit.api.plumbing.merge.Conflict;
 import org.geogit.repository.RepositoryConnectionException;
 import org.geogit.storage.ConfigDatabase;
-import org.geogit.storage.ForwardingStagingDatabase;
+import org.geogit.storage.AbstractStagingDatabase;
 import org.geogit.storage.ObjectDatabase;
 
 import com.google.common.base.Optional;
@@ -30,7 +30,7 @@ import com.google.common.collect.Lists;
  * 
  * @param <T>
  */
-public abstract class SQLiteStagingDatabase<T> extends ForwardingStagingDatabase {
+public abstract class SQLiteStagingDatabase<T> extends AbstractStagingDatabase {
 
     final ConfigDatabase configdb;
 

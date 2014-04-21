@@ -28,7 +28,7 @@ public class CatObjectTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        odb = repo.getObjectDatabase();
+        odb = repo.objectDatabase();
     }
 
     @Test

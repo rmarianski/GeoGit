@@ -22,8 +22,8 @@ public class OSMAplyDiffOpTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        repo.getConfigDatabase().put("user.name", "groldan");
-        repo.getConfigDatabase().put("user.email", "groldan@opengeo.org");
+        repo.configDatabase().put("user.name", "groldan");
+        repo.configDatabase().put("user.email", "groldan@opengeo.org");
     }
 
     @Test
@@ -31,7 +31,7 @@ public class OSMAplyDiffOpTest extends RepositoryTestCase {
         String filename = getClass().getResource("nodes_for_changeset2.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        long unstaged = geogit.getRepository().getWorkingTree().countUnstaged("node").getCount();
+        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").getCount();
         assertTrue(unstaged > 0);
         Optional<RevFeature> revFeature = geogit.command(RevObjectParse.class)
                 .setRefSpec("WORK_HEAD:node/2059114068").call(RevFeature.class);
@@ -56,7 +56,7 @@ public class OSMAplyDiffOpTest extends RepositoryTestCase {
         String filename = getClass().getResource("nodes_for_changeset2.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        long unstaged = geogit.getRepository().getWorkingTree().countUnstaged("node").getCount();
+        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").getCount();
         assertTrue(unstaged > 0);
         Optional<RevFeature> revFeature = geogit.command(RevObjectParse.class)
                 .setRefSpec("WORK_HEAD:node/2059114068").call(RevFeature.class);

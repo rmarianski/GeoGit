@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 /**
  * Checks for conflicts between changes introduced by different histories, or features that have to
@@ -44,10 +43,6 @@ import com.google.inject.Inject;
 public class CheckMergeScenarioOp extends AbstractGeoGitOp<Boolean> {
 
     private List<RevCommit> commits;
-
-    @Inject
-    public CheckMergeScenarioOp() {
-    }
 
     /**
      * @param commits the commits to check {@link RevCommit}

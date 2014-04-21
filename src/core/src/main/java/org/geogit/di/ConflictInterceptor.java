@@ -4,25 +4,39 @@
  */
 package org.geogit.di;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.plumbing.merge.ConflictsCheckOp;
 
+import com.google.common.base.Preconditions;
+
 /**
- * An interceptor to avoid incompatible running commands while merge conflicts exist
+ * Intercepts all {@link AbstractGeoGitOp commands} to avoid incompatible running commands while
+ * merge conflicts exist
  * 
  */
-class ConflictInterceptor implements MethodInterceptor {
+class ConflictInterceptor implements Decorator {
 
     @Override
-    public Object invoke(MethodInvocation invocation) throws Throwable {
-        AbstractGeoGitOp<?> operation = (AbstractGeoGitOp<?>) invocation.getThis();
+    public boolean canDecorate(Object subject) {
+        if (!(subject instanceof AbstractGeoGitOp)) {
+            return false;
+        }
+        // TODO: this is not a very clean way of doing this...
+        Class<?> clazz = subject.getClass();
+        final boolean canRunDuringConflict = clazz.isAnnotationPresent(CanRunDuringConflict.class);
+        return !(clazz.getPackage().getName().contains("plumbing") || canRunDuringConflict);
+    }
+
+    @Override
+    public AbstractGeoGitOp<?> decorate(Object subject) {
+        Preconditions.checkNotNull(subject);
+        AbstractGeoGitOp<?> operation = (AbstractGeoGitOp<?>) subject;
+
         Boolean conflicts = operation.command(ConflictsCheckOp.class).call();
         if (conflicts.booleanValue()) {
             throw new IllegalStateException("Cannot run operation while merge conflicts exist.");
         }
-        return invocation.proceed();
+        return (AbstractGeoGitOp<?>) subject;
     }
 
 }

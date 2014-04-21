@@ -60,8 +60,8 @@ public class DiffBoundsTest extends RepositoryTestCase {
         RevTree right = geogit.command(RevObjectParse.class).setObjectId(rightId)
                 .call(RevTree.class).get();
 
-        ObjectDatabase leftSource = getRepository().getObjectDatabase();
-        ObjectDatabase rightSource = getRepository().getObjectDatabase();
+        ObjectDatabase leftSource = getRepository().objectDatabase();
+        ObjectDatabase rightSource = getRepository().objectDatabase();
 
         DiffTreeVisitor visitor = new DiffTreeVisitor(left, right, leftSource, rightSource);
         BoundsWalk boundsCalc = new BoundsWalk();

@@ -75,7 +75,7 @@ public class RevParseIntegrationTest extends RepositoryTestCase {
         cb.setCommitterTimestamp(now);
         mergeCommit = cb.build();
 
-        getRepository().getObjectDatabase().put(mergeCommit);
+        getRepository().objectDatabase().put(mergeCommit);
 
         geogit.command(UpdateRef.class).setName("refs/heads/master")
                 .setOldValue(masterCommit3.getId()).setNewValue(mergeCommit.getId()).call();

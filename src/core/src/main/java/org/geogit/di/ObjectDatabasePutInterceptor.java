@@ -8,25 +8,27 @@ package org.geogit.di;
 import java.util.Iterator;
 import java.util.List;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject;
+import org.geogit.storage.BulkOpListener;
+import org.geogit.storage.ForwardingObjectDatabase;
 import org.geogit.storage.GraphDatabase;
 import org.geogit.storage.ObjectDatabase;
+import org.geogit.storage.StagingDatabase;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.inject.Provider;
+import com.google.inject.util.Providers;
 
 /**
  * Method interceptor for {@link ObjectDatabase#put(RevObject)} that adds new commits to the graph
  * database.
  */
-class ObjectDatabasePutInterceptor implements MethodInterceptor {
+class ObjectDatabasePutInterceptor implements Decorator {
 
     private Provider<GraphDatabase> graphDb;
 
@@ -35,58 +37,72 @@ class ObjectDatabasePutInterceptor implements MethodInterceptor {
     }
 
     @Override
-    public Object invoke(MethodInvocation invocation) throws Throwable {
-        final String methodName = invocation.getMethod().getName();
-        if (methodName.equals("put")) {
-            return putRevObjectInterceptor(invocation);
-        } else if (methodName.equals("putAll")) {
-            return putAllInterceptor(invocation);
-        }
-        return invocation.proceed();
+    public boolean canDecorate(Object subject) {
+        boolean canDecorate = subject instanceof ObjectDatabase
+                && !(subject instanceof StagingDatabase);
+        return canDecorate;
     }
 
-    private Object putAllInterceptor(MethodInvocation invocation) throws Throwable {
-        Object[] arguments = invocation.getArguments();
+    @Override
+    public ObjectDatabase decorate(Object subject) {
+        return new GraphUpdatingObjectDatabase(graphDb, (ObjectDatabase) subject);
+    }
 
-        @SuppressWarnings("unchecked")
-        final Iterator<? extends RevObject> objects = (Iterator<? extends RevObject>) arguments[0];
+    private static class GraphUpdatingObjectDatabase extends ForwardingObjectDatabase {
 
-        final Iterator<? extends RevObject> sideEffectIterator;
-        final List<RevCommit> addedCommits = Lists.newLinkedList();
-        sideEffectIterator = Iterators.transform(objects, new Function<RevObject, RevObject>() {
+        private Provider<GraphDatabase> graphDb;
 
-            @Override
-            public RevObject apply(RevObject input) {
-                if (input instanceof RevCommit) {
-                    addedCommits.add((RevCommit) input);
+        public GraphUpdatingObjectDatabase(Provider<GraphDatabase> graphDb, ObjectDatabase subject) {
+            super(Providers.of(subject));
+            this.graphDb = graphDb;
+        }
+
+        @Override
+        public boolean put(RevObject object) {
+
+            final boolean inserted = super.put(object);
+
+            if (inserted && RevObject.TYPE.COMMIT.equals(object.getType())) {
+                RevCommit commit = (RevCommit) object;
+                graphDb.get().put(commit.getId(), commit.getParentIds());
+            }
+            return inserted;
+        }
+
+        @Override
+        public void putAll(Iterator<? extends RevObject> objects) {
+            putAll(objects, BulkOpListener.NOOP_LISTENER);
+        }
+
+        @Override
+        public void putAll(Iterator<? extends RevObject> objects, BulkOpListener listener) {
+
+            final List<RevCommit> addedCommits = Lists.newLinkedList();
+
+            final Iterator<? extends RevObject> collectingIterator = Iterators.transform(objects,
+                    new Function<RevObject, RevObject>() {
+
+                        @Override
+                        public RevObject apply(RevObject input) {
+                            if (input instanceof RevCommit) {
+                                addedCommits.add((RevCommit) input);
+                            }
+                            return input;
+                        }
+                    });
+
+            super.putAll(collectingIterator, listener);
+
+            if (!addedCommits.isEmpty()) {
+                GraphDatabase graphDatabase = graphDb.get();
+                for (RevCommit commit : addedCommits) {
+                    ObjectId commitId = commit.getId();
+                    ImmutableList<ObjectId> parentIds = commit.getParentIds();
+                    graphDatabase.put(commitId, parentIds);
                 }
-                return input;
-            }
-        });
-        arguments[0] = sideEffectIterator;
-
-        Object result = invocation.proceed();
-        if (!addedCommits.isEmpty()) {
-            GraphDatabase graphDatabase = graphDb.get();
-            for (RevCommit commit : addedCommits) {
-                ObjectId commitId = commit.getId();
-                ImmutableList<ObjectId> parentIds = commit.getParentIds();
-                graphDatabase.put(commitId, parentIds);
             }
         }
 
-        return result;
     }
 
-    private Object putRevObjectInterceptor(MethodInvocation invocation) throws Throwable {
-        final RevObject revObject = (RevObject) invocation.getArguments()[0];
-
-        final boolean inserted = ((Boolean) invocation.proceed()).booleanValue();
-
-        if (inserted && RevObject.TYPE.COMMIT.equals(revObject.getType())) {
-            RevCommit commit = (RevCommit) revObject;
-            graphDb.get().put(commit.getId(), commit.getParentIds());
-        }
-        return Boolean.valueOf(inserted);
-    }
 }

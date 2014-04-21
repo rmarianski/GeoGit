@@ -14,6 +14,7 @@ import java.util.List;
 import org.geogit.api.GeoGIT;
 import org.geogit.api.GeogitTransaction;
 import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.Injector;
 import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
@@ -47,7 +48,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import com.google.inject.Injector;
 import com.vividsolutions.jts.io.ParseException;
 
 public abstract class RepositoryTestCase extends Assert {
@@ -137,7 +137,7 @@ public abstract class RepositoryTestCase extends Assert {
 
     protected File envHome;
 
-    private Injector injector;
+    protected Injector injector;
 
     @Rule
     public TemporaryFolder repositoryTempFolder = new TemporaryFolder();
@@ -315,8 +315,8 @@ public abstract class RepositoryTestCase extends Assert {
      * Inserts the feature to the index but does not stages it to be committed
      */
     public ObjectId insert(GeogitTransaction transaction, Feature f) throws Exception {
-        final WorkingTree workTree = (transaction != null ? transaction.getWorkingTree() : repo
-                .getWorkingTree());
+        final WorkingTree workTree = (transaction != null ? transaction.workingTree() : repo
+                .workingTree());
         Name name = f.getType().getName();
         String parentPath = name.getLocalPart();
         Node ref = workTree.insert(parentPath, f);
@@ -379,8 +379,8 @@ public abstract class RepositoryTestCase extends Assert {
     }
 
     public boolean delete(GeogitTransaction transaction, Feature f) throws Exception {
-        final WorkingTree workTree = (transaction != null ? transaction.getWorkingTree() : repo
-                .getWorkingTree());
+        final WorkingTree workTree = (transaction != null ? transaction.workingTree() : repo
+                .workingTree());
         Name name = f.getType().getName();
         String localPart = name.getLocalPart();
         String id = f.getIdentifier().getID();

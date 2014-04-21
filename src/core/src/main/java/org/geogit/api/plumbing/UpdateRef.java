@@ -11,7 +11,6 @@ import org.geogit.api.Ref;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 
 /**
  * Update the object name stored in a {@link Ref} safely.
@@ -29,13 +28,6 @@ public class UpdateRef extends AbstractGeoGitOp<Optional<Ref>> {
     private boolean delete;
 
     private String reason;
-
-    /**
-     * Constructs a new {@code UpdateRef} operation.
-     */
-    @Inject
-    public UpdateRef() {
-    }
 
     /**
      * @param name the name of the ref to update
@@ -104,10 +96,10 @@ public class UpdateRef extends AbstractGeoGitOp<Optional<Ref>> {
         if (oldValue != null) {
             String storedValue;
             try {
-                storedValue = getRefDatabase().getRef(name);
+                storedValue = refDatabase().getRef(name);
             } catch (IllegalArgumentException e) {
                 // may be updating what used to be a symred to be a direct ref
-                storedValue = getRefDatabase().getSymRef(name);
+                storedValue = refDatabase().getSymRef(name);
             }
             Preconditions.checkState(oldValue.toString().equals(storedValue), "Old value ("
                     + storedValue + ") doesn't match expected value '" + oldValue + "'");
@@ -116,12 +108,12 @@ public class UpdateRef extends AbstractGeoGitOp<Optional<Ref>> {
         if (delete) {
             Optional<Ref> oldRef = command(RefParse.class).setName(name).call();
             if (oldRef.isPresent()) {
-                getRefDatabase().remove(oldRef.get().getName());
+                refDatabase().remove(oldRef.get().getName());
             }
             return oldRef;
         }
 
-        getRefDatabase().putRef(name, newValue.toString());
+        refDatabase().putRef(name, newValue.toString());
         return command(RefParse.class).setName(name).call();
     }
 

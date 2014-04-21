@@ -105,7 +105,7 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
 
         @Override
         protected Evaluation evaluate(CommitNode commitNode) {
-            if (destination.getGraphDatabase().exists(commitNode.getObjectId())) {
+            if (destination.graphDatabase().exists(commitNode.getObjectId())) {
                 return Evaluation.EXCLUDE_AND_PRUNE;
             }
             return Evaluation.INCLUDE_AND_CONTINUE;
@@ -118,7 +118,7 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
 
         @Override
         protected boolean existsInDestination(ObjectId commitId) {
-            return destination.getGraphDatabase().exists(commitId);
+            return destination.graphDatabase().exists(commitId);
         }
 
     };
@@ -136,8 +136,7 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
 
         @Override
         protected Evaluation evaluate(CommitNode commitNode) {
-            if (!source.getGraphDatabase().getMapping(commitNode.getObjectId())
-                    .equals(ObjectId.NULL)) {
+            if (!source.graphDatabase().getMapping(commitNode.getObjectId()).equals(ObjectId.NULL)) {
                 return Evaluation.EXCLUDE_AND_PRUNE;
             }
             return Evaluation.INCLUDE_AND_CONTINUE;
@@ -145,13 +144,13 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
 
         @Override
         protected ImmutableList<ObjectId> getParentsInternal(ObjectId commitId) {
-            return source.getGraphDatabase().getParents(commitId);
+            return source.graphDatabase().getParents(commitId);
         }
 
         @Override
         protected boolean existsInDestination(ObjectId commitId) {
             // If the commit has not been mapped, it hasn't been pushed to the remote yet
-            return !source.getGraphDatabase().getMapping(commitId).equals(ObjectId.NULL);
+            return !source.graphDatabase().getMapping(commitId).equals(ObjectId.NULL);
         }
 
     };
@@ -203,15 +202,15 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
 
             FilteredDiffIterator changes = getFilteredChanges(commit);
 
-            localRepository.getGraphDatabase().put(commit.getId(), commit.getParentIds());
+            localRepository.graphDatabase().put(commit.getId(), commit.getParentIds());
 
             RevTree rootTree = RevTree.EMPTY;
 
             if (commit.getParentIds().size() > 0) {
                 // Map this commit to the last "sparse" commit in my ancestry
-                ObjectId mappedCommit = localRepository.getGraphDatabase().getMapping(
+                ObjectId mappedCommit = localRepository.graphDatabase().getMapping(
                         commit.getParentIds().get(0));
-                localRepository.getGraphDatabase().map(commit.getId(), mappedCommit);
+                localRepository.graphDatabase().map(commit.getId(), mappedCommit);
                 Optional<ObjectId> treeId = localRepository.command(ResolveTreeish.class)
                         .setTreeish(mappedCommit).call();
                 if (treeId.isPresent() && !treeId.get().equals(ObjectId.NULL)) {
@@ -219,7 +218,7 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
                 }
 
             } else {
-                localRepository.getGraphDatabase().map(commit.getId(), ObjectId.NULL);
+                localRepository.graphDatabase().map(commit.getId(), ObjectId.NULL);
             }
 
             if (changes.hasNext()) {
@@ -232,45 +231,45 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
                 CommitBuilder builder = new CommitBuilder(commit);
                 List<ObjectId> newParents = new LinkedList<ObjectId>();
                 for (ObjectId parentCommitId : commit.getParentIds()) {
-                    newParents.add(localRepository.getGraphDatabase().getMapping(parentCommitId));
+                    newParents.add(localRepository.graphDatabase().getMapping(parentCommitId));
                 }
                 builder.setParentIds(newParents);
                 builder.setTreeId(newTreeId);
 
                 RevCommit mapped = builder.build();
-                localRepository.getObjectDatabase().put(mapped);
+                localRepository.objectDatabase().put(mapped);
 
                 if (changes.wasFiltered()) {
-                    localRepository.getGraphDatabase().setProperty(mapped.getId(),
+                    localRepository.graphDatabase().setProperty(mapped.getId(),
                             GraphDatabase.SPARSE_FLAG, "true");
                 }
 
-                localRepository.getGraphDatabase().map(mapped.getId(), commit.getId());
+                localRepository.graphDatabase().map(mapped.getId(), commit.getId());
                 // Replace the old mapping with the new commit Id.
-                localRepository.getGraphDatabase().map(commit.getId(), mapped.getId());
+                localRepository.graphDatabase().map(commit.getId(), mapped.getId());
             } else if (allowEmpty) {
                 CommitBuilder builder = new CommitBuilder(commit);
                 List<ObjectId> newParents = new LinkedList<ObjectId>();
                 for (ObjectId parentCommitId : commit.getParentIds()) {
-                    newParents.add(localRepository.getGraphDatabase().getMapping(parentCommitId));
+                    newParents.add(localRepository.graphDatabase().getMapping(parentCommitId));
                 }
                 builder.setParentIds(newParents);
                 builder.setTreeId(rootTree.getId());
                 builder.setMessage(PLACEHOLDER_COMMIT_MESSAGE);
 
                 RevCommit mapped = builder.build();
-                localRepository.getObjectDatabase().put(mapped);
+                localRepository.objectDatabase().put(mapped);
 
-                localRepository.getGraphDatabase().setProperty(mapped.getId(),
+                localRepository.graphDatabase().setProperty(mapped.getId(),
                         GraphDatabase.SPARSE_FLAG, "true");
 
-                localRepository.getGraphDatabase().map(mapped.getId(), commit.getId());
+                localRepository.graphDatabase().map(mapped.getId(), commit.getId());
                 // Replace the old mapping with the new commit Id.
-                localRepository.getGraphDatabase().map(commit.getId(), mapped.getId());
+                localRepository.graphDatabase().map(commit.getId(), mapped.getId());
             } else {
                 // Mark the mapped commit as sparse, since it wont have these changes
-                localRepository.getGraphDatabase().setProperty(
-                        localRepository.getGraphDatabase().getMapping(commit.getId()),
+                localRepository.graphDatabase().setProperty(
+                        localRepository.graphDatabase().getMapping(commit.getId()),
                         GraphDatabase.SPARSE_FLAG, "true");
             }
         }
@@ -326,7 +325,7 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
                 pushSparseCommit(commitToPush);
             }
 
-            ObjectId newCommitId = localRepository.getGraphDatabase().getMapping(ref.getObjectId());
+            ObjectId newCommitId = localRepository.graphDatabase().getMapping(ref.getObjectId());
 
             ObjectId originalRemoteRefValue = ObjectId.NULL;
             if (remoteRef.isPresent()) {
@@ -394,7 +393,7 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
      */
     protected void checkPush(Ref ref, Optional<Ref> remoteRef) throws SynchronizationException {
         if (remoteRef.isPresent()) {
-            ObjectId mappedId = localRepository.getGraphDatabase().getMapping(
+            ObjectId mappedId = localRepository.graphDatabase().getMapping(
                     remoteRef.get().getObjectId());
             if (mappedId.equals(ref.getObjectId())) {
                 // The branches are equal, no need to push.

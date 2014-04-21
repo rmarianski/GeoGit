@@ -85,7 +85,7 @@ public class Add extends AbstractCommand implements CLICommand {
         List<Conflict> conflicts = geogit.command(ConflictsReadOp.class).call();
 
         console.print("Counting unstaged elements...");
-        DiffObjectCount unstaged = geogit.getRepository().getWorkingTree()
+        DiffObjectCount unstaged = geogit.getRepository().workingTree()
                 .countUnstaged(pathFilter);
         if (0 == unstaged.getCount() && conflicts.isEmpty()) {
             console.println();
@@ -104,7 +104,7 @@ public class Add extends AbstractCommand implements CLICommand {
         WorkingTree workTree = op.setUpdateOnly(updateOnly)
                 .setProgressListener(cli.getProgressListener()).call();
 
-        DiffObjectCount staged = geogit.getRepository().getIndex().countStaged(null);
+        DiffObjectCount staged = geogit.getRepository().index().countStaged(null);
         unstaged = workTree.countUnstaged(null);
 
         console.println(staged.getFeaturesCount() + " features and " + staged.getTreesCount()

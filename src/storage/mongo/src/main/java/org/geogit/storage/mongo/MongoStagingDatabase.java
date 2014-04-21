@@ -13,7 +13,7 @@ import org.geogit.api.ObjectId;
 import org.geogit.api.plumbing.merge.Conflict;
 import org.geogit.repository.RepositoryConnectionException;
 import org.geogit.storage.ConfigDatabase;
-import org.geogit.storage.ForwardingStagingDatabase;
+import org.geogit.storage.AbstractStagingDatabase;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.StagingDatabase;
 
@@ -28,7 +28,7 @@ import com.mongodb.DBObject;
 /**
  * A staging database that uses a MongoDB server for persistence.
  */
-public class MongoStagingDatabase extends ForwardingStagingDatabase implements StagingDatabase {
+public class MongoStagingDatabase extends AbstractStagingDatabase implements StagingDatabase {
 
     protected DBCollection conflicts;
 

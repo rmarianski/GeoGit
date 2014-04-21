@@ -26,12 +26,6 @@ public class BranchDeleteOp extends AbstractGeoGitOp<Optional<? extends Ref>> {
     private String branchName;
 
     /**
-     * Constructs a new {@code BranchDeleteOp}.
-     */
-    public BranchDeleteOp() {
-    }
-
-    /**
      * @param branchName the name of the branch to delete, in a form {@link RefParse} understands.
      *        Must resolve to a branch reference.
      * @return {@code this}

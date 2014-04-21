@@ -20,10 +20,8 @@ import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject;
 import org.geogit.api.RevTag;
 import org.geogit.api.RevTree;
-import org.geogit.storage.StagingDatabase;
 
 import com.google.common.base.Optional;
-import com.google.inject.Inject;
 
 /**
  * Resolves the reference given by a ref spec to the {@link ObjectId} it finally points to,
@@ -40,19 +38,6 @@ public class RevParse extends AbstractGeoGitOp<Optional<ObjectId>> {
     private String refSpec;
 
     private static final Pattern HEX_PATTERN = Pattern.compile("^[0-9a-f]+$");
-
-    private StagingDatabase indexDb;
-
-    /**
-     * Constructs a new {@code RevParse} operation with the specified {@link StagingDatabase staging
-     * database}.
-     * 
-     * @param indexDb the staging database to use
-     */
-    @Inject
-    public RevParse(StagingDatabase indexDb) {
-        this.indexDb = indexDb;
-    }
 
     /**
      * @param refSpec the ref spec to resolve
@@ -336,7 +321,7 @@ public class RevParse extends AbstractGeoGitOp<Optional<ObjectId>> {
                 } catch (IllegalArgumentException ignore) {
                     // its a partial id
                 }
-                List<ObjectId> hashMatches = indexDb.lookUp(refSpec);
+                List<ObjectId> hashMatches = stagingDatabase().lookUp(refSpec);
                 if (hashMatches.size() > 1) {
                     throw new IllegalArgumentException(String.format(
                             "Ref spec (%s) matches more than one object id: %s", refSpec,

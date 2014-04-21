@@ -27,7 +27,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
 
 /**
  * Verifies if a patch can be applied to the current working tree
@@ -40,14 +39,6 @@ public class VerifyPatchOp extends AbstractGeoGitOp<VerifyPatchResults> {
     private Patch patch;
 
     private boolean reverse;
-
-    /**
-     * Constructs a new {@code ApplyPatchOp} with the given parameters.
-     */
-    @Inject
-    public VerifyPatchOp() {
-
-    }
 
     /**
      * Sets the patch to verify
@@ -99,8 +90,8 @@ public class VerifyPatchOp extends AbstractGeoGitOp<VerifyPatchResults> {
                 break;
             }
             RevFeature feature = (RevFeature) obj.get();
-            DepthSearch depthSearch = new DepthSearch(getIndex().getDatabase());
-            Optional<NodeRef> noderef = depthSearch.find(getWorkTree().getTree(), path);
+            DepthSearch depthSearch = new DepthSearch(stagingDatabase());
+            Optional<NodeRef> noderef = depthSearch.find(workingTree().getTree(), path);
             RevFeatureType featureType = command(RevObjectParse.class)
                     .setObjectId(noderef.get().getMetadataId()).call(RevFeatureType.class).get();
             ImmutableList<PropertyDescriptor> descriptors = featureType.sortedDescriptors();
@@ -162,8 +153,8 @@ public class VerifyPatchOp extends AbstractGeoGitOp<VerifyPatchResults> {
                         feature.getFeatureType());
             } else {
                 RevFeature revFeature = (RevFeature) obj.get();
-                DepthSearch depthSearch = new DepthSearch(getIndex().getDatabase());
-                Optional<NodeRef> noderef = depthSearch.find(getWorkTree().getTree(),
+                DepthSearch depthSearch = new DepthSearch(stagingDatabase());
+                Optional<NodeRef> noderef = depthSearch.find(workingTree().getTree(),
                         feature.getPath());
                 RevFeatureType revFeatureType = command(RevObjectParse.class)
                         .setObjectId(noderef.get().getMetadataId()).call(RevFeatureType.class)
@@ -181,8 +172,8 @@ public class VerifyPatchOp extends AbstractGeoGitOp<VerifyPatchResults> {
         }
         ImmutableList<FeatureTypeDiff> alteredTrees = patch.getAlteredTrees();
         for (FeatureTypeDiff diff : alteredTrees) {
-            DepthSearch depthSearch = new DepthSearch(getIndex().getDatabase());
-            Optional<NodeRef> noderef = depthSearch.find(getWorkTree().getTree(), diff.getPath());
+            DepthSearch depthSearch = new DepthSearch(stagingDatabase());
+            Optional<NodeRef> noderef = depthSearch.find(workingTree().getTree(), diff.getPath());
             ObjectId metadataId = noderef.isPresent() ? noderef.get().getMetadataId()
                     : ObjectId.NULL;
             if (Objects.equal(metadataId, diff.getOldFeatureType())) {

@@ -158,7 +158,8 @@ public class FetchOpTest extends RemoteRepositoryTestCase {
         // clone the repository
         CloneOp clone = clone();
         clone.setDepth(2);
-        clone.setRepositoryURL(remoteGeogit.envHome.getCanonicalPath()).call();
+        String repositoryURL = remoteGeogit.envHome.getCanonicalPath();
+        clone.setRepositoryURL(repositoryURL).call();
 
         FetchOp fetch = fetch();
         fetch.setDepth(3);

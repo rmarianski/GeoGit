@@ -76,8 +76,8 @@ public class OSMDownload extends AbstractCommand implements CLICommand {
                 "You must specify a filter file or a bounding box");
         checkParameter((filterFile != null || bbox != null) ^ update,
                 "Filters cannot be used when updating");
-        checkState(cli.getGeogit().getRepository().getIndex().isClean()
-                && cli.getGeogit().getRepository().getWorkingTree().isClean(),
+        checkState(cli.getGeogit().getRepository().index().isClean()
+                && cli.getGeogit().getRepository().workingTree().isClean(),
                 "Working tree and index are not clean");
 
         checkParameter(!rebase || update, "--rebase switch can only be used when updating");

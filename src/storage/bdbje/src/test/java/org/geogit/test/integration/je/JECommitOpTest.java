@@ -6,6 +6,7 @@ package org.geogit.test.integration.je;
 
 import java.io.File;
 
+import org.geogit.api.Injector;
 import org.geogit.api.Platform;
 import org.geogit.api.TestPlatform;
 import org.geogit.di.GeogitModule;
@@ -14,7 +15,6 @@ import org.junit.rules.TemporaryFolder;
 
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 public class JECommitOpTest extends org.geogit.test.integration.CommitOpTest {
@@ -30,8 +30,9 @@ public class JECommitOpTest extends org.geogit.test.integration.CommitOpTest {
             throw Throwables.propagate(e);
         }
         Platform testPlatform = new TestPlatform(workingDirectory);
-        return Guice.createInjector(Modules.override(new GeogitModule()).with(
-                new JETestStorageModule(), new TestModule(testPlatform)));
+        return Guice.createInjector(
+                Modules.override(new GeogitModule()).with(new JETestStorageModule(),
+                        new TestModule(testPlatform))).getInstance(Injector.class);
     }
 
 }

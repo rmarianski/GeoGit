@@ -42,7 +42,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
@@ -71,24 +70,12 @@ public class WriteTree2 extends AbstractGeoGitOp<ObjectId> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WriteTree2.class);
 
-    private ObjectDatabase repositoryDatabase;
-
     private Supplier<RevTree> oldRoot;
 
     private final List<String> pathFilters = Lists.newLinkedList();
 
     // to be used when implementing a replacement for the current WriteTree2.setDiffSupplier()
     // private Supplier<Iterator<DiffEntry>> diffSupplier = null;
-
-    /**
-     * Creates a new {@code WriteTree} operation using the specified parameters.
-     * 
-     * @param repositoryDatabase the object database to use
-     */
-    @Inject
-    public WriteTree2(ObjectDatabase repositoryDatabase) {
-        this.repositoryDatabase = repositoryDatabase;
-    }
 
     /**
      * @param oldRoot a supplier for the old root tree
@@ -155,7 +142,8 @@ public class WriteTree2 extends AbstractGeoGitOp<ObjectId> {
 
         MutableTree newLeftTree = treeDifference.getLeftTree();
 
-        final RevTree newRoot = newLeftTree.build(getIndex().getDatabase(), repositoryDatabase);
+        final ObjectDatabase repositoryDatabase = objectDatabase();
+        final RevTree newRoot = newLeftTree.build(stagingDatabase(), repositoryDatabase);
 
         ObjectId newRootId = newRoot.getId();
 
@@ -299,6 +287,7 @@ public class WriteTree2 extends AbstractGeoGitOp<ObjectId> {
         Preconditions.checkArgument(leftTreeRef != null || rightTreeRef != null,
                 "either left or right tree shall be non null");
 
+        final ObjectDatabase repositoryDatabase = objectDatabase();
         final String treePath = rightTreeRef == null ? leftTreeRef.path() : rightTreeRef.path();
 
         final List<String> strippedPathFilters = stripParentAndFiltersThatDontApply(
@@ -317,7 +306,7 @@ public class WriteTree2 extends AbstractGeoGitOp<ObjectId> {
                 strippedPathFilters);
         command(DeepMove.class).setObjects(nodesToMove).call();
 
-        final StagingDatabase stagingDatabase = getIndex().getDatabase();
+        final StagingDatabase stagingDatabase = stagingDatabase();
 
         final RevTree currentLeftTree = leftTreeId.isNull() ? RevTree.EMPTY : stagingDatabase
                 .getTree(leftTreeId);
@@ -496,7 +485,7 @@ public class WriteTree2 extends AbstractGeoGitOp<ObjectId> {
         final String rightTreeish = Ref.STAGE_HEAD;
 
         final ObjectId rootTreeId = resolveRootTreeId();
-        final ObjectId stageRootId = getIndex().getTree().getId();
+        final ObjectId stageRootId = index().getTree().getId();
 
         final Supplier<Iterator<NodeRef>> leftTreeRefs;
         final Supplier<Iterator<NodeRef>> rightTreeRefs;

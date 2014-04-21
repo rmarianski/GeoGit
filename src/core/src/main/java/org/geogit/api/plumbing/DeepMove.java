@@ -27,7 +27,6 @@ import org.geogit.api.plumbing.LsTreeOp.Strategy;
 import org.geogit.repository.StagingArea;
 import org.geogit.storage.BulkOpListener;
 import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.StagingDatabase;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -38,7 +37,6 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 /**
  * Moves the {@link #setObjectRef(Supplier) specified object} from the {@link StagingArea index
@@ -50,28 +48,15 @@ public class DeepMove extends AbstractGeoGitOp<ObjectId> {
 
     private boolean toIndex;
 
-    private ObjectDatabase odb;
-
-    private StagingDatabase index;
-
     private Supplier<Node> objectRef;
 
     private Supplier<ObjectId> objectId;
 
     private Supplier<Iterator<Node>> nodesToMove;
 
-    /**
-     * Constructs a new instance of the {@code DeepMove} operation with the specified parameters.
-     * 
-     * @param odb the repository object database
-     * @param index the staging database
-     */
-    @Inject
-    public DeepMove(ObjectDatabase odb, StagingDatabase index) {
-        this.odb = odb;
-        this.index = index;
-    }
+    private ObjectDatabase odb;
 
+    
     /**
      * @param toIndex if {@code true} moves the object from the repository's object database to the
      *        index database instead
@@ -121,8 +106,8 @@ public class DeepMove extends AbstractGeoGitOp<ObjectId> {
      */
     @Override
     public ObjectId call() {
-        ObjectDatabase from = toIndex ? odb : index;
-        ObjectDatabase to = toIndex ? index : odb;
+        ObjectDatabase from = toIndex ? objectDatabase() : stagingDatabase();
+        ObjectDatabase to = toIndex ? stagingDatabase() : objectDatabase();
 
         Set<ObjectId> metadataIds = new HashSet<ObjectId>();
 
@@ -377,6 +362,11 @@ public class DeepMove extends AbstractGeoGitOp<ObjectId> {
         }
     }
 
+    @Override
+    protected ObjectDatabase objectDatabase() {
+        return this.odb == null ? super.objectDatabase() : this.odb;
+    }
+    
     public DeepMove setFrom(ObjectDatabase odb) {
         this.odb = odb;
         return this;

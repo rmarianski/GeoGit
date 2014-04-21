@@ -8,8 +8,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.CommandLocator;
 import org.geogit.api.CommitBuilder;
+import org.geogit.api.Injector;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
@@ -128,7 +128,7 @@ public class RevertFeatureWebOp extends AbstractWebAPICommand {
             throw new CommandSpecException(
                     "No transaction was specified, revert feature requires a transaction to preserve the stability of the repository.");
         }
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
 
         Optional<RevTree> newTree = Optional.absent();
         Optional<RevTree> oldTree = Optional.absent();
@@ -175,10 +175,10 @@ public class RevertFeatureWebOp extends AbstractWebAPICommand {
             Optional<RevTree> parsed = geogit.command(RevObjectParse.class)
                     .setObjectId(parentNode.get().getNode().getObjectId()).call(RevTree.class);
             checkState(parsed.isPresent(), "Parent tree couldn't be found in the repository.");
-            treeBuilder = new RevTreeBuilder(geogit.getIndex().getDatabase(), parsed.get());
+            treeBuilder = new RevTreeBuilder(geogit.stagingDatabase(), parsed.get());
             treeBuilder.remove(node.get().getNode().getName());
         } else {
-            treeBuilder = new RevTreeBuilder(geogit.getIndex().getDatabase());
+            treeBuilder = new RevTreeBuilder(geogit.stagingDatabase());
         }
 
         // put the old feature into the new tree
@@ -186,7 +186,7 @@ public class RevertFeatureWebOp extends AbstractWebAPICommand {
             treeBuilder.put(node.get().getNode());
         }
         ObjectId newTreeId = geogit.command(WriteBack.class)
-                .setAncestor(newTree.get().builder(geogit.getIndex().getDatabase()))
+                .setAncestor(newTree.get().builder(geogit.stagingDatabase()))
                 .setChildPath(node.get().getParentPath()).setToIndex(true)
                 .setTree(treeBuilder.build()).setMetadataId(metadataId).call();
 
@@ -201,7 +201,7 @@ public class RevertFeatureWebOp extends AbstractWebAPICommand {
                 + newCommitId.toString()));
 
         RevCommit mapped = builder.build();
-        context.getGeoGIT().getRepository().getObjectDatabase().put(mapped);
+        context.getGeoGIT().getRepository().objectDatabase().put(mapped);
 
         // merge commit into current branch
         final Optional<Ref> currHead = geogit.command(RefParse.class).setName(Ref.HEAD).call();

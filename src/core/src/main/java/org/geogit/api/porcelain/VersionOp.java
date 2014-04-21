@@ -12,7 +12,6 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.di.CanRunDuringConflict;
 
 import com.google.common.base.Throwables;
-import com.google.inject.Inject;
 
 /**
  * Retrieves GeoGit version information.
@@ -20,13 +19,6 @@ import com.google.inject.Inject;
  */
 @CanRunDuringConflict
 public class VersionOp extends AbstractGeoGitOp<VersionInfo> {
-
-    /**
-     * Constructs a new {@code VersionOp}.
-     */
-    @Inject
-    public VersionOp() {
-    }
 
     /**
      * Executes the Version operation.

@@ -16,7 +16,6 @@ import org.geogit.osm.internal.MappingRule;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
-import com.google.inject.Inject;
 
 /**
  * Writes the mapping files that store the information about a mapping operation, storing the id
@@ -27,11 +26,6 @@ public class WriteOSMMappingEntries extends AbstractGeoGitOp<Void> {
     private Mapping mapping;
 
     private OSMMappingLogEntry entry;
-
-    @Inject
-    public WriteOSMMappingEntries() {
-
-    }
 
     public WriteOSMMappingEntries setMappingLogEntry(OSMMappingLogEntry entry) {
         this.entry = entry;

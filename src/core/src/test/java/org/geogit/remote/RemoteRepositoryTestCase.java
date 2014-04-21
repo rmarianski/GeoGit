@@ -5,10 +5,10 @@
 package org.geogit.remote;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.geogit.api.GeoGIT;
 import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.Injector;
 import org.geogit.api.InjectorBuilder;
 import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
@@ -46,7 +47,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.geometry.jts.WKTReader2;
 import org.geotools.referencing.CRS;
-import org.geotools.util.logging.Logging;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -61,7 +61,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import com.google.inject.Injector;
 import com.vividsolutions.jts.io.ParseException;
 
 public abstract class RemoteRepositoryTestCase {
@@ -149,7 +148,11 @@ public abstract class RemoteRepositoryTestCase {
             injector = null;
         }
 
-        public InjectorBuilder createInjectorBuilder() {
+        public Injector getInjector() {
+            return injector;
+        }
+
+        private InjectorBuilder createInjectorBuilder() {
             Platform testPlatform = new TestPlatform(envHome);
             return new TestInjectorBuilder(testPlatform);
         }
@@ -178,8 +181,8 @@ public abstract class RemoteRepositoryTestCase {
         localGeogit = new GeogitContainer("localtestrepository");
         remoteGeogit = new GeogitContainer("remotetestrepository");
 
-        LocalRemoteRepo remoteRepo = spy(new LocalRemoteRepo(remoteGeogit.createInjectorBuilder()
-                .build(), remoteGeogit.envHome.getCanonicalFile(), localGeogit.repo));
+        LocalRemoteRepo remoteRepo = spy(new LocalRemoteRepo(remoteGeogit.getInjector(),
+                remoteGeogit.envHome.getCanonicalFile(), localGeogit.repo));
 
         doNothing().when(remoteRepo).close();
 
@@ -220,7 +223,7 @@ public abstract class RemoteRepositoryTestCase {
         doReturn(Optional.of(remoteRepo)).when(remoteRepoFetch).getRemoteRepo(any(Remote.class),
                 any(DeduplicationService.class));
         LsRemote lsRemote = lsremote();
-        when(remoteRepoFetch.command(LsRemote.class)).thenReturn(lsRemote);
+        doReturn(lsRemote).when(remoteRepoFetch).command(eq(LsRemote.class));
 
         return remoteRepoFetch;
     }
@@ -228,10 +231,12 @@ public abstract class RemoteRepositoryTestCase {
     protected CloneOp clone() {
         CloneOp clone = spy(localGeogit.geogit.command(CloneOp.class));
         FetchOp fetch = fetch();
-        when(clone.command(FetchOp.class)).thenReturn(fetch);
+        // when(clone.command(FetchOp.class)).thenReturn(fetch);
+        doReturn(fetch).when(clone).command(eq(FetchOp.class));
 
         LsRemote lsRemote = lsremote();
-        when(clone.command(LsRemote.class)).thenReturn(lsRemote);
+        // when(clone.command(LsRemote.class)).thenReturn(lsRemote);
+        doReturn(lsRemote).when(clone).command(eq(LsRemote.class));
 
         return clone;
     }
@@ -239,10 +244,12 @@ public abstract class RemoteRepositoryTestCase {
     protected PullOp pull() {
         PullOp pull = spy(localGeogit.geogit.command(PullOp.class));
         FetchOp fetch = fetch();
-        when(pull.command(FetchOp.class)).thenReturn(fetch);
+        // when(pull.command(eq(FetchOp.class))).thenReturn(fetch);
+        doReturn(fetch).when(pull).command(eq(FetchOp.class));
 
         LsRemote lsRemote = lsremote();
-        when(pull.command(LsRemote.class)).thenReturn(lsRemote);
+        // when(pull.command(eq(LsRemote.class))).thenReturn(lsRemote);
+        doReturn(lsRemote).when(pull).command(eq(LsRemote.class));
 
         return pull;
     }
@@ -252,10 +259,12 @@ public abstract class RemoteRepositoryTestCase {
         doReturn(Optional.of(remoteRepo)).when(push).getRemoteRepo(any(Remote.class));
 
         FetchOp fetch = fetch();
-        when(push.command(FetchOp.class)).thenReturn(fetch);
+        // when(push.command(FetchOp.class)).thenReturn(fetch);
+        doReturn(fetch).when(push).command(eq(FetchOp.class));
 
         LsRemote lsRemote = lsremote();
-        when(push.command(LsRemote.class)).thenReturn(lsRemote);
+        // when(push.command(LsRemote.class)).thenReturn(lsRemote);
+        doReturn(lsRemote).when(push).command(eq(LsRemote.class));
 
         return push;
     }
@@ -338,7 +347,7 @@ public abstract class RemoteRepositoryTestCase {
      * Inserts the feature to the index but does not stages it to be committed
      */
     protected ObjectId insert(GeoGIT geogit, Feature f) throws Exception {
-        final WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        final WorkingTree workTree = geogit.getRepository().workingTree();
         Name name = f.getType().getName();
         String parentPath = name.getLocalPart();
         Node ref = workTree.insert(parentPath, f);
@@ -374,7 +383,7 @@ public abstract class RemoteRepositoryTestCase {
     }
 
     protected boolean delete(GeoGIT geogit, Feature f) throws Exception {
-        final WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        final WorkingTree workTree = geogit.getRepository().workingTree();
         Name name = f.getType().getName();
         String localPart = name.getLocalPart();
         String id = f.getIdentifier().getID();

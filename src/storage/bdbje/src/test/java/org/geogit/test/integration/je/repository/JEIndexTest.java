@@ -4,17 +4,18 @@
  */
 package org.geogit.test.integration.je.repository;
 
+import org.geogit.api.Injector;
 import org.geogit.di.GeogitModule;
 import org.geogit.test.integration.je.JETestStorageModule;
 
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 public class JEIndexTest extends org.geogit.test.integration.repository.IndexTest {
     @Override
     protected Injector createInjector() {
-        return Guice.createInjector(Modules.override(new GeogitModule()).with(
-                new JETestStorageModule()));
+        return Guice.createInjector(
+                Modules.override(new GeogitModule()).with(new JETestStorageModule())).getInstance(
+                Injector.class);
     }
 }

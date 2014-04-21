@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevFeature;
@@ -223,7 +223,7 @@ public class ImportOpTest extends RepositoryTestCase {
         GeometryFactory gf = new GeometryFactory();
         SimpleFeature feature = SimpleFeatureBuilder.build(type,
                 new Object[] { gf.createPoint(new Coordinate(0, 0)), "feature0" }, "feature");
-        geogit.getRepository().getWorkingTree().insert("table1", feature);
+        geogit.getRepository().workingTree().insert("table1", feature);
         ImportOp importOp = geogit.command(ImportOp.class);
         importOp.setDataStore(TestHelper.createTestFactory().createDataStore(null));
         importOp.setAll(true);
@@ -348,11 +348,11 @@ public class ImportOpTest extends RepositoryTestCase {
     @Test
     public void testDeleteException() throws Exception {
         WorkingTree workTree = mock(WorkingTree.class);
-        CommandLocator cmdl = mock(CommandLocator.class);
-        when(cmdl.getWorkingTree()).thenReturn(workTree);
+        Injector cmdl = mock(Injector.class);
+        when(cmdl.workingTree()).thenReturn(workTree);
         doThrow(new RuntimeException("Exception")).when(workTree).delete(any(String.class));
         ImportOp importOp = new ImportOp();
-        importOp.setCommandLocator(cmdl);
+        importOp.setInjector(cmdl);
         importOp.setDataStore(TestHelper.createTestFactory().createDataStore(null));
         importOp.setAll(true);
         exception.expect(GeoToolsOpException.class);

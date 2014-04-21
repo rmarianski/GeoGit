@@ -118,7 +118,7 @@ public class Reset extends AbstractCommand implements CLICommand {
             throw new CommandFailedException(ise.getMessage(), ise);
         }
 
-        if (!geogit.getRepository().getWorkingTree().isClean()) {
+        if (!geogit.getRepository().workingTree().isClean()) {
             try {
                 Iterator<DiffEntry> unstaged = geogit.command(DiffWorkTree.class).setFilter(null)
                         .call();

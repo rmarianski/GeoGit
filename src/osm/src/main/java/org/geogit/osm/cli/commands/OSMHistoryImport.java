@@ -310,7 +310,7 @@ public class OSMHistoryImport extends AbstractCommand implements CLICommand {
         }
         final GeoGIT geogit = cli.getGeogit();
         final Repository repository = geogit.getRepository();
-        final WorkingTree workTree = repository.getWorkingTree();
+        final WorkingTree workTree = repository.workingTree();
 
         Map<Long, Coordinate> thisChangePointCache = new LinkedHashMap<Long, Coordinate>() {
             /** serialVersionUID */
@@ -396,7 +396,7 @@ public class OSMHistoryImport extends AbstractCommand implements CLICommand {
         final Way way = (Way) primitive;
         final ImmutableList<Long> nodes = way.getNodes();
 
-        StagingArea index = geogit.getRepository().getIndex();
+        StagingArea index = geogit.getRepository().index();
 
         FeatureBuilder featureBuilder = new FeatureBuilder(NODE_REV_TYPE);
         List<Coordinate> coordinates = Lists.newArrayList(nodes.size());

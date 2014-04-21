@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
@@ -85,8 +85,8 @@ public class RevParseTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        repo.getConfigDatabase().put("user.name", "groldan");
-        repo.getConfigDatabase().put("user.email", "groldan@opengeo.org");
+        injector.configDatabase().put("user.name", "groldan");
+        injector.configDatabase().put("user.email", "groldan@opengeo.org");
     }
 
     @Test
@@ -208,7 +208,7 @@ public class RevParseTest extends RepositoryTestCase {
     @Test
     public void testResolveToMultipleIds() {
         StagingDatabase mockIndexDb = mock(StagingDatabase.class);
-        CommandLocator mockCommands = mock(CommandLocator.class);
+        Injector mockCommands = mock(Injector.class);
         RefParse mockRefParse = mock(RefParse.class);
 
         when(mockRefParse.setName(anyString())).thenReturn(mockRefParse);
@@ -219,9 +219,9 @@ public class RevParseTest extends RepositoryTestCase {
         List<ObjectId> oIds = Arrays.asList(ObjectId.forString("Object 1"),
                 ObjectId.forString("Object 2"));
         when(mockIndexDb.lookUp(anyString())).thenReturn(oIds);
-
-        RevParse command = new RevParse(mockIndexDb);
-        command.setCommandLocator(mockCommands);
+        when(mockCommands.stagingDatabase()).thenReturn(mockIndexDb);
+        RevParse command = new RevParse();
+        command.setInjector(mockCommands);
 
         exception.expect(IllegalArgumentException.class);
         command.setRefSpec(commitId1.toString().substring(0, commitId1.toString().length() - 2))

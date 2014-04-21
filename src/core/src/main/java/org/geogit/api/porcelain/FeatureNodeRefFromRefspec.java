@@ -18,11 +18,9 @@ import org.geogit.api.plumbing.ResolveTreeish;
 import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.di.CanRunDuringConflict;
 import org.geogit.repository.SpatialOps;
-import org.geogit.repository.WorkingTree;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
@@ -33,14 +31,7 @@ import com.vividsolutions.jts.geom.Envelope;
 @CanRunDuringConflict
 public class FeatureNodeRefFromRefspec extends AbstractGeoGitOp<Optional<NodeRef>> {
 
-    private WorkingTree workTree;
-
     private String ref;
-
-    @Inject
-    public FeatureNodeRefFromRefspec(WorkingTree workTree) {
-        this.workTree = workTree;
-    }
 
     public FeatureNodeRefFromRefspec setRefspec(String ref) {
         this.ref = ref;
@@ -81,7 +72,7 @@ public class FeatureNodeRefFromRefspec extends AbstractGeoGitOp<Optional<NodeRef
         if (!revObject.isPresent()) { // let's try to see if it is a feature in the working tree
             NodeRef.checkValidPath(ref);
             Optional<NodeRef> elementRef = command(FindTreeChild.class)
-                    .setParent(workTree.getTree()).setChildPath(ref).setIndex(true).call();
+                    .setParent(workingTree().getTree()).setChildPath(ref).setIndex(true).call();
             Preconditions.checkArgument(elementRef.isPresent(), "Invalid reference: %s", ref);
             ObjectId id = elementRef.get().objectId();
             revObject = command(RevObjectParse.class).setObjectId(id).call(RevObject.class);

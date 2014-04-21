@@ -146,8 +146,8 @@ public class SparseCloneTest extends RemoteRepositoryTestCase {
                     .setName("sparse.filter").setValue("filter.ini").setScope(ConfigScope.LOCAL)
                     .call();
 
-            LocalMappedRemoteRepo remoteRepo = spy(new LocalMappedRemoteRepo(remoteGeogit
-                    .createInjectorBuilder().build(), remoteGeogit.envHome.getCanonicalFile(),
+            LocalMappedRemoteRepo remoteRepo = spy(new LocalMappedRemoteRepo(
+                    remoteGeogit.getInjector(), remoteGeogit.envHome.getCanonicalFile(),
                     localGeogit.repo));
 
             doNothing().when(remoteRepo).close();
@@ -480,7 +480,9 @@ public class SparseCloneTest extends RemoteRepositoryTestCase {
         Optional<RevObject> childObject = remoteGeogit.geogit.command(RevObjectParse.class)
                 .setObjectId(oId).call();
         assertTrue(childObject.isPresent());
-
+        assertEquals(commit,
+                remoteGeogit.geogit.getRepository().objectDatabase().getCommit(commit.getId()));
+        System.err.println(commit.getId());
         PullOp pull = pull();
         pull.call();
 

@@ -4,7 +4,7 @@
  */
 package org.geogit.web.api.commands;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.NodeRef;
 import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.plumbing.FindTreeChild;
@@ -64,13 +64,13 @@ public class RemoveWebOp extends AbstractWebAPICommand {
             throw new CommandSpecException("No path was specified for removal.");
         }
 
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
         RemoveOp command = geogit.command(RemoveOp.class);
 
         NodeRef.checkValidPath(path);
 
         Optional<NodeRef> node = geogit.command(FindTreeChild.class)
-                .setParent(geogit.getWorkingTree().getTree()).setIndex(true).setChildPath(path)
+                .setParent(geogit.workingTree().getTree()).setIndex(true).setChildPath(path)
                 .call();
         if (node.isPresent()) {
             NodeRef nodeRef = node.get();

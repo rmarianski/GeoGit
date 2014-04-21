@@ -45,7 +45,7 @@ public class IndexTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        index = repo.getIndex();
+        index = repo.index();
     }
 
     // two features with the same content and different fid should point to the same object
@@ -115,7 +115,7 @@ public class IndexTest extends RepositoryTestCase {
                 .setNewValue(commitId).call();
         assertTrue(newHead.isPresent());
 
-        WorkingTree workTree = repo.getWorkingTree();
+        WorkingTree workTree = repo.workingTree();
         workTree.delete(linesName, lines1.getIdentifier().getID());
         geogit.command(AddOp.class).call();
 
@@ -159,7 +159,7 @@ public class IndexTest extends RepositoryTestCase {
     @Test
     public void testWriteEmptyPathAddAll() throws Exception {
         insert(lines1);
-        WorkingTree workingTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workingTree = geogit.getRepository().workingTree();
         workingTree.createTypeTree(pointsName, pointsType);
 
         List<NodeRef> workHead = toList(geogit.command(LsTreeOp.class).setReference(Ref.WORK_HEAD)
@@ -182,7 +182,7 @@ public class IndexTest extends RepositoryTestCase {
 
     @Test
     public void testWriteEmptyPath() throws Exception {
-        WorkingTree workingTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workingTree = geogit.getRepository().workingTree();
         workingTree.createTypeTree(pointsName, pointsType);
         workingTree.createTypeTree(linesName, linesType);
 
@@ -245,9 +245,9 @@ public class IndexTest extends RepositoryTestCase {
         assertFalse(index.findStaged(appendChild(pointsName, idP1)).isPresent());
         assertFalse(index.findStaged(appendChild(pointsName, idP2)).isPresent());
 
-        assertEquals(oId1, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP1)).get()
+        assertEquals(oId1, repo.workingTree().findUnstaged(appendChild(pointsName, idP1)).get()
                 .getObjectId());
-        assertEquals(oId2, repo.getWorkingTree().findUnstaged(appendChild(pointsName, idP2)).get()
+        assertEquals(oId2, repo.workingTree().findUnstaged(appendChild(pointsName, idP2)).get()
                 .getObjectId());
 
         geogit.command(AddOp.class).call();
@@ -447,7 +447,7 @@ public class IndexTest extends RepositoryTestCase {
 
     @Test
     public void testAddEmptyTree() throws Exception {
-        WorkingTree workingTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workingTree = geogit.getRepository().workingTree();
         workingTree.createTypeTree(pointsName, pointsType);
         geogit.command(AddOp.class).setUpdateOnly(false).call();
         assertTrue(index.findStaged(pointsName).isPresent());

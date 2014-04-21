@@ -135,8 +135,7 @@ public final class BinaryPackedChanges {
             if (diff.getNewObject() != null) {
                 if (diff.getNewObject().getType() != TYPE.FEATURE) {
                     out.write(CHUNK_TYPE.METADATA_OBJECT_AND_DIFF_ENTRY.value());
-                    metadata = repository.getObjectDatabase().get(
-                            diff.getNewObject().getMetadataId());
+                    metadata = repository.objectDatabase().get(diff.getNewObject().getMetadataId());
                     out.write(metadata.getId().getRawValue());
                     if (metadata instanceof RevTree) {
                         treeWriter.write((RevTree) metadata, out);
@@ -149,7 +148,7 @@ public final class BinaryPackedChanges {
                 } else {
                     out.write(CHUNK_TYPE.OBJECT_AND_DIFF_ENTRY.value());
                 }
-                object = repository.getObjectDatabase().get(
+                object = repository.objectDatabase().get(
                         diff.getNewObject().getNode().getObjectId());
 
                 out.write(object.getId().getRawValue());
@@ -236,16 +235,16 @@ public final class BinaryPackedChanges {
             ObjectId id = readObjectId(in);
             RevObject revObj = objectReader.read(id, in);
 
-            if (!repository.getObjectDatabase().exists(id)) {
-                repository.getObjectDatabase().put(revObj);
+            if (!repository.objectDatabase().exists(id)) {
+                repository.objectDatabase().put(revObj);
             }
         }
         if (chunkType != CHUNK_TYPE.DIFF_ENTRY.value()) {
             ObjectId id = readObjectId(in);
             RevObject revObj = objectReader.read(id, in);
 
-            if (!repository.getObjectDatabase().exists(id)) {
-                repository.getObjectDatabase().put(revObj);
+            if (!repository.objectDatabase().exists(id)) {
+                repository.objectDatabase().put(revObj);
             }
         }
         DataInput dataIn = new DataInputStream(in);

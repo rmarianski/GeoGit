@@ -25,7 +25,6 @@ import org.geogit.storage.StagingDatabase;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.inject.Inject;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
@@ -44,15 +43,6 @@ import com.vividsolutions.jts.geom.Envelope;
  */
 public class WriteBack extends AbstractGeoGitOp<ObjectId> {
 
-    private final ObjectDatabase odb;
-
-    private final StagingDatabase index;
-
-    /**
-     * Either {@link #odb} or {@link #index}, depending on the value of {@link #indexDb}
-     */
-    private ObjectDatabase targetdb;
-
     private boolean indexDb;
 
     private Supplier<RevTreeBuilder> ancestor;
@@ -65,17 +55,7 @@ public class WriteBack extends AbstractGeoGitOp<ObjectId> {
 
     private Optional<ObjectId> metadataId;
 
-    /**
-     * Constructs a new {@code WriteBack} operation with the given parameters.
-     * 
-     * @param odb the object database to use
-     * @param index the staging database to use
-     */
-    @Inject
-    public WriteBack(ObjectDatabase odb, StagingDatabase index) {
-        this.odb = odb;
-        this.index = index;
-        this.targetdb = odb;
+    public WriteBack() {
         this.metadataId = Optional.absent();
     }
 
@@ -87,7 +67,6 @@ public class WriteBack extends AbstractGeoGitOp<ObjectId> {
      */
     public WriteBack setToIndex(boolean indexDb) {
         this.indexDb = indexDb;
-        this.targetdb = indexDb ? index : odb;
         return this;
     }
 
@@ -165,7 +144,7 @@ public class WriteBack extends AbstractGeoGitOp<ObjectId> {
         RevTree tree = this.tree.get();
         checkState(null != tree, "child tree supplier returned null");
 
-        ObjectDatabase targetDb = indexDb ? index : odb;
+        ObjectDatabase targetDb = indexDb ? stagingDatabase() : objectDatabase();
         RevTreeBuilder root = resolveAncestor();
 
         return writeBack(root, ancestorPath, tree, childPath, targetDb,
@@ -216,7 +195,7 @@ public class WriteBack extends AbstractGeoGitOp<ObjectId> {
         if (parentRef.isPresent()) {
             ObjectId parentId = parentRef.get().objectId();
             parentMetadataId = parentRef.get().getMetadataId();
-            parentBuilder = getTree(parentId).builder(targetdb);
+            parentBuilder = getTree(parentId, targetDatabase).builder(targetDatabase);
         } else {
             parentBuilder = RevTree.EMPTY.builder(targetDatabase);
         }
@@ -234,11 +213,11 @@ public class WriteBack extends AbstractGeoGitOp<ObjectId> {
                 parentMetadataId);
     }
 
-    private RevTree getTree(ObjectId treeId) {
+    private RevTree getTree(ObjectId treeId, ObjectDatabase targetDb) {
         if (treeId.isNull()) {
             return RevTree.EMPTY;
         }
-        RevTree revTree = targetdb.getTree(treeId);
+        RevTree revTree = targetDb.getTree(treeId);
         return revTree;
     }
 

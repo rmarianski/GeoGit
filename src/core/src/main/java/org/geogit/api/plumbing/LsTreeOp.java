@@ -28,7 +28,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 /**
  * List the contents of a {@link RevTree tree} object as an Iterator&lt;{@link NodeRef}&gt;, using
@@ -83,7 +82,6 @@ public class LsTreeOp extends AbstractGeoGitOp<Iterator<NodeRef>> implements
 
     private Predicate<Bounded> refBoundsFilter;
 
-    @Inject
     public LsTreeOp() {
         this.strategy = Strategy.CHILDREN;
     }
@@ -163,7 +161,7 @@ public class LsTreeOp extends AbstractGeoGitOp<Iterator<NodeRef>> implements
             // let's try to see if it is a feature type or feature in the working tree
             NodeRef.checkValidPath(ref);
 
-            treeRef = command(FindTreeChild.class).setParent(getWorkTree().getTree())
+            treeRef = command(FindTreeChild.class).setParent(workingTree().getTree())
                     .setChildPath(ref).setIndex(true).call();
 
             Preconditions.checkArgument(treeRef.isPresent(), "Invalid reference: %s", ref);
@@ -184,7 +182,7 @@ public class LsTreeOp extends AbstractGeoGitOp<Iterator<NodeRef>> implements
             if (this.strategy == Strategy.TREES_ONLY) {
                 if (nodeRef != null) {
                     while (!nodeRef.getParentPath().isEmpty()) {
-                        treeRef = command(FindTreeChild.class).setParent(getWorkTree().getTree())
+                        treeRef = command(FindTreeChild.class).setParent(workingTree().getTree())
                                 .setChildPath(nodeRef.getParentPath()).setIndex(true).call();
                         nodeRef = treeRef.get();
                         nodeRefs.add(nodeRef);
@@ -224,7 +222,7 @@ public class LsTreeOp extends AbstractGeoGitOp<Iterator<NodeRef>> implements
             }
 
             RevTree tree = (RevTree) revObject.get();
-            ObjectDatabase database = getIndex().getDatabase();
+            ObjectDatabase database = stagingDatabase();
             DepthTreeIterator iter = new DepthTreeIterator(path, metadataId, tree, database,
                     iterStrategy);
             iter.setBoundsFilter(refBoundsFilter);

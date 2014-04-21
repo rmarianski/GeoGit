@@ -18,7 +18,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
-import com.google.inject.Inject;
 
 /**
  * Reads the mapping associated to a previously executed OSM mapping operation.
@@ -26,11 +25,6 @@ import com.google.inject.Inject;
 public class ReadOSMMapping extends AbstractGeoGitOp<Optional<Mapping>> {
 
     private OSMMappingLogEntry entry;
-
-    @Inject
-    public ReadOSMMapping() {
-
-    }
 
     public ReadOSMMapping setEntry(OSMMappingLogEntry entry) {
         this.entry = entry;

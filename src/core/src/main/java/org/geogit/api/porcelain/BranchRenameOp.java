@@ -34,13 +34,6 @@ public class BranchRenameOp extends AbstractGeoGitOp<Ref> {
     private String oldBranchName;
 
     /**
-     * Constructs a new {@code BranchRenameOp}
-     */
-    public BranchRenameOp() {
-
-    }
-
-    /**
      * @param force whether to force the renaming of a branch to a branch name that already exists
      * @return {@code this}
      */

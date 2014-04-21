@@ -61,7 +61,7 @@ public class OSMUnmapTest extends Assert {
         Optional<RevFeature> revFeature = geogit.command(RevObjectParse.class)
                 .setRefSpec("WORK_HEAD:busstops/507464799").call(RevFeature.class);
         assertTrue(revFeature.isPresent());
-        geogit.getRepository().getWorkingTree().delete("node");
+        geogit.getRepository().workingTree().delete("node");
         Optional<RevTree> tree = geogit.command(RevObjectParse.class).setRefSpec("WORK_HEAD:node")
                 .call(RevTree.class);
         assertFalse(tree.isPresent());

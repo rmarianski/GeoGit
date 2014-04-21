@@ -19,11 +19,9 @@ import org.geogit.api.Ref;
 import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.diff.DiffTreeVisitor;
 import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.StagingDatabase;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
@@ -38,16 +36,6 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
     private String newVersion;
 
     private boolean cached;
-
-    private ObjectDatabase odb;
-
-    private StagingDatabase staging;
-
-    @Inject
-    public DiffBounds(ObjectDatabase odb, StagingDatabase staging) {
-        this.odb = odb;
-        this.staging = staging;
-    }
 
     public DiffBounds setOldVersion(String oldVersion) {
         this.oldVersion = oldVersion;
@@ -95,7 +83,7 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
      */
     private ObjectDatabase resolveSafeDb(String refSpec) {
         Optional<Ref> ref = command(RefParse.class).setName(refSpec).call();
-        return ref.isPresent() ? odb : staging;
+        return ref.isPresent() ? objectDatabase() : stagingDatabase();
     }
 
     private RevTree resolveTree(String refSpec) {
@@ -103,7 +91,7 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
         Optional<ObjectId> id = command(ResolveTreeish.class).setTreeish(refSpec).call();
         Preconditions.checkState(id.isPresent(), "%s did not resolve to a tree", refSpec);
 
-        return getIndex().getDatabase().getTree(id.get());
+        return stagingDatabase().getTree(id.get());
     }
 
     private static class BoundsWalk implements DiffTreeVisitor.Consumer {

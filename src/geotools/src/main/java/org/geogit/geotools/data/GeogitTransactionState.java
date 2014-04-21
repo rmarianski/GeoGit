@@ -10,7 +10,7 @@ import java.util.Iterator;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.GeogitTransaction;
 import org.geogit.api.plumbing.DiffIndex;
 import org.geogit.api.plumbing.TransactionBegin;
@@ -80,7 +80,7 @@ class GeogitTransactionState implements State {
                 geogitTx.abort();
             }
             GeoGitDataStore dataStore = (GeoGitDataStore) entry.getDataStore();
-            CommandLocator commandLocator = dataStore.getCommandLocator(this.tx);
+            Injector commandLocator = dataStore.getCommandLocator(this.tx);
             this.geogitTx = commandLocator.command(TransactionBegin.class).call();
             // checkout the working branch
             final String workingBranch = dataStore.getOrFigureOutBranch();

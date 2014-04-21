@@ -17,12 +17,16 @@ import java.io.File;
 import java.util.Iterator;
 
 import org.geogit.api.CommitBuilder;
+import org.geogit.api.Injector;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevFeatureType;
 import org.geogit.api.RevObject;
 import org.geogit.api.TestPlatform;
+import org.geogit.di.Decorator;
+import org.geogit.di.DecoratorProvider;
+import org.geogit.di.GuiceInjector;
 import org.geogit.storage.ConfigDatabase;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.ObjectSerializingFactory;
@@ -45,9 +49,9 @@ import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.util.Modules;
 
 public class CachingModuleTest {
@@ -85,6 +89,10 @@ public class CachingModuleTest {
 
             @Override
             protected void configure() {
+                bind(Injector.class).to(GuiceInjector.class).in(Scopes.SINGLETON);
+
+                Multibinder.newSetBinder(binder(), Decorator.class);
+                bind(DecoratorProvider.class).in(Scopes.SINGLETON);
 
                 DataStreamSerializationFactory sfac = new DataStreamSerializationFactory();
                 bind(ObjectSerializingFactory.class).toInstance(sfac);
@@ -101,10 +109,11 @@ public class CachingModuleTest {
         };
 
         Injector injector = Guice
-                .createInjector(Modules.override(new CachingModule()).with(module));
+                .createInjector(Modules.override(new CachingModule()).with(module)).getInstance(
+                        org.geogit.api.Injector.class);
 
-        odb = injector.getInstance(ObjectDatabase.class);
-        index = injector.getInstance(StagingDatabase.class);
+        odb = injector.objectDatabase();
+        index = injector.stagingDatabase();
         odb.open();
         index.open();
 

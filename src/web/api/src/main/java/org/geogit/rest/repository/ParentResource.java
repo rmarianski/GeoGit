@@ -61,7 +61,7 @@ public class ParentResource extends Resource {
             GeoGIT ggit = geogit.get();
 
             if (commit.isPresent()) {
-                ImmutableList<ObjectId> parents = ggit.getRepository().getGraphDatabase()
+                ImmutableList<ObjectId> parents = ggit.getRepository().graphDatabase()
                         .getParents(ObjectId.valueOf(commit.get()));
                 for (ObjectId object : parents) {
                     w.write(object.toString() + "\n");

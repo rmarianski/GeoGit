@@ -18,7 +18,6 @@ import org.geogit.storage.StagingDatabase;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.inject.Inject;
 
 /**
  * Finds the subtree of the given tree named after the indicated path, or creates a new one. If a
@@ -39,16 +38,6 @@ public class FindOrCreateSubtree extends AbstractGeoGitOp<RevTree> {
     private boolean indexDb;
 
     private String parentPath;
-
-    private ObjectDatabase odb;
-
-    private StagingDatabase index;
-
-    @Inject
-    public FindOrCreateSubtree(ObjectDatabase odb, StagingDatabase index) {
-        this.odb = odb;
-        this.index = index;
-    }
 
     /**
      * @param parent a supplier that resolves to the parent tree where to start the search for the
@@ -128,7 +117,7 @@ public class FindOrCreateSubtree extends AbstractGeoGitOp<RevTree> {
         if (subtreeId.isNull()) {
             return RevTree.EMPTY;
         }
-        ObjectDatabase target = indexDb ? index : odb;
+        ObjectDatabase target = indexDb ? stagingDatabase() : objectDatabase();
         RevTree tree = target.getTree(subtreeId);
         return tree;
     }

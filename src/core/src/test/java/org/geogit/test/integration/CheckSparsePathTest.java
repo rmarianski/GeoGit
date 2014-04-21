@@ -71,7 +71,7 @@ public class CheckSparsePathTest extends RepositoryTestCase {
         geogit.command(BranchCreateOp.class).setAutoCheckout(true).setName("branch3").call();
         insertAndAdd(poly1);
         RevCommit commit5 = geogit.command(CommitOp.class).setMessage("commit5").call();
-        geogit.getRepository().getGraphDatabase()
+        geogit.getRepository().graphDatabase()
                 .setProperty(commit5.getId(), GraphDatabase.SPARSE_FLAG, "true");
         geogit.command(CheckoutOp.class).setSource("branch2").call();
         insertAndAdd(poly2);
@@ -133,7 +133,7 @@ public class CheckSparsePathTest extends RepositoryTestCase {
         geogit.command(BranchCreateOp.class).setAutoCheckout(true).setName("branch1").call();
         insertAndAdd(points2);
         RevCommit commit2 = geogit.command(CommitOp.class).setMessage("commit2").call();
-        geogit.getRepository().getGraphDatabase()
+        geogit.getRepository().graphDatabase()
                 .setProperty(commit2.getId(), GraphDatabase.SPARSE_FLAG, "true");
         insertAndAdd(points3);
         RevCommit commit3 = geogit.command(CommitOp.class).setMessage("commit3").call();
@@ -143,7 +143,7 @@ public class CheckSparsePathTest extends RepositoryTestCase {
         geogit.command(BranchCreateOp.class).setAutoCheckout(true).setName("branch3").call();
         insertAndAdd(poly1);
         RevCommit commit5 = geogit.command(CommitOp.class).setMessage("commit5").call();
-        geogit.getRepository().getGraphDatabase()
+        geogit.getRepository().graphDatabase()
                 .setProperty(commit5.getId(), GraphDatabase.SPARSE_FLAG, "true");
         geogit.command(CheckoutOp.class).setSource("branch2").call();
         insertAndAdd(poly2);

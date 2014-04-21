@@ -17,10 +17,10 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.codehaus.jettison.AbstractXMLStreamWriter;
-import org.geogit.api.CommandLocator;
 import org.geogit.api.FeatureBuilder;
 import org.geogit.api.FeatureInfo;
 import org.geogit.api.GeogitSimpleFeature;
+import org.geogit.api.Injector;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
@@ -600,7 +600,7 @@ public class ResponseWriter {
         out.writeEndElement();
     }
 
-    public void writePullResponse(PullResult result, Iterator<DiffEntry> iter, CommandLocator geogit)
+    public void writePullResponse(PullResult result, Iterator<DiffEntry> iter, Injector geogit)
             throws XMLStreamException {
         out.writeStartElement("Pull");
         writeFetchResponse(result.getFetchResult());
@@ -687,7 +687,7 @@ public class ResponseWriter {
      * @param diff - a DiffEntry iterator to build the response from
      * @throws XMLStreamException
      */
-    public void writeGeometryChanges(final CommandLocator geogit, Iterator<DiffEntry> diff,
+    public void writeGeometryChanges(final Injector geogit, Iterator<DiffEntry> diff,
             int page, int elementsPerPage) throws XMLStreamException {
 
         Iterators.advance(diff, page * elementsPerPage);
@@ -789,7 +789,7 @@ public class ResponseWriter {
      * @param conflicts - a Conflict iterator to build the response from
      * @throws XMLStreamException
      */
-    public void writeConflicts(final CommandLocator geogit, Iterator<Conflict> conflicts,
+    public void writeConflicts(final Injector geogit, Iterator<Conflict> conflicts,
             final ObjectId ours, final ObjectId theirs) throws XMLStreamException {
         Iterator<GeometryConflict> conflictIterator = Iterators.transform(conflicts,
                 new Function<Conflict, GeometryConflict>() {
@@ -911,7 +911,7 @@ public class ResponseWriter {
      * @param features - a FeatureInfo iterator to build the response from
      * @throws XMLStreamException
      */
-    public void writeMerged(final CommandLocator geogit, Iterator<FeatureInfo> features)
+    public void writeMerged(final Injector geogit, Iterator<FeatureInfo> features)
             throws XMLStreamException {
         Iterator<GeometryChange> changeIterator = Iterators.transform(features,
                 new Function<FeatureInfo, GeometryChange>() {
@@ -979,11 +979,11 @@ public class ResponseWriter {
      * features.
      * 
      * @param report - the MergeScenarioReport containing all the merge results
-     * @param transaction - a CommandLocator to call commands from
+     * @param transaction - a transaction aware injector to call commands from
      * @throws XMLStreamException
      */
     public void writeMergeResponse(Optional<RevCommit> mergeCommit, MergeScenarioReport report,
-            CommandLocator transaction, ObjectId ours, ObjectId theirs, ObjectId ancestor)
+            Injector transaction, ObjectId ours, ObjectId theirs, ObjectId ancestor)
             throws XMLStreamException {
         out.writeStartElement("Merge");
         writeElement("ours", ours.toString());

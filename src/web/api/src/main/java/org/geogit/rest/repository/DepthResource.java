@@ -62,7 +62,7 @@ public class DepthResource extends Resource {
             Optional<Integer> depth = Optional.absent();
 
             if (commit.isPresent()) {
-                depth = Optional.of(ggit.getRepository().getGraphDatabase()
+                depth = Optional.of(ggit.getRepository().graphDatabase()
                         .getDepth(ObjectId.valueOf(commit.get())));
             } else {
                 depth = ggit.getRepository().getDepth();

@@ -7,7 +7,7 @@ package org.geogit.web.api.commands;
 import java.io.IOException;
 import java.util.List;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.GlobalInjectorBuilder;
 import org.geogit.api.Ref;
 import org.geogit.api.Remote;
@@ -151,7 +151,7 @@ public class RemoteWebOp extends AbstractWebAPICommand {
      */
     @Override
     public void run(CommandContext context) {
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
         if (list) {
             final List<Remote> remotes = geogit.command(RemoteListOp.class).call();
 

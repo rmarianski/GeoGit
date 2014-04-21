@@ -53,7 +53,7 @@ public abstract class GraphDatabaseStressTest  {
     @Test
     public void testConcurrentUses() throws Exception {
         ConcurrentLinkedQueue<String> errorLog = new ConcurrentLinkedQueue<String>();
-        //ExecutorService executor = Executors.newCachedThreadPool();
+        // ExecutorService executor = Executors.newCachedThreadPool();
         ExecutorService executor = Executors.newSingleThreadExecutor();
         List<Future<?>> futures = new ArrayList<Future<?>>();
         for (String s : new String[] { "a", "b", "c", "d" }) {
@@ -71,7 +71,9 @@ public abstract class GraphDatabaseStressTest  {
 
     private class InsertMany implements Runnable {
         private final String key;
+
         private final ConcurrentLinkedQueue errorLog;
+
         public InsertMany(String key, ConcurrentLinkedQueue<String> errorLog) {
             this.key = key;
             this.errorLog = errorLog;

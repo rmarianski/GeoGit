@@ -19,25 +19,12 @@ import org.geogit.storage.GraphDatabase;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
 
 /**
  * Rebuilds the {@link GraphDatabase} and returns a list of {@link ObjectId}s that were found to be
  * missing or incomplete.
  */
 public class RebuildGraphOp extends AbstractGeoGitOp<ImmutableList<ObjectId>> {
-
-    private Repository repository;
-
-    /**
-     * Constructs a new {@code RebuildGraphOp} with the provided {@link Repository}.
-     * 
-     * @param repository the repository
-     */
-    @Inject
-    public RebuildGraphOp(Repository repository) {
-        this.repository = repository;
-    }
 
     /**
      * Executes the {@code RebuildGraphOp} operation.
@@ -46,6 +33,7 @@ public class RebuildGraphOp extends AbstractGeoGitOp<ImmutableList<ObjectId>> {
      */
     @Override
     public ImmutableList<ObjectId> call() {
+        Repository repository = repository();
         Preconditions.checkState(!repository.isSparse(),
                 "Cannot rebuild the graph of a sparse repository.");
 
@@ -53,8 +41,8 @@ public class RebuildGraphOp extends AbstractGeoGitOp<ImmutableList<ObjectId>> {
         ImmutableList<Ref> branches = command(BranchListOp.class).setLocal(true).setRemotes(true)
                 .call();
 
-        GraphDatabase graphDb = repository.getGraphDatabase();
-        
+        GraphDatabase graphDb = repository.graphDatabase();
+
         for (Ref ref : branches) {
             Iterator<RevCommit> commits = command(LogOp.class).setUntil(ref.getObjectId()).call();
             while (commits.hasNext()) {

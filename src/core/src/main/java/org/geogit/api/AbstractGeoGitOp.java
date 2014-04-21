@@ -6,11 +6,14 @@ package org.geogit.api;
 
 import java.util.concurrent.Callable;
 
+import org.geogit.repository.Repository;
 import org.geogit.repository.StagingArea;
 import org.geogit.repository.WorkingTree;
+import org.geogit.storage.ConfigDatabase;
+import org.geogit.storage.GraphDatabase;
+import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.RefDatabase;
-
-import com.google.inject.Inject;
+import org.geogit.storage.StagingDatabase;
 
 /**
  * Provides a base implementation for internal GeoGit operations.
@@ -23,7 +26,7 @@ public abstract class AbstractGeoGitOp<T> implements Callable<T> {
 
     private ProgressListener progressListener = NULL_PROGRESS_LISTENER;
 
-    protected CommandLocator commandLocator;
+    protected Injector injector;
 
     /**
      * Constructs a new abstract operation.
@@ -39,15 +42,15 @@ public abstract class AbstractGeoGitOp<T> implements Callable<T> {
      * @return a new instance of the requested command class, with its dependencies resolved
      */
     public <C extends AbstractGeoGitOp<?>> C command(Class<C> commandClass) {
-        return commandLocator.command(commandClass);
+        return injector.command(commandClass);
     }
 
     /**
      * @param locator the command locator to use when finding commands
      */
-    @Inject
-    public void setCommandLocator(CommandLocator locator) {
-        this.commandLocator = locator;
+    public AbstractGeoGitOp<?> setInjector(Injector locator) {
+        this.injector = locator;
+        return this;
     }
 
     /**
@@ -83,29 +86,48 @@ public abstract class AbstractGeoGitOp<T> implements Callable<T> {
      */
     public abstract T call();
 
-    protected CommandLocator getCommandLocator() {
-        return commandLocator;
+    /**
+     * Shortcut for {@link Injector#workingTree() getCommandLocator().getWorkingTree()}
+     */
+    protected WorkingTree workingTree() {
+        return injector.workingTree();
     }
 
     /**
-     * Shortcut for {@link CommandLocator#getWorkingTree() getCommandLocator().getWorkingTree()}
+     * Shortcut for {@link Injector#index() getCommandLocator().getIndex()}
      */
-    protected WorkingTree getWorkTree() {
-        return getCommandLocator().getWorkingTree();
+    protected StagingArea index() {
+        return injector.index();
     }
 
     /**
-     * Shortcut for {@link CommandLocator#getIndex() getCommandLocator().getIndex()}
+     * Shortcut for {@link Injector#refDatabase() getCommandLocator().getRefDatabase()}
      */
-    protected StagingArea getIndex() {
-        return getCommandLocator().getIndex();
+    protected RefDatabase refDatabase() {
+        return injector.refDatabase();
     }
 
-    /**
-     * Shortcut for {@link CommandLocator#getRefDatabase() getCommandLocator().getRefDatabase()}
-     */
-    protected RefDatabase getRefDatabase() {
-        return getCommandLocator().getRefDatabase();
+    protected Platform platform() {
+        return injector.platform();
     }
 
+    protected ObjectDatabase objectDatabase() {
+        return injector.objectDatabase();
+    }
+
+    protected StagingDatabase stagingDatabase() {
+        return injector.stagingDatabase();
+    }
+
+    protected ConfigDatabase configDatabase() {
+        return injector.configDatabase();
+    }
+
+    protected GraphDatabase graphDatabase() {
+        return injector.graphDatabase();
+    }
+
+    protected Repository repository() {
+        return injector.repository();
+    }
 }

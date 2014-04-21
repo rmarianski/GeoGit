@@ -11,7 +11,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -30,6 +30,7 @@ import org.geogit.api.plumbing.WriteBack;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffObjectCount;
 import org.geogit.api.plumbing.merge.Conflict;
+import org.geogit.di.Singleton;
 import org.geogit.storage.StagingDatabase;
 import org.geogit.api.ProgressListener;
 
@@ -59,18 +60,15 @@ import com.google.inject.Inject;
  * repository's head tree.
  * 
  */
+@Singleton
 public class Index implements StagingArea {
 
-    private StagingDatabase indexDatabase;
-
-    private CommandLocator commandLocator;
+    private Injector injector;
 
     @Inject
-    public Index(final StagingDatabase indexDb, final CommandLocator commandLocator) {
-        Preconditions.checkNotNull(indexDb);
-        Preconditions.checkNotNull(commandLocator);
-        this.indexDatabase = indexDb;
-        this.commandLocator = commandLocator;
+    public Index(final Injector injector) {
+        Preconditions.checkNotNull(injector);
+        this.injector = injector;
     }
 
     /**
@@ -78,7 +76,7 @@ public class Index implements StagingArea {
      */
     @Override
     public StagingDatabase getDatabase() {
-        return indexDatabase;
+        return injector.stagingDatabase();
     }
 
     /**
@@ -88,8 +86,8 @@ public class Index implements StagingArea {
      */
     @Override
     public void updateStageHead(ObjectId newTree) {
-        commandLocator.command(UpdateRef.class).setName(Ref.STAGE_HEAD).setNewValue(newTree).call();
-        indexDatabase.removeConflicts(null);
+        injector.command(UpdateRef.class).setName(Ref.STAGE_HEAD).setNewValue(newTree).call();
+        getDatabase().removeConflicts(null);
     }
 
     /**
@@ -98,25 +96,25 @@ public class Index implements StagingArea {
      */
     @Override
     public RevTree getTree() {
-        Optional<ObjectId> stageTreeId = commandLocator.command(ResolveTreeish.class)
+        Optional<ObjectId> stageTreeId = injector.command(ResolveTreeish.class)
                 .setTreeish(Ref.STAGE_HEAD).call();
         final RevTree stageTree;
         if (!stageTreeId.isPresent() || stageTreeId.get().isNull()) {
             // Work tree was not resolved, update it to the head.
-            Optional<ObjectId> headTreeId = commandLocator.command(ResolveTreeish.class)
+            Optional<ObjectId> headTreeId = injector.command(ResolveTreeish.class)
                     .setTreeish(Ref.HEAD).call();
             final RevTree headTree;
             if (!headTreeId.isPresent() || headTreeId.get().isNull()) {
                 headTree = RevTree.EMPTY;
             } else {
-                headTree = commandLocator.command(RevObjectParse.class)
-                        .setObjectId(headTreeId.get()).call(RevTree.class).get();
+                headTree = injector.command(RevObjectParse.class).setObjectId(headTreeId.get())
+                        .call(RevTree.class).get();
             }
             updateStageHead(headTree.getId());
             stageTree = headTree;
 
         } else {
-            stageTree = commandLocator.command(RevObjectParse.class).setObjectId(stageTreeId.get())
+            stageTree = injector.command(RevObjectParse.class).setObjectId(stageTreeId.get())
                     .call(RevTree.class).or(RevTree.EMPTY);
         }
         return stageTree;
@@ -142,7 +140,7 @@ public class Index implements StagingArea {
      */
     @Override
     public Optional<Node> findStaged(final String path) {
-        Optional<NodeRef> entry = commandLocator.command(FindTreeChild.class).setIndex(true)
+        Optional<NodeRef> entry = injector.command(FindTreeChild.class).setIndex(true)
                 .setParent(getTree()).setChildPath(path).call();
         if (entry.isPresent()) {
             return Optional.of(entry.get().getNode());
@@ -155,8 +153,8 @@ public class Index implements StagingArea {
      * Returns true if there are no unstaged changes, false otherwise
      */
     public boolean isClean() {
-        Optional<ObjectId> resolved = commandLocator.command(ResolveTreeish.class)
-                .setTreeish(Ref.HEAD).call();
+        Optional<ObjectId> resolved = injector.command(ResolveTreeish.class).setTreeish(Ref.HEAD)
+                .call();
         ObjectId indexTreeId = resolved.get();
         return getTree().getId().equals(indexTreeId);
     }
@@ -179,6 +177,7 @@ public class Index implements StagingArea {
         Map<String, RevTreeBuilder> parentTress = Maps.newHashMap();
         Map<String, ObjectId> parentMetadataIds = Maps.newHashMap();
         Set<String> removedTrees = Sets.newHashSet();
+        StagingDatabase database = getDatabase();
         while (unstaged.hasNext()) {
             final DiffEntry diff = unstaged.next();
             final String fullPath = diff.oldPath() == null ? diff.newPath() : diff.oldPath();
@@ -223,7 +222,7 @@ public class Index implements StagingArea {
                 parentTree.put(node);
             }
 
-            indexDatabase.removeConflict(null, fullPath);
+            database.removeConflict(null, fullPath);
         }
 
         ObjectId newRootTree = currentIndexHead.getId();
@@ -235,12 +234,12 @@ public class Index implements StagingArea {
             ObjectId parentMetadataId = parentMetadataIds.get(changedTreePath);
             if (NodeRef.ROOT.equals(changedTreePath)) {
                 // root
-                indexDatabase.put(changedTree);
+                database.put(changedTree);
                 newRootTree = changedTree.getId();
             } else {
                 // parentMetadataId = parentMetadataId == null ?
                 Supplier<RevTreeBuilder> rootTreeSupplier = getTreeSupplier();
-                newRootTree = commandLocator.command(WriteBack.class).setAncestor(rootTreeSupplier)
+                newRootTree = injector.command(WriteBack.class).setAncestor(rootTreeSupplier)
                         .setChildPath(changedTreePath).setMetadataId(parentMetadataId)
                         .setToIndex(true).setTree(changedTree).call();
             }
@@ -264,16 +263,16 @@ public class Index implements StagingArea {
         if (parentBuilder == null) {
             ObjectId parentMetadataId = null;
             if (NodeRef.ROOT.equals(parentPath)) {
-                parentBuilder = currentIndexHead.builder(indexDatabase);
+                parentBuilder = currentIndexHead.builder(getDatabase());
             } else {
-                Optional<NodeRef> parentRef = commandLocator.command(FindTreeChild.class)
-                        .setIndex(true).setParent(currentIndexHead).setChildPath(parentPath).call();
+                Optional<NodeRef> parentRef = injector.command(FindTreeChild.class).setIndex(true)
+                        .setParent(currentIndexHead).setChildPath(parentPath).call();
 
                 if (parentRef.isPresent()) {
                     parentMetadataId = parentRef.get().getMetadataId();
                 }
 
-                parentBuilder = commandLocator.command(FindOrCreateSubtree.class)
+                parentBuilder = injector.command(FindOrCreateSubtree.class)
                         .setParent(Suppliers.ofInstance(Optional.of(getTree()))).setIndex(true)
                         .setChildPath(parentPath).call().builder(getDatabase());
             }
@@ -292,8 +291,8 @@ public class Index implements StagingArea {
      */
     @Override
     public Iterator<DiffEntry> getStaged(final @Nullable List<String> pathFilters) {
-        Iterator<DiffEntry> unstaged = commandLocator.command(DiffIndex.class)
-                .setFilter(pathFilters).setReportTrees(true).call();
+        Iterator<DiffEntry> unstaged = injector.command(DiffIndex.class).setFilter(pathFilters)
+                .setReportTrees(true).call();
         return unstaged;
     }
 
@@ -303,7 +302,7 @@ public class Index implements StagingArea {
      */
     @Override
     public DiffObjectCount countStaged(final @Nullable List<String> pathFilters) {
-        DiffObjectCount count = commandLocator.command(DiffCount.class).setOldVersion(Ref.HEAD)
+        DiffObjectCount count = injector.command(DiffCount.class).setOldVersion(Ref.HEAD)
                 .setNewVersion(Ref.STAGE_HEAD).setReportTrees(true).setFilter(pathFilters).call();
 
         return count;
@@ -311,11 +310,11 @@ public class Index implements StagingArea {
 
     @Override
     public int countConflicted(String pathFilter) {
-        return indexDatabase.getConflicts(null, pathFilter).size();
+        return getDatabase().getConflicts(null, pathFilter).size();
     }
 
     @Override
     public List<Conflict> getConflicted(@Nullable String pathFilter) {
-        return indexDatabase.getConflicts(null, pathFilter);
+        return getDatabase().getConflicts(null, pathFilter);
     }
 }

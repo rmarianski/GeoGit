@@ -16,7 +16,6 @@ import org.geogit.api.Platform;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.inject.Inject;
 
 /**
  * Resolves the location of the {@code .geogit} repository directory relative to the
@@ -30,12 +29,10 @@ public class ResolveGeogitDir extends AbstractGeoGitOp<Optional<URL>> {
 
     private Platform platform;
 
-    /**
-     * Constructs a new instance of {@code ResolveGeogitDir} with the specified platform.
-     * 
-     * @param platform the platform to use
-     */
-    @Inject
+    public ResolveGeogitDir() {
+        //
+    }
+
     public ResolveGeogitDir(Platform platform) {
         this.platform = platform;
     }
@@ -48,6 +45,11 @@ public class ResolveGeogitDir extends AbstractGeoGitOp<Optional<URL>> {
         }
     }
 
+    @Override
+    protected Platform platform() {
+        return this.platform == null ? super.platform() : this.platform;
+    }
+
     /**
      * @return the location of the {@code .geogit} repository environment directory or {@code null}
      *         if not inside a working directory
@@ -55,7 +57,7 @@ public class ResolveGeogitDir extends AbstractGeoGitOp<Optional<URL>> {
      */
     @Override
     public Optional<URL> call() {
-        File pwd = platform.pwd();
+        File pwd = platform().pwd();
         Optional<URL> repoLocation = ResolveGeogitDir.lookup(pwd);
         return repoLocation;
     }

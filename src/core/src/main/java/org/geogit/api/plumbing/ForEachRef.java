@@ -12,7 +12,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
 
 /**
  * Update the object name stored in a {@link Ref} safely.
@@ -22,10 +21,6 @@ import com.google.inject.Inject;
 public class ForEachRef extends AbstractGeoGitOp<ImmutableSet<Ref>> {
 
     private Predicate<Ref> filter;
-
-    @Inject
-    public ForEachRef() {
-    }
 
     public ForEachRef setFilter(Predicate<Ref> filter) {
         this.filter = filter;
@@ -53,7 +48,7 @@ public class ForEachRef extends AbstractGeoGitOp<ImmutableSet<Ref>> {
                 .alwaysTrue() : this.filter);
 
         ImmutableSet.Builder<Ref> refs = new ImmutableSet.Builder<Ref>();
-        for (String refName : getRefDatabase().getAll().keySet()) {
+        for (String refName : refDatabase().getAll().keySet()) {
             Optional<Ref> ref = command(RefParse.class).setName(refName).call();
             if (ref.isPresent() && filter.apply(ref.get())) {
                 Ref accepted = ref.get();

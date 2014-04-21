@@ -19,9 +19,9 @@ public class ConflictsReadOp extends AbstractGeoGitOp<List<Conflict>> implements
 
     @Override
     public List<Conflict> call() {
-        final Optional<URL> repoUrl = getCommandLocator().command(ResolveGeogitDir.class).call();
+        final Optional<URL> repoUrl = command(ResolveGeogitDir.class).call();
         if (repoUrl.isPresent()) {
-            return getIndex().getDatabase().getConflicts(null, null);
+            return stagingDatabase().getConflicts(null, null);
         } else {
             return ImmutableList.of();
         }

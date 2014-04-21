@@ -81,12 +81,12 @@ public class OSMMapOp extends AbstractGeoGitOp<RevTree> {
 
         checkNotNull(mapping);
 
-        long staged = getIndex().countStaged(null).getCount();
-        long unstaged = getWorkTree().countUnstaged(null).getCount();
+        long staged = index().countStaged(null).getCount();
+        long unstaged = workingTree().countUnstaged(null).getCount();
         Preconditions.checkState((staged == 0 && unstaged == 0),
                 "You must have a clean working tree and index to perform a mapping.");
 
-        ObjectId oldTreeId = getWorkTree().getTree().getId();
+        ObjectId oldTreeId = workingTree().getTree().getId();
 
         Iterator<Feature> nodes;
         if (mapping.canUseNodes()) {
@@ -103,7 +103,7 @@ public class OSMMapOp extends AbstractGeoGitOp<RevTree> {
         Iterator<Feature> iterator = Iterators.concat(nodes, ways);
 
         if (iterator.hasNext()) {
-            FeatureMapFlusher insertsByParent = new FeatureMapFlusher(getWorkTree());
+            FeatureMapFlusher insertsByParent = new FeatureMapFlusher(workingTree());
             while (iterator.hasNext()) {
                 Feature feature = iterator.next();
                 Optional<MappedFeature> newFeature = mapping.map(feature);
@@ -115,7 +115,7 @@ public class OSMMapOp extends AbstractGeoGitOp<RevTree> {
             }
             insertsByParent.flushAll();
 
-            ObjectId newTreeId = getWorkTree().getTree().getId();
+            ObjectId newTreeId = workingTree().getTree().getId();
             // If the mapping generates the same mapped features that already exist, we do nothing
             if (!newTreeId.equals(oldTreeId)) {
                 command(AddOp.class).call();
@@ -126,7 +126,7 @@ public class OSMMapOp extends AbstractGeoGitOp<RevTree> {
 
         }
 
-        return getWorkTree().getTree();
+        return workingTree().getTree();
 
     }
 

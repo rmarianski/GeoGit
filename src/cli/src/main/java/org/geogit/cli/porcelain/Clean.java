@@ -55,7 +55,7 @@ public class Clean extends AbstractCommand {
                 NodeRef.checkValidPath(pathFilter);
 
                 Optional<NodeRef> ref = repository.command(FindTreeChild.class).setIndex(true)
-                        .setParent(repository.getWorkingTree().getTree()).setChildPath(pathFilter)
+                        .setParent(repository.workingTree().getTree()).setChildPath(pathFilter)
                         .call();
 
                 checkParameter(ref.isPresent(), "pathspec '%s' did not match any tree", pathFilter);

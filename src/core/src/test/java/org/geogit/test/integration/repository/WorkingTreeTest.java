@@ -70,7 +70,7 @@ public class WorkingTreeTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        workTree = repo.getWorkingTree();
+        workTree = repo.workingTree();
     }
 
     @Test
@@ -607,8 +607,7 @@ public class WorkingTreeTest extends RepositoryTestCase {
         assertTrue(treeRef.getNode().getMetadataId().isPresent());
         assertSame(treeRef.getMetadataId(), treeRef.getNode().getMetadataId().get());
 
-        RevFeatureType featureType = repo.getIndex().getDatabase()
-                .getFeatureType(treeRef.getMetadataId());
+        RevFeatureType featureType = repo.stagingDatabase().getFeatureType(treeRef.getMetadataId());
         assertEquals(pointsType, featureType.type());
     }
 
@@ -621,8 +620,7 @@ public class WorkingTreeTest extends RepositoryTestCase {
         assertTrue(treeRef.getNode().getMetadataId().isPresent());
         assertSame(treeRef.getMetadataId(), treeRef.getNode().getMetadataId().get());
 
-        RevFeatureType featureType = repo.getIndex().getDatabase()
-                .getFeatureType(treeRef.getMetadataId());
+        RevFeatureType featureType = repo.stagingDatabase().getFeatureType(treeRef.getMetadataId());
         assertEquals(pointsType, featureType.type());
     }
 
@@ -637,8 +635,8 @@ public class WorkingTreeTest extends RepositoryTestCase {
         assertTrue(treeRef.get().getNode().getMetadataId().isPresent());
         assertFalse(treeRef.get().getNode().getMetadataId().get().isNull());
 
-        RevFeatureType featureType = repo.getIndex().getDatabase()
-                .getFeatureType(treeRef.get().getMetadataId());
+        RevFeatureType featureType = repo.stagingDatabase().getFeatureType(
+                treeRef.get().getMetadataId());
         assertEquals(pointsType, featureType.type());
 
     }
@@ -647,7 +645,7 @@ public class WorkingTreeTest extends RepositoryTestCase {
     public void testInsertFeatureWithNonDefaultFeatureType() throws Exception {
         insert(points2, points3);
         insert(points1B);
-        RevTree root = repo.getWorkingTree().getTree();
+        RevTree root = repo.workingTree().getTree();
         assertNotNull(root);
         Optional<Node> typeTreeId = findTreeChild(root, pointsName);
         assertEquals(typeTreeId.get().getMetadataId().get(), RevFeatureType.build(pointsType)
@@ -667,7 +665,7 @@ public class WorkingTreeTest extends RepositoryTestCase {
     public void testUpdateTypeTree() throws Exception {
         insert(points2, points3);
         insert(points1B);
-        RevTree root = repo.getWorkingTree().getTree();
+        RevTree root = repo.workingTree().getTree();
         assertNotNull(root);
         Optional<Node> typeTreeId = findTreeChild(root, pointsName);
         assertEquals(typeTreeId.get().getMetadataId().get(), RevFeatureType.build(pointsType)
@@ -684,7 +682,7 @@ public class WorkingTreeTest extends RepositoryTestCase {
         assertEquals(null, featureBlobId.get().getMetadataId().orNull());
 
         workTree.updateTypeTree(pointsName, modifiedPointsType);
-        root = repo.getWorkingTree().getTree();
+        root = repo.workingTree().getTree();
         typeTreeId = findTreeChild(root, pointsName);
         assertEquals(typeTreeId.get().getMetadataId().get(),
                 RevFeatureType.build(modifiedPointsType).getId());

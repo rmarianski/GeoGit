@@ -4,16 +4,17 @@
  */
 package org.geogit.test.integration.je;
 
+import org.geogit.api.Injector;
 import org.geogit.di.GeogitModule;
 
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 public class JECheckSparsePathTest extends org.geogit.test.integration.CheckSparsePathTest {
     @Override
     protected Injector createInjector() {
-        return Guice.createInjector(Modules.override(new GeogitModule()).with(
-                new JETestStorageModule()));
+        return Guice.createInjector(
+                Modules.override(new GeogitModule()).with(new JETestStorageModule())).getInstance(
+                Injector.class);
     }
 }

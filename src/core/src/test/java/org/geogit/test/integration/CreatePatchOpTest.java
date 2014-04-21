@@ -102,7 +102,7 @@ public class CreatePatchOpTest extends RepositoryTestCase {
 
     @Test
     public void testCreatePatchAddNewEmptyFeatureTypeToEmptyRepo() throws Exception {
-        WorkingTree workingTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workingTree = geogit.getRepository().workingTree();
         workingTree.createTypeTree(linesName, linesType);
         DiffOp op = geogit.command(DiffOp.class).setReportTrees(true);
         Iterator<DiffEntry> diffs = op.call();
@@ -116,7 +116,7 @@ public class CreatePatchOpTest extends RepositoryTestCase {
 
     @Test
     public void testCreatePatchRemoveEmptyFeatureType() throws Exception {
-        WorkingTree workingTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workingTree = geogit.getRepository().workingTree();
         workingTree.createTypeTree(linesName, linesType);
         geogit.command(AddOp.class).setUpdateOnly(false).call();
         workingTree.delete(linesName);
@@ -135,7 +135,7 @@ public class CreatePatchOpTest extends RepositoryTestCase {
         DiffOp op = geogit.command(DiffOp.class).setReportTrees(true);
 
         insertAndAdd(points1, points2);
-        geogit.getRepository().getWorkingTree().updateTypeTree(pointsName, modifiedPointsType);
+        geogit.getRepository().workingTree().updateTypeTree(pointsName, modifiedPointsType);
 
         Iterator<DiffEntry> diffs = op.call();
         Patch patch = geogit.command(CreatePatchOp.class).setDiffs(diffs).call();

@@ -26,7 +26,6 @@ import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.porcelain.DiffOp;
 import org.geogit.geotools.plumbing.GeoToolsOpException.StatusCode;
 import org.geogit.storage.ObjectDatabase;
-import org.geogit.storage.StagingDatabase;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
 import org.geotools.data.simple.SimpleFeatureStore;
@@ -51,7 +50,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
-import com.google.inject.Inject;
 
 /**
  * Internal operation for creating a FeatureCollection from a tree content.
@@ -74,8 +72,6 @@ public class ExportDiffOp extends AbstractGeoGitOp<SimpleFeatureStore> {
 
     private Supplier<SimpleFeatureStore> targetStoreProvider;
 
-    private StagingDatabase database;
-
     private Function<Feature, Optional<Feature>> function = IDENTITY;
 
     private boolean transactional;
@@ -85,15 +81,6 @@ public class ExportDiffOp extends AbstractGeoGitOp<SimpleFeatureStore> {
     private String newRef;
 
     private String oldRef;
-
-    /**
-     * Constructs a new export operation.
-     */
-    @Inject
-    public ExportDiffOp(StagingDatabase database) {
-        this.database = database;
-        this.transactional = true;
-    }
 
     /**
      * Executes the export operation using the parameters that have been specified.
@@ -124,7 +111,7 @@ public class ExportDiffOp extends AbstractGeoGitOp<SimpleFeatureStore> {
                 Iterator<DiffEntry> diffs = command(DiffOp.class).setOldVersion(oldRef)
                         .setNewVersion(newRef).setFilter(path).call();
 
-                final Iterator<SimpleFeature> plainFeatures = getFeatures(diffs, old, database,
+                final Iterator<SimpleFeature> plainFeatures = getFeatures(diffs, old, stagingDatabase(),
                         defaultMetadataId, progressListener);
 
                 Iterator<Optional<Feature>> transformed = Iterators.transform(plainFeatures,
@@ -247,7 +234,7 @@ public class ExportDiffOp extends AbstractGeoGitOp<SimpleFeatureStore> {
 
         checkArgument(rootTreeId.isPresent(), "Invalid tree spec: %s", refspec);
 
-        RevTree rootTree = database.getTree(rootTreeId.get());
+        RevTree rootTree = stagingDatabase().getTree(rootTreeId.get());
         return rootTree;
     }
 

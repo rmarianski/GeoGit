@@ -41,8 +41,8 @@ public class OSMMapOpTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        repo.getConfigDatabase().put("user.name", "groldan");
-        repo.getConfigDatabase().put("user.email", "groldan@opengeo.org");
+        repo.configDatabase().put("user.name", "groldan");
+        repo.configDatabase().put("user.email", "groldan@opengeo.org");
     }
 
     @Rule
@@ -54,7 +54,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
         unstaged = workTree.countUnstaged("node").getCount();
@@ -90,7 +90,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         File osmMapFolder = geogit.command(ResolveOSMMappingLogFolder.class).call();
         file = new File(osmMapFolder, "onewaystreets");
         assertTrue(file.exists());
-        file = new File(osmMapFolder, geogit.getRepository().getWorkingTree().getTree().getId()
+        file = new File(osmMapFolder, geogit.getRepository().workingTree().getTree().getId()
                 .toString());
         assertTrue(file.exists());
 
@@ -102,7 +102,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
         unstaged = workTree.countUnstaged("node").getCount();
@@ -152,7 +152,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways_restriction.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
         unstaged = workTree.countUnstaged("node").getCount();
@@ -194,7 +194,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways_restriction.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
         unstaged = workTree.countUnstaged("node").getCount();
@@ -233,7 +233,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways_restriction.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
         unstaged = workTree.countUnstaged("node").getCount();
@@ -273,7 +273,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("nodes.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("node").getCount();
         assertTrue(unstaged > 0);
         geogit.command(AddOp.class).call();
@@ -308,7 +308,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         File osmMapFolder = geogit.command(ResolveOSMMappingLogFolder.class).call();
         file = new File(osmMapFolder, "busstops");
         assertTrue(file.exists());
-        file = new File(osmMapFolder, geogit.getRepository().getWorkingTree().getTree().getId()
+        file = new File(osmMapFolder, geogit.getRepository().workingTree().getTree().getId()
                 .toString());
         assertTrue(file.exists());
     }
@@ -319,7 +319,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("nodes.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("node").getCount();
         assertTrue(unstaged > 0);
         geogit.command(AddOp.class).call();
@@ -364,7 +364,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("nodes.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("node").getCount();
         assertTrue(unstaged > 0);
         geogit.command(AddOp.class).call();
@@ -405,7 +405,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
         unstaged = workTree.countUnstaged("node").getCount();
@@ -441,7 +441,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
         geogit.command(AddOp.class).call();
@@ -472,7 +472,7 @@ public class OSMMapOpTest extends RepositoryTestCase {
         String filename = OSMImportOp.class.getResource("ways.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        WorkingTree workTree = geogit.getRepository().getWorkingTree();
+        WorkingTree workTree = geogit.getRepository().workingTree();
         long unstaged = workTree.countUnstaged("way").getCount();
         assertTrue(unstaged > 0);
         geogit.command(AddOp.class).call();

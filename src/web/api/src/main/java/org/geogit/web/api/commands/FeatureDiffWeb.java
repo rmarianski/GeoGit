@@ -7,7 +7,7 @@ package org.geogit.web.api.commands;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.geogit.api.CommandLocator;
+import org.geogit.api.Injector;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevFeature;
@@ -96,7 +96,7 @@ public class FeatureDiffWeb extends AbstractWebAPICommand {
      * 
      * @throws CommandSpecException - if the treeid couldn't be resolved
      */
-    private Optional<NodeRef> parseID(ObjectId id, CommandLocator geogit) {
+    private Optional<NodeRef> parseID(ObjectId id, Injector geogit) {
         Optional<RevObject> object = geogit.command(RevObjectParse.class).setObjectId(id).call();
 
         if (object.isPresent()) {
@@ -120,7 +120,7 @@ public class FeatureDiffWeb extends AbstractWebAPICommand {
             throw new CommandSpecException("No path for feature name specifed");
         }
 
-        final CommandLocator geogit = this.getCommandLocator(context);
+        final Injector geogit = this.getCommandLocator(context);
         ObjectId newId = geogit.command(ResolveTreeish.class).setTreeish(newTreeish).call().get();
 
         ObjectId oldId = geogit.command(ResolveTreeish.class).setTreeish(oldTreeish).call().get();

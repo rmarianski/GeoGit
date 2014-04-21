@@ -89,7 +89,7 @@ public class RemoveOpTest extends RepositoryTestCase {
                 .setRefSpec(Ref.WORK_HEAD + ":" + pointsName).call();
         assertFalse(id.isPresent());
         id = geogit.command(RevParse.class).setRefSpec(Ref.STAGE_HEAD + ":" + pointsName).call();
-        List<DiffEntry> list = toList(repo.getIndex().getStaged(null));
+        List<DiffEntry> list = toList(repo.index().getStaged(null));
         assertFalse(id.isPresent());
         id = geogit.command(RevParse.class).setRefSpec(Ref.STAGE_HEAD + ":" + linesName).call();
         assertTrue(id.isPresent());
@@ -134,7 +134,7 @@ public class RemoveOpTest extends RepositoryTestCase {
         }
         String path = NodeRef.appendChild(pointsName, idP1);
         geogit.command(RemoveOp.class).addPathToRemove(path).call();
-        List<Conflict> conflicts = geogit.getRepository().getIndex().getDatabase()
+        List<Conflict> conflicts = geogit.getRepository().stagingDatabase()
                 .getConflicts(null, null);
         assertTrue(conflicts.isEmpty());
         geogit.command(CommitOp.class).call();

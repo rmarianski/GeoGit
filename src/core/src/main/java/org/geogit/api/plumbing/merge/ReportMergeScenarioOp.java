@@ -35,7 +35,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
 /**
  * Reports conflicts between changes introduced by two different histories. Given a commit and
@@ -48,10 +47,6 @@ public class ReportMergeScenarioOp extends AbstractGeoGitOp<MergeScenarioReport>
     private RevCommit toMerge;
 
     private RevCommit mergeInto;
-
-    @Inject
-    public ReportMergeScenarioOp() {
-    }
 
     /**
      * @param toMerge the commit with the changes to apply {@link RevCommit}

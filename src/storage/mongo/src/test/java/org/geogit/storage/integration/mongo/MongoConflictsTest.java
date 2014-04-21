@@ -7,6 +7,7 @@ package org.geogit.storage.integration.mongo;
 import java.io.File;
 import java.util.List;
 
+import org.geogit.api.Injector;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.api.TestPlatform;
@@ -22,7 +23,6 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 public class MongoConflictsTest extends RepositoryTestCase {
@@ -43,13 +43,14 @@ public class MongoConflictsTest extends RepositoryTestCase {
             throw Throwables.propagate(e);
         }
         Platform testPlatform = new TestPlatform(workingDirectory);
-        return Guice.createInjector(Modules.override(new GeogitModule()).with(
-                new MongoTestStorageModule(), new TestModule(testPlatform)));
+        return Guice.createInjector(
+                Modules.override(new GeogitModule()).with(new MongoTestStorageModule(),
+                        new TestModule(testPlatform))).getInstance(Injector.class);
     }
 
     @Test
     public void testConflicts() {
-        StagingDatabase db = geogit.getRepository().getIndex().getDatabase();
+        StagingDatabase db = geogit.getRepository().stagingDatabase();
 
         List<Conflict> conflicts = db.getConflicts(null, null);
         assertTrue(conflicts.isEmpty());

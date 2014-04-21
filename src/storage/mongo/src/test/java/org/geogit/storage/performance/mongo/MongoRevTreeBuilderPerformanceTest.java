@@ -4,18 +4,19 @@
  */
 package org.geogit.storage.performance.mongo;
 
+import org.geogit.api.Injector;
 import org.geogit.di.GeogitModule;
 import org.geogit.storage.integration.mongo.MongoTestStorageModule;
 import org.geogit.test.performance.RevTreeBuilderPerformanceTest;
 
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 public class MongoRevTreeBuilderPerformanceTest extends RevTreeBuilderPerformanceTest {
     @Override
     protected Injector createInjector() {
-        return Guice.createInjector(Modules.override(new GeogitModule())
-                .with(new MongoTestStorageModule()));
+        return Guice.createInjector(
+                Modules.override(new GeogitModule()).with(new MongoTestStorageModule()))
+                .getInstance(Injector.class);
     }
 }

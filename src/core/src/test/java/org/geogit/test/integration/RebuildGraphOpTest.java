@@ -30,7 +30,7 @@ public class RebuildGraphOpTest extends RepositoryTestCase {
                 .setValue("groldan").call();
         repo.command(ConfigOp.class).setAction(ConfigAction.CONFIG_SET).setName("user.email")
                 .setValue("groldan@opengeo.org").call();
-        database = geogit.getRepository().getGraphDatabase();
+        database = geogit.getRepository().graphDatabase();
     }
 
     @Test

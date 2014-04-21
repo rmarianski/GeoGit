@@ -19,7 +19,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
 
 /**
  * Resolve a ref name to the stored {@link Ref reference} object
@@ -30,13 +29,6 @@ public class RefParse extends AbstractGeoGitOp<Optional<Ref>> {
             Ref.ORIGIN, Ref.STAGE_HEAD, Ref.WORK_HEAD);
 
     private String refSpec;
-
-    /**
-     * Constructs a new {@code RefParse} operation.
-     */
-    @Inject
-    public RefParse() {
-    }
 
     /**
      * @param name the name of the ref to parse
@@ -80,7 +72,7 @@ public class RefParse extends AbstractGeoGitOp<Optional<Ref>> {
             }
         }
 
-        Map<String, String> allRefs = getRefDatabase().getAll();
+        Map<String, String> allRefs = refDatabase().getAll();
 
         class PrePostfixPredicate implements Predicate<String> {
 
@@ -135,16 +127,16 @@ public class RefParse extends AbstractGeoGitOp<Optional<Ref>> {
         String storedValue;
         boolean sym = false;
         try {
-            storedValue = getRefDatabase().getRef(name);
+            storedValue = refDatabase().getRef(name);
         } catch (IllegalArgumentException notARef) {
-            storedValue = getRefDatabase().getSymRef(name);
+            storedValue = refDatabase().getSymRef(name);
             if (null == storedValue) {
                 return Optional.absent();
             }
             sym = true;
         }
         if (null == storedValue) {
-            storedValue = getRefDatabase().getSymRef(name);
+            storedValue = refDatabase().getSymRef(name);
             if (null == storedValue) {
                 return Optional.absent();
             }

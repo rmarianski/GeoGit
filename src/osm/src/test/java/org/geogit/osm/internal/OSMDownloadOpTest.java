@@ -33,8 +33,8 @@ public class OSMDownloadOpTest extends RepositoryTestCase {
 
     @Before
     public void setUpInternal() throws Exception {
-        repo.getConfigDatabase().put("user.name", "groldan");
-        repo.getConfigDatabase().put("user.email", "groldan@opengeo.org");
+        repo.configDatabase().put("user.name", "groldan");
+        repo.configDatabase().put("user.email", "groldan@opengeo.org");
     }
 
     @Ignore
@@ -152,7 +152,7 @@ public class OSMDownloadOpTest extends RepositoryTestCase {
         File osmMapFolder = geogit.command(ResolveOSMMappingLogFolder.class).call();
         File file = new File(osmMapFolder, "onewaystreets");
         assertTrue(file.exists());
-        file = new File(osmMapFolder, geogit.getRepository().getWorkingTree().getTree().getId()
+        file = new File(osmMapFolder, geogit.getRepository().workingTree().getTree().getId()
                 .toString());
         assertTrue(file.exists());
     }

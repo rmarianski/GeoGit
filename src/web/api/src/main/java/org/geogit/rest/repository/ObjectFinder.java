@@ -95,7 +95,7 @@ public class ObjectFinder extends Finder {
         @Override
         public void write(OutputStream out) throws IOException {
             Repository repository = ggit.getRepository();
-            RevObject rawObject = repository.getObjectDatabase().get(oid);
+            RevObject rawObject = repository.objectDatabase().get(oid);
             serialFac.createObjectWriter(rawObject.getType()).write(rawObject, out);
         }
     }
