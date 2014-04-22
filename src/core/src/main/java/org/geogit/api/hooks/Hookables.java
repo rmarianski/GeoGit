@@ -13,7 +13,7 @@ import java.util.ServiceLoader;
 import javax.annotation.Nullable;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.plumbing.ResolveGeogitDir;
+import org.geogit.api.Context;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
@@ -66,23 +66,32 @@ public class Hookables {
 
     public static List<CommandHook> findHooksFor(AbstractGeoGitOp<?> operation) {
 
-        final File hooksDir = findHooksDirectory(operation);
-        if (hooksDir == null) {
-            return ImmutableList.of();
-        }
-
         final Class<? extends AbstractGeoGitOp> clazz = operation.getClass();
-        final Optional<String> name = Hookables.getFilename(clazz);
-        if (!name.isPresent()) {
-            return ImmutableList.of();
-        }
 
         List<CommandHook> hooks = Lists.newLinkedList();
+        /*
+         * First add any classpath hook, as they can be added to any command, regardless of having
+         * the @Hookable annotation or not
+         */
         for (CommandHook hook : classPathHooks) {
             if (hook.appliesTo(clazz)) {
                 hooks.add(hook);
             }
         }
+
+        /*
+         * Now add any script hook that's configured for the operation iif it's @Hookable
+         */
+        final Optional<String> name = Hookables.getFilename(clazz);
+        if (!name.isPresent()) {
+            return hooks;
+        }
+
+        final File hooksDir = findHooksDirectory(operation);
+        if (hooksDir == null) {
+            return hooks;
+        }
+
         if (name.isPresent()) {
             String preHookName = "pre_" + name.get().toLowerCase();
             String postHookName = "post_" + name.get().toLowerCase();
@@ -101,16 +110,29 @@ public class Hookables {
 
     }
 
+    /**
+     * Looks up for the hooks directory in the repository {@code operation} works on.
+     * <p>
+     * Implementation note: this method must not create any command through
+     * {@link Context#command(Class)} either directly or indirectly or a stack overflow exception
+     * would be thrown
+     * 
+     * @return {@code null} if the {@code operation} is not running on a repository, or the
+     *         repository has no {@code hooks} directory at all.
+     */
     @Nullable
     private static File findHooksDirectory(AbstractGeoGitOp<?> operation) {
-        Optional<URL> url = operation.command(ResolveGeogitDir.class).call();
-        if (!url.isPresent() || !"file".equals(url.get().getProtocol())) {
+        if (operation.repository() == null || operation.repository().getLocation() == null) {
+            return null;
+        }
+        URL url = operation.repository().getLocation();
+        if (!"file".equals(url.getProtocol())) {
             // Hooks not in a filesystem are not supported
             return null;
         }
         File repoDir;
         try {
-            repoDir = new File(url.get().toURI());
+            repoDir = new File(url.toURI());
         } catch (URISyntaxException e) {
             throw Throwables.propagate(e);
         }

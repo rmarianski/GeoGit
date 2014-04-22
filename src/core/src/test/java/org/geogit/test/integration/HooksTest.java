@@ -1,10 +1,17 @@
 package org.geogit.test.integration;
 
-import java.io.File;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
+import java.io.File;
+import java.util.ServiceLoader;
+
+import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.RevCommit;
 import org.geogit.api.hooks.CannotRunGeogitOperationException;
+import org.geogit.api.hooks.CommandHook;
 import org.geogit.api.hooks.Scripting;
+import org.geogit.api.porcelain.AddOp;
 import org.geogit.api.porcelain.CommitOp;
 import org.junit.Test;
 
@@ -114,6 +121,119 @@ public class HooksTest extends RepositoryTestCase {
 
         insertAndAdd(points1);
         geogit.command(CommitOp.class).setMessage("A message").call();
+
+    }
+
+    @Test
+    public void testClasspathHook() throws Exception {
+        ClasspathHookTest.ENABLED = true;
+        try {
+            ClasspathHookTest.CAPTURE_CLASS = AddOp.class;
+            insertAndAdd(points1);
+            assertEquals(AddOp.class, ClasspathHookTest.PRE_OP.getClass());
+            assertEquals(AddOp.class, ClasspathHookTest.POST_OP.getClass());
+        } finally {
+            ClasspathHookTest.reset();
+        }
+    }
+
+    @Test
+    public void testClasspathHookPreFail() throws Exception {
+        ClasspathHookTest.ENABLED = true;
+        try {
+            ClasspathHookTest.PRE_FAIL = true;
+            ClasspathHookTest.CAPTURE_CLASS = AddOp.class;
+            try {
+                insertAndAdd(points1);
+                fail("Expected pre hook exception");
+            } catch (CannotRunGeogitOperationException e) {
+                assertEquals("expected", e.getMessage());
+            }
+            assertEquals(AddOp.class, ClasspathHookTest.PRE_OP.getClass());
+            assertEquals(AddOp.class, ClasspathHookTest.PRE_OP.getClass());
+        } finally {
+            ClasspathHookTest.reset();
+        }
+    }
+
+    @Test
+    public void testClasspathHookPostFail() throws Exception {
+        ClasspathHookTest.ENABLED = true;
+        try {
+            ClasspathHookTest.POST_FAIL = true;
+            ClasspathHookTest.CAPTURE_CLASS = AddOp.class;
+
+            insertAndAdd(points1);
+            // post hook errors should not forbid the operation to return successfully
+            assertTrue(ClasspathHookTest.POST_EXCEPTION_THROWN);
+
+            assertEquals(AddOp.class, ClasspathHookTest.PRE_OP.getClass());
+            assertEquals(AddOp.class, ClasspathHookTest.PRE_OP.getClass());
+        } finally {
+            ClasspathHookTest.reset();
+        }
+    }
+
+    /**
+     * This command hook is discoverable through the {@link ServiceLoader} SPI as there's a
+     * {@code org.geogit.api.hooks.CommandHook} file in {@code src/test/resources/META-INF/services}
+     * but the static ENABLED flag must be set by the test case for it to be run.
+     */
+    public static final class ClasspathHookTest implements CommandHook {
+        private static boolean ENABLED = false;
+
+        private static boolean PRE_FAIL = false;
+
+        private static boolean POST_FAIL = false;
+
+        private static boolean POST_EXCEPTION_THROWN;
+
+        private static Class<? extends AbstractGeoGitOp> CAPTURE_CLASS = AbstractGeoGitOp.class;
+
+        private static AbstractGeoGitOp<?> PRE_OP, POST_OP;
+
+        private static void reset() {
+            ENABLED = false;
+            PRE_FAIL = false;
+            POST_FAIL = false;
+            CAPTURE_CLASS = AbstractGeoGitOp.class;
+            PRE_OP = null;
+            POST_OP = null;
+            POST_EXCEPTION_THROWN = false;
+        }
+
+        @Override
+        public boolean appliesTo(Class<? extends AbstractGeoGitOp> clazz) {
+            boolean enabled = ENABLED;
+            Class<? extends AbstractGeoGitOp> captureClass = CAPTURE_CLASS;
+            checkNotNull(clazz);
+            checkNotNull(captureClass);
+            boolean applies = enabled && CAPTURE_CLASS.equals(clazz);
+            return applies;
+        }
+
+        @Override
+        public <C extends AbstractGeoGitOp<?>> C pre(C command)
+                throws CannotRunGeogitOperationException {
+            checkState(ENABLED);
+            PRE_OP = command;
+            if (PRE_FAIL) {
+                throw new CannotRunGeogitOperationException("expected");
+            }
+            return command;
+        }
+
+        @Override
+        public <T> T post(AbstractGeoGitOp<T> command, Object retVal, boolean success)
+                throws Exception {
+            checkState(ENABLED);
+            POST_OP = command;
+            if (POST_FAIL) {
+                POST_EXCEPTION_THROWN = true;
+                throw new RuntimeException("expected");
+            }
+            return (T) retVal;
+        }
 
     }
 
