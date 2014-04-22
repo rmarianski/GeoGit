@@ -62,7 +62,7 @@ public class CheckSparsePath extends AbstractGeoGitOp<Boolean> {
      * @return true if there are any sparse commits between start and end
      */
     @Override
-    public Boolean call() {
+    protected  Boolean _call() {
         Preconditions.checkState(start != null, "start commit has not been set.");
         Preconditions.checkState(end != null, "end commit has not been set.");
 

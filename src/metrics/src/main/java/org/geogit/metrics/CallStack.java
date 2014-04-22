@@ -9,13 +9,16 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
-final class CallStack {
+final class CallStack implements Serializable {
+
+    private static final long serialVersionUID = -2123539518339716822L;
 
     static final ThreadLocal<CallStack> CALL_STACK = new ThreadLocal<CallStack>();
 
@@ -29,21 +32,27 @@ final class CallStack {
 
     private ArrayList<CallStack> children;
 
-    private CallStack(String name, boolean root) {
+    private long startTimeMillis;
+
+    private long startTimeNanos;
+
+    private CallStack(String name, boolean root, long startTimeMillis, long startTimeNanos) {
         this.name = name;
         this.root = root;
+        this.startTimeMillis = startTimeMillis;
+        this.startTimeNanos = startTimeNanos;
     }
 
-    public static CallStack push(String name) {
+    public static CallStack push(String name, long startTimeMillis, long startTimeNanos) {
         CallStack root = CALL_STACK.get();
         final CallStack newElement;
         if (root == null) {
-            root = new CallStack(name, true);
+            root = new CallStack(name, true, startTimeMillis, startTimeNanos);
             newElement = root;
             CALL_STACK.set(root);
         } else {
             CallStack current = root.current();
-            newElement = current.add(name);
+            newElement = current.add(name, startTimeMillis, startTimeNanos);
         }
         return newElement;
     }
@@ -53,7 +62,7 @@ final class CallStack {
         checkNotNull(root, "called pop with no prior push?");
 
         CallStack current = root.current();
-        current.setTime(nanoTime, success);
+        current.setEndTime(nanoTime, success);
         if (current.isRoot()) {
             CALL_STACK.remove();
         }
@@ -83,14 +92,21 @@ final class CallStack {
         return nanoTime != -1L;
     }
 
-    private void setTime(long nanoTime, boolean success) {
+    public void setEndTime(long nanoTime, boolean success) {
         this.nanoTime = nanoTime;
         this.success = success;
-
     }
 
-    private CallStack add(final String name) {
-        CallStack cs = new CallStack(name, false);
+    public long getEllapsedNanos() {
+        return nanoTime = startTimeNanos;
+    }
+
+    public long getStartTimeMillis() {
+        return startTimeMillis;
+    }
+
+    private CallStack add(final String name, long startTimeMillis, long startTimeNanos) {
+        CallStack cs = new CallStack(name, false, startTimeMillis, startTimeNanos);
         if (this.children == null) {
             this.children = Lists.newArrayListWithCapacity(4);
         }
@@ -128,7 +144,7 @@ final class CallStack {
 
     public String toString(final double durationFactor, final String unitName, final long totalNanos) {
 
-        final double percent = (this.nanoTime * 100.0) / totalNanos;
+        final double percent = (this.getEllapsedNanos() * 100.0) / totalNanos;
 
         return String.format("%s -> %,.2f %s (%.2f%%), success: %s", name,
                 (durationFactor * nanoTime), unitName, percent, success);
@@ -136,7 +152,7 @@ final class CallStack {
 
     public void dump(PrintStream stream, TimeUnit durationUnit) {
         final double durationFactor = 1.0 / durationUnit.toNanos(1L);
-        dump(stream, this, 0, durationFactor, durationUnit.name(), this.nanoTime);
+        dump(stream, this, 0, durationFactor, durationUnit.name(), this.getEllapsedNanos());
         stream.flush();
     }
 

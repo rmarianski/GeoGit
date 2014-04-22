@@ -89,7 +89,7 @@ public class PushOp extends AbstractGeoGitOp<Boolean> {
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
     @Override
-    public Boolean call() {
+    protected Boolean _call() {
         if (remote == null) {
             setRemote("origin");
         }

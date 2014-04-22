@@ -72,7 +72,7 @@ public class StatusOp extends AbstractGeoGitOp<StatusOp.StatusSummary> {
     }
 
     @Override
-    public StatusSummary call() {
+    protected StatusSummary _call() {
         WorkingTree workTree = workingTree();
         StagingArea index = index();
 

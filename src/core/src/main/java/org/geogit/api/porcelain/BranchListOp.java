@@ -44,7 +44,7 @@ public class BranchListOp extends AbstractGeoGitOp<ImmutableList<Ref>> {
         return this;
     }
 
-    public ImmutableList<Ref> call() {
+    protected  ImmutableList<Ref> _call() {
 
         final Predicate<Ref> filter = new Predicate<Ref>() {
             @Override

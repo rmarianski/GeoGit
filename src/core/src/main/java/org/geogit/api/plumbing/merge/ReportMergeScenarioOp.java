@@ -65,7 +65,7 @@ public class ReportMergeScenarioOp extends AbstractGeoGitOp<MergeScenarioReport>
     }
 
     @Override
-    public MergeScenarioReport call() {
+    protected MergeScenarioReport _call() {
 
         Optional<ObjectId> ancestor = command(FindCommonAncestor.class).setLeft(toMerge)
                 .setRight(mergeInto).call();

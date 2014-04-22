@@ -77,7 +77,7 @@ public class ConfigOp extends AbstractGeoGitOp<Optional<Map<String, String>>> {
      *         the exception's statusCode.
      */
     @Override
-    public Optional<Map<String, String>> call() {
+    protected  Optional<Map<String, String>> _call() {
         final ConfigDatabase config = configDatabase();
         switch (action) {
         case CONFIG_GET: {

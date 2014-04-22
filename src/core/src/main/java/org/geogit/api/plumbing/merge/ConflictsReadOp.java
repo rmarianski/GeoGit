@@ -18,7 +18,7 @@ public class ConflictsReadOp extends AbstractGeoGitOp<List<Conflict>> implements
         Supplier<Iterable<Conflict>> {
 
     @Override
-    public List<Conflict> call() {
+    protected  List<Conflict> _call() {
         final Optional<URL> repoUrl = command(ResolveGeogitDir.class).call();
         if (repoUrl.isPresent()) {
             return stagingDatabase().getConflicts(null, null);

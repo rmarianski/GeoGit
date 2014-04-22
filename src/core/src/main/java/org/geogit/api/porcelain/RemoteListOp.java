@@ -27,7 +27,7 @@ public class RemoteListOp extends AbstractGeoGitOp<ImmutableList<Remote>> {
      * @return {@code List<Remote>} of all remotes found in the config database, may be empty.
      */
     @Override
-    public ImmutableList<Remote> call() {
+    protected ImmutableList<Remote> _call() {
         ConfigDatabase config = configDatabase();
         List<String> remotes = config.getAllSubsections("remote");
         List<Remote> allRemotes = new ArrayList<Remote>();

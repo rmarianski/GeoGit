@@ -226,7 +226,7 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
     @Override
-    public Iterator<RevCommit> call() {
+    protected  Iterator<RevCommit> _call() {
 
         ObjectId newestCommitId;
         ObjectId oldestCommitId;

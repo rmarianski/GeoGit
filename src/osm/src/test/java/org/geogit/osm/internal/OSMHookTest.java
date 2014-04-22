@@ -40,8 +40,8 @@ public class OSMHookTest extends RepositoryTestCase {
 
     @Override
     protected void setUpInternal() throws Exception {
-        repo.getConfigDatabase().put("user.name", "groldan");
-        repo.getConfigDatabase().put("user.email", "groldan@opengeo.org");
+        repo.configDatabase().put("user.name", "groldan");
+        repo.configDatabase().put("user.email", "groldan@opengeo.org");
     }
 
     @Rule
@@ -100,7 +100,7 @@ public class OSMHookTest extends RepositoryTestCase {
         fb.set("name", "newname");
         fb.set("id", 507464799l);
         SimpleFeature newFeature = fb.buildFeature("507464799");
-        geogit.getRepository().getWorkingTree().insert("busstops", newFeature);
+        geogit.getRepository().workingTree().insert("busstops", newFeature);
         geogit.command(AddOp.class).call();
         geogit.command(CommitOp.class).setMessage("msg").call(); // this should trigger the hook
 

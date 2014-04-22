@@ -93,7 +93,7 @@ public class FindTreeChild extends AbstractGeoGitOp<Optional<NodeRef>> {
      *         {@link Optional#absent()} if it wasn't
      */
     @Override
-    public Optional<NodeRef> call() {
+    protected  Optional<NodeRef> _call() {
         checkNotNull(childPath, "childPath");
         final RevTree tree;
         if (parent == null) {

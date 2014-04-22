@@ -94,7 +94,7 @@ public class SquashOp extends AbstractGeoGitOp<ObjectId> {
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
     @Override
-    public ObjectId call() {
+    protected ObjectId _call() {
 
         Preconditions.checkNotNull(since);
         Preconditions.checkNotNull(until);

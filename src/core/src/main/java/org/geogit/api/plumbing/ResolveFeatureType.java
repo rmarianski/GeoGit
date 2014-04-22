@@ -42,7 +42,7 @@ public class ResolveFeatureType extends AbstractGeoGitOp<Optional<RevFeatureType
     }
 
     @Override
-    public Optional<RevFeatureType> call() {
+    protected Optional<RevFeatureType> _call() {
         Preconditions.checkState(refSpec != null, "ref spec has not been set.");
         final String fullRefspec;
         if (refSpec.contains(":")) {

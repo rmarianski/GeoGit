@@ -51,7 +51,7 @@ public class RevObjectParse extends AbstractGeoGitOp<Optional<RevObject>> {
      * @see RevObject
      */
     @Override
-    public Optional<RevObject> call() throws IllegalArgumentException {
+    protected Optional<RevObject> _call() throws IllegalArgumentException {
         return call(RevObject.class);
     }
 

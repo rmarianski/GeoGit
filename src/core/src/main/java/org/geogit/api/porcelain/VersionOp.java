@@ -26,7 +26,7 @@ public class VersionOp extends AbstractGeoGitOp<VersionInfo> {
      * @return the version info of the current build
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
-    public VersionInfo call() {
+    protected VersionInfo _call() {
         Properties properties = new Properties();
         VersionInfo info = null;
         try {

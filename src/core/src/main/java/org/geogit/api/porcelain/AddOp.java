@@ -55,7 +55,7 @@ public class AddOp extends AbstractGeoGitOp<WorkingTree> {
      * @return the modified {@link WorkingTree working tree}.
      */
     @Override
-    public WorkingTree call() {
+    protected WorkingTree _call() {
         // this is add all, TODO: implement partial adds
         String path = null;
         if (patterns.size() == 1) {

@@ -56,7 +56,7 @@ public class ResolveGeogitDir extends AbstractGeoGitOp<Optional<URL>> {
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
     @Override
-    public Optional<URL> call() {
+    protected Optional<URL> _call() {
         File pwd = platform().pwd();
         Optional<URL> repoLocation = ResolveGeogitDir.lookup(pwd);
         return repoLocation;

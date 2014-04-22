@@ -4,7 +4,7 @@
  */
 package org.geogit.api.hooks;
 
-public class CannotRunGeogitOperationException extends Exception {
+public class CannotRunGeogitOperationException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 

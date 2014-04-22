@@ -127,7 +127,7 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
     @Override
-    public FetchResult call() {
+    protected  FetchResult _call() {
         if (all) {
             // Add all remotes to list.
             ImmutableList<Remote> localRemotes = command(RemoteListOp.class).call();

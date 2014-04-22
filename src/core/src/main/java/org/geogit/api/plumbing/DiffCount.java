@@ -76,7 +76,7 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
     }
 
     @Override
-    public DiffObjectCount call() {
+    protected  DiffObjectCount _call() {
         checkState(oldRefSpec != null, "old ref spec not provided");
         checkState(newRefSpec != null, "new ref spec not provided");
 

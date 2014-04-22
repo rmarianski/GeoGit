@@ -32,7 +32,7 @@ public class WalkGraphOp extends AbstractGeoGitOp<Iterator<RevObject>> {
     }
 
     @Override
-    public Iterator<RevObject> call() {
+    protected Iterator<RevObject> _call() {
         Optional<ObjectId> ref = command(RevParse.class).setRefSpec(reference).call();
         if (!ref.isPresent())
             return Iterators.emptyIterator();

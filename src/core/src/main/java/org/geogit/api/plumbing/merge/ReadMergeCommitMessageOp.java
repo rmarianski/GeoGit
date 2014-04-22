@@ -19,7 +19,7 @@ import com.google.common.io.Files;
 public class ReadMergeCommitMessageOp extends AbstractGeoGitOp<String> {
 
     @Override
-    public String call() {
+    protected String _call() {
         URL envHome = new ResolveGeogitDir(platform()).call().get();
         try {
             File file = new File(envHome.toURI());

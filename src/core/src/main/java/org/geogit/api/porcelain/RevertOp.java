@@ -125,7 +125,7 @@ public class RevertOp extends AbstractGeoGitOp<Boolean> {
      * @return always {@code true}
      */
     @Override
-    public Boolean call() {
+    protected Boolean _call() {
 
         final Optional<Ref> currHead = command(RefParse.class).setName(Ref.HEAD).call();
         Preconditions.checkState(currHead.isPresent(), "Repository has no HEAD, can't revert.");

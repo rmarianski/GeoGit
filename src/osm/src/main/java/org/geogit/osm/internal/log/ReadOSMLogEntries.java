@@ -30,7 +30,7 @@ public class ReadOSMLogEntries extends AbstractGeoGitOp<List<OSMLogEntry>> {
     }
 
     @Override
-    public List<OSMLogEntry> call() {
+    protected List<OSMLogEntry> _call() {
         URL url = command(ResolveOSMLogfile.class).call();
         File file = new File(url.getFile());
         List<OSMLogEntry> entries;

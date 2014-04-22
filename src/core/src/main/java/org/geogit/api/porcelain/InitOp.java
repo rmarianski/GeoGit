@@ -108,7 +108,7 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
      *         {@link ResolveGeogitDir}
      */
     @Override
-    public Repository call() {
+    protected  Repository _call() {
         final Platform platform = platform();
         final File workingDirectory = platform.pwd();
         checkState(workingDirectory != null, "working directory is null");

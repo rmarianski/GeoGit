@@ -11,8 +11,6 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 public class CommandHookChain {
@@ -28,32 +26,36 @@ public class CommandHookChain {
         this.hooks = new LinkedList<CommandHook>();
     }
 
-    public void setNext(CommandHook next) {
-        Preconditions.checkArgument(target.getClass().isAssignableFrom(next.getClass()));
+    public boolean isEmpty() {
+        return hooks == null || hooks.isEmpty();
+    }
+
+    void setNext(CommandHook next) {
         this.hooks.add(next);
     }
 
-    public Object run() {
+    public void runPreHooks() throws CannotRunGeogitOperationException {
         AbstractGeoGitOp<?> command = target;
         // run pre-hooks
         for (CommandHook hook : Lists.reverse(hooks)) {
             try {
                 LOGGER.debug("Running pre command hook {}", hook);
-                command = hook.pre(target);
+                command = hook.pre(command);
             } catch (CannotRunGeogitOperationException e) {
-                throw Throwables.propagate(e);
+                throw e;
             }
         }
+    }
 
-        Object retVal = command.call();
+    public Object runPostHooks(Object retVal, boolean success) {
+        AbstractGeoGitOp<?> command = target;
 
         for (CommandHook hook : hooks) {
             try {
-                retVal = hook.post(command, retVal);
+                retVal = hook.post(command, retVal, success);
             } catch (Exception e) {
                 // this exception should not be thrown in a post-execution hook, but just in case,
-                // we
-                // swallow it and ignore it
+                // we swallow it and ignore it
                 LOGGER.warn(
                         "Post-command hook {} for command {} threw an exception that will not be propagated",
                         hook, command.getClass().getName(), e);
@@ -61,6 +63,7 @@ public class CommandHookChain {
         }
 
         return retVal;
+
     }
 
     public static Builder builder() {
@@ -99,6 +102,7 @@ public class CommandHookChain {
             if (!commandHooks.isEmpty()) {
                 PriorityQueue<CommandHook> queue = new PriorityQueue<CommandHook>(
                         commandHooks.size(), HOOKS_PRIORITY);
+                queue.addAll(commandHooks);
                 for (CommandHook hook : queue) {
                     chain.setNext(hook);
                 }

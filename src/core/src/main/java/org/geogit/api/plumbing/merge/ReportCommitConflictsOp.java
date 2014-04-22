@@ -52,7 +52,7 @@ public class ReportCommitConflictsOp extends AbstractGeoGitOp<MergeScenarioRepor
     }
 
     @Override
-    public MergeScenarioReport call() {
+    protected MergeScenarioReport _call() {
 
         MergeScenarioReport report = new MergeScenarioReport();
 

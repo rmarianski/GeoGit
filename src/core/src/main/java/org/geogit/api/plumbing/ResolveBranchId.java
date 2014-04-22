@@ -30,7 +30,7 @@ public class ResolveBranchId extends AbstractGeoGitOp<Optional<Ref>> {
     }
 
     @Override
-    public Optional<Ref> call() {
+    protected Optional<Ref> _call() {
         Preconditions.checkState(id != null, "id has not been set.");
         Predicate<Ref> filter = new Predicate<Ref>() {
             @Override

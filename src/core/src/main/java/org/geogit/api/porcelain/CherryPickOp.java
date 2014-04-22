@@ -55,7 +55,7 @@ public class CherryPickOp extends AbstractGeoGitOp<RevCommit> {
      * @return RevCommit the new commit with the changes from the cherry-picked commit
      */
     @Override
-    public RevCommit call() {
+    protected  RevCommit _call() {
         final Repository repository = repository();
         final Optional<Ref> currHead = command(RefParse.class).setName(Ref.HEAD).call();
         Preconditions

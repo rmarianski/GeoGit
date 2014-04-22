@@ -159,10 +159,12 @@ public class Scripting {
     public static Map<String, Object> getParamMap(AbstractGeoGitOp<?> operation) {
         Map<String, Object> map = Maps.newHashMap();
         try {
-            Field[] fields = operation.getClass().getSuperclass().getDeclaredFields();
+            Field[] fields = operation.getClass().getDeclaredFields();
             for (Field field : fields) {
                 field.setAccessible(true);
-                map.put(field.getName(), field.get(operation));
+                String name = field.getName();
+                Object value = field.get(operation);
+                map.put(name, value);
             }
         } catch (SecurityException e) {
             return map;
@@ -186,7 +188,7 @@ public class Scripting {
      */
     public static void setParamMap(Map<String, Object> map, AbstractGeoGitOp<?> operation) {
         try {
-            Field[] fields = operation.getClass().getSuperclass().getDeclaredFields();
+            Field[] fields = operation.getClass().getDeclaredFields();
             Set<String> keys = map.keySet();
             for (Field field : fields) {
                 if (keys.contains(field.getName())) {

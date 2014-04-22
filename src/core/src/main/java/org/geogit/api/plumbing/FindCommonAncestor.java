@@ -70,7 +70,7 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
      *         ancestor was found
      */
     @Override
-    public Optional<ObjectId> call() {
+    protected  Optional<ObjectId> _call() {
         Preconditions.checkState(left != null, "Left commit has not been set.");
         Preconditions.checkState(right != null, "Right commit has not been set.");
 

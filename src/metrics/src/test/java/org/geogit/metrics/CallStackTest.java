@@ -15,7 +15,7 @@ public class CallStackTest extends Assert {
 
     @Test
     public void testRoot() {
-        CallStack root = CallStack.push("op1");
+        CallStack root = CallStack.push("op1", 1, 1);
         assertNotNull(root);
         assertTrue(root.isRoot());
         assertEquals("op1", root.getName());
@@ -34,30 +34,30 @@ public class CallStackTest extends Assert {
 
     @Test
     public void testMultipleRootsNoChildren() {
-        CallStack root1 = CallStack.push("op1");
+        CallStack root1 = CallStack.push("op1", 1, 1);
         assertSame(root1, CallStack.pop(1, true));
         assertNull(CallStack.CALL_STACK.get());
 
-        CallStack root2 = CallStack.push("op2");
+        CallStack root2 = CallStack.push("op2", 1, 1);
         assertSame(root2, CallStack.pop(2, true));
         assertNull(CallStack.CALL_STACK.get());
 
-        CallStack root3 = CallStack.push("op3");
+        CallStack root3 = CallStack.push("op3", 1, 1);
         assertSame(root3, CallStack.pop(3, false));
         assertNull(CallStack.CALL_STACK.get());
     }
 
     @Test
     public void testChildrenOneLevel() {
-        CallStack root = CallStack.push("op1");
+        CallStack root = CallStack.push("op1", 1, 1);
 
-        CallStack c1 = CallStack.push("child1");
+        CallStack c1 = CallStack.push("child1", 1, 1);
         assertSame(c1, CallStack.pop(1, true));
 
-        CallStack c2 = CallStack.push("child2");
+        CallStack c2 = CallStack.push("child2", 1, 1);
         assertSame(c2, CallStack.pop(1, true));
 
-        CallStack c3 = CallStack.push("child3");
+        CallStack c3 = CallStack.push("child3", 1, 1);
         assertSame(c3, CallStack.pop(1, true));
 
         assertSame(root, CallStack.pop(10, true));
@@ -66,13 +66,13 @@ public class CallStackTest extends Assert {
 
     @Test
     public void testNested() {
-        CallStack root = CallStack.push("root");
+        CallStack root = CallStack.push("root", 1, 1);
 
-        CallStack c1 = CallStack.push("child1");
-        CallStack c11 = CallStack.push("child11");
-        CallStack c111 = CallStack.push("child111");
+        CallStack c1 = CallStack.push("child1", 1, 1);
+        CallStack c11 = CallStack.push("child11", 1, 1);
+        CallStack c111 = CallStack.push("child111", 1, 1);
         assertSame(c111, CallStack.pop(1, true));
-        CallStack c112 = CallStack.push("child112");
+        CallStack c112 = CallStack.push("child112", 1, 1);
         assertSame(c112, CallStack.pop(1, true));
         assertSame(c11, CallStack.pop(1, true));
         assertSame(c1, CallStack.pop(1, true));

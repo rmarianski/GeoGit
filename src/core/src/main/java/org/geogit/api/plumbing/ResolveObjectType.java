@@ -33,7 +33,7 @@ public class ResolveObjectType extends AbstractGeoGitOp<RevObject.TYPE> {
      * @throws IllegalArgumentException if the object doesn't exist
      */
     @Override
-    public TYPE call() throws IllegalArgumentException {
+    protected TYPE _call() throws IllegalArgumentException {
         RevObject o = stagingDatabase().get(oid);
         return o.getType();
     }

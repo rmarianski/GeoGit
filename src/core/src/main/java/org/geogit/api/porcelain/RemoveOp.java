@@ -44,7 +44,7 @@ public class RemoveOp extends AbstractGeoGitOp<WorkingTree> {
     /**
      * @see java.util.concurrent.Callable#call()
      */
-    public WorkingTree call() {
+    protected WorkingTree _call() {
 
         // Check that all paths are valid and exist
         for (String pathToRemove : pathsToRemove) {

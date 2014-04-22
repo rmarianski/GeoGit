@@ -169,11 +169,23 @@
         <artifactId>guice</artifactId>
         <version>${guice.version}</version>
         <classifier>no_aop</classifier>
+        <exclusions>
+          <exclusion>
+           <groupId>aopalliance</groupId>
+           <artifactId>aopalliance</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.google.inject.extensions</groupId>
         <artifactId>guice-multibindings</artifactId>
         <version>${guice.version}</version>
+        <exclusions>
+          <exclusion>
+           <groupId>com.google.inject</groupId>
+           <artifactId>guice</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.vividsolutions</groupId>

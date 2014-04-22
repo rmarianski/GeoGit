@@ -115,7 +115,7 @@ public class OSMUnmapOp extends AbstractGeoGitOp<RevTree> {
     }
 
     @Override
-    public RevTree call() {
+    protected RevTree _call() {
 
         Optional<OSMMappingLogEntry> entry = command(ReadOSMMappingLogEntry.class).setPath(path)
                 .call();

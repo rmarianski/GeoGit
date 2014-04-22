@@ -84,7 +84,7 @@ public class UpdateSymRef extends AbstractGeoGitOp<Optional<Ref>> {
      * The new ref if created or updated a sym ref, or the old one if deleting it
      */
     @Override
-    public Optional<Ref> call() {
+    protected Optional<Ref> _call() {
         Preconditions.checkState(name != null, "name has not been set");
         Preconditions.checkState(delete || newValue != null, "value has not been set");
 

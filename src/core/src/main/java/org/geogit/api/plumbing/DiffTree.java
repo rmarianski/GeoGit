@@ -122,7 +122,7 @@ public class DiffTree extends AbstractGeoGitOp<Iterator<DiffEntry>> implements
      * @see DiffEntry
      */
     @Override
-    public Iterator<DiffEntry> call() throws IllegalArgumentException {
+    protected  Iterator<DiffEntry> _call() throws IllegalArgumentException {
         checkNotNull(oldRefSpec, "old version not specified");
         checkNotNull(newRefSpec, "new version not specified");
 

@@ -96,7 +96,7 @@ public class TransactionEnd extends AbstractGeoGitOp<Boolean> {
      * @return Boolean - true if the transaction was successfully closed
      */
     @Override
-    public Boolean call() {
+    protected Boolean _call() {
         Preconditions.checkState(!(injector instanceof GeogitTransaction),
                 "Cannot end a transaction within a transaction!");
         Preconditions.checkArgument(transaction != null, "No transaction was specified!");

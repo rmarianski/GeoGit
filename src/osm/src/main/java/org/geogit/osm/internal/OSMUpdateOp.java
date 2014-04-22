@@ -80,9 +80,8 @@ public class OSMUpdateOp extends AbstractGeoGitOp<Optional<OSMReport>> {
      * 
      * @return a {@link OSMDownloadReport} of the operation
      */
-    @SuppressWarnings("deprecation")
     @Override
-    public Optional<OSMReport> call() {
+    protected Optional<OSMReport> _call() {
         final Optional<Ref> currHead = command(RefParse.class).setName(Ref.HEAD).call();
         Preconditions.checkState(currHead.isPresent(), "Repository has no HEAD, can't update.");
         Preconditions.checkState(currHead.get() instanceof SymRef,

@@ -35,7 +35,7 @@ public class CreateTree extends AbstractGeoGitOp<RevTreeBuilder> {
      * @return the {@link MutableTree} that was created by the operation
      */
     @Override
-    public RevTreeBuilder call() {
+    protected  RevTreeBuilder _call() {
         ObjectDatabase storage = index ? stagingDatabase() : objectDatabase();
         return new RevTreeBuilder(storage);
     }

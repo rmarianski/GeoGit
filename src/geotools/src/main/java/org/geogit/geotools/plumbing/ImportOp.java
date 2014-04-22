@@ -108,7 +108,7 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
      * @return RevTree the new working tree
      */
     @Override
-    public RevTree call() {
+    protected  RevTree _call() {
 
         // check preconditions and get the actual list of type names to import
         final String[] typeNames = checkPreconditions();

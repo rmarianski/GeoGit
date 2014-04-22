@@ -55,7 +55,7 @@ public class ResolveTreeish extends AbstractGeoGitOp<Optional<ObjectId>> {
      *         {@link Optional#absent()} if it did not resolve.
      */
     @Override
-    public Optional<ObjectId> call() {
+    protected Optional<ObjectId> _call() {
         checkState(treeishRefSpec != null || treeish != null, "tree-ish ref spec not set");
 
         Optional<ObjectId> resolved;

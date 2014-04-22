@@ -55,7 +55,7 @@ public class DiffFeature extends AbstractGeoGitOp<FeatureDiff> {
      * @see FeatureDiff
      */
     @Override
-    public FeatureDiff call() throws IllegalArgumentException {
+    protected  FeatureDiff _call() throws IllegalArgumentException {
         checkNotNull(oldNodeRef, "old version not specified");
         checkNotNull(newNodeRef, "new version not specified");
         String oldPath = removeRef(oldNodeRef.path());

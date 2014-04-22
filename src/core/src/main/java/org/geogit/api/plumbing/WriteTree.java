@@ -103,7 +103,7 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
      *         indicated by the {@link #getProgressListener() progress listener}.
      */
     @Override
-    public ObjectId call() {
+    protected ObjectId _call() {
         final ProgressListener progress = getProgressListener();
 
         final RevTree oldRootTree = resolveRootTree();

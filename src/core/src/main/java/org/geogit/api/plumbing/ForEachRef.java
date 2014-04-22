@@ -41,7 +41,7 @@ public class ForEachRef extends AbstractGeoGitOp<ImmutableSet<Ref>> {
      * @return the new value of the ref
      */
     @Override
-    public ImmutableSet<Ref> call() {
+    protected  ImmutableSet<Ref> _call() {
 
         @SuppressWarnings("unchecked")
         final Predicate<Ref> filter = (Predicate<Ref>) (this.filter == null ? Predicates

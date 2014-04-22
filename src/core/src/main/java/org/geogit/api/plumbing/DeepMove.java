@@ -105,7 +105,7 @@ public class DeepMove extends AbstractGeoGitOp<ObjectId> {
      *         used and hence no such information it available
      */
     @Override
-    public ObjectId call() {
+    protected  ObjectId _call() {
         ObjectDatabase from = toIndex ? objectDatabase() : stagingDatabase();
         ObjectDatabase to = toIndex ? stagingDatabase() : objectDatabase();
 

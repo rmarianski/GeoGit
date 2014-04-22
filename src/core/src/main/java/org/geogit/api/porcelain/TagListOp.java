@@ -23,7 +23,8 @@ import com.google.common.collect.Lists;
  */
 public class TagListOp extends AbstractGeoGitOp<ImmutableList<RevTag>> {
 
-    public ImmutableList<RevTag> call() {
+    @Override
+    protected ImmutableList<RevTag> _call() {
 
         final Predicate<Ref> filter = new Predicate<Ref>() {
             @Override

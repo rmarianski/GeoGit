@@ -32,7 +32,7 @@ public class RebuildGraphOp extends AbstractGeoGitOp<ImmutableList<ObjectId>> {
      * @return a list of {@link ObjectId}s that were found to be missing or incomplete
      */
     @Override
-    public ImmutableList<ObjectId> call() {
+    protected ImmutableList<ObjectId> _call() {
         Repository repository = repository();
         Preconditions.checkState(!repository.isSparse(),
                 "Cannot rebuild the graph of a sparse repository.");

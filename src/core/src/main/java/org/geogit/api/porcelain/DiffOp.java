@@ -116,7 +116,7 @@ public class DiffOp extends AbstractGeoGitOp<Iterator<DiffEntry>> implements Ite
      * @see DiffEntry
      */
     @Override
-    public Iterator<DiffEntry> call() {
+    protected  Iterator<DiffEntry> _call() {
         checkArgument(cached && oldRefSpec == null || !cached, String.format(
                 "compare index allows only one revision to check against, got %s / %s", oldRefSpec,
                 newRefSpec));

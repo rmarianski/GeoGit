@@ -37,7 +37,7 @@ public class DescribeOp extends AbstractGeoGitOp<Optional<Map<String, String>>> 
      * @return a map that contains all properties and their types from the provided table
      */
     @Override
-    public Optional<Map<String, String>> call() {
+    protected  Optional<Map<String, String>> _call() {
         if (dataStore == null) {
             throw new GeoToolsOpException(StatusCode.DATASTORE_NOT_DEFINED);
         }

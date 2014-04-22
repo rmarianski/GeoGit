@@ -101,7 +101,7 @@ public class CloneOp extends AbstractGeoGitOp<Void> {
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
     @Override
-    public Void call() {
+    protected  Void _call() {
         Preconditions.checkArgument(repositoryURL != null && !repositoryURL.isEmpty(),
                 "No repository specified to clone from.");
         Repository repository = repository();

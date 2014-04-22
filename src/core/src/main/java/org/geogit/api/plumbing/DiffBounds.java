@@ -53,7 +53,7 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
     }
 
     @Override
-    public Envelope call() {
+    protected  Envelope _call() {
         checkArgument(cached && oldVersion == null || !cached, String.format(
                 "compare index allows only one revision to check against, got %s / %s", oldVersion,
                 newVersion));

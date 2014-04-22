@@ -67,7 +67,7 @@ public class VerifyPatchOp extends AbstractGeoGitOp<VerifyPatchResults> {
      * 
      * @return the result of checking if the patch can be applied
      */
-    public VerifyPatchResults call() throws RuntimeException {
+    protected VerifyPatchResults _call() throws RuntimeException {
         Preconditions.checkArgument(patch != null, "No patch file provided");
 
         Patch patch = reverse ? this.patch.reversed() : this.patch;

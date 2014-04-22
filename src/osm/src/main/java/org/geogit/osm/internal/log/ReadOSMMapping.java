@@ -32,7 +32,7 @@ public class ReadOSMMapping extends AbstractGeoGitOp<Optional<Mapping>> {
     }
 
     @Override
-    public Optional<Mapping> call() {
+    protected Optional<Mapping> _call() {
         Preconditions.checkNotNull(entry);
         final File osmMapFolder = command(ResolveOSMMappingLogFolder.class).call();
         File file = new File(osmMapFolder, entry.getPostMappingId().toString());

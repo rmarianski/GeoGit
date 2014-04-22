@@ -30,7 +30,7 @@ public class TransactionBegin extends AbstractGeoGitOp<GeogitTransaction> {
      * @return the {@link GeogitTransaction} that was created by the operation
      */
     @Override
-    public GeogitTransaction call() {
+    protected GeogitTransaction _call() {
         Preconditions.checkState(!(injector instanceof GeogitTransaction),
                 "Cannot start a new transaction within a transaction!");
 

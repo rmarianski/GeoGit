@@ -35,7 +35,7 @@ import org.geogit.api.porcelain.AddOp;
 public class UpdateIndex extends AbstractGeoGitOp<Void> {
 
     @Override
-    public Void call() {
+    protected Void _call() {
         throw new UnsupportedOperationException("not yet implemented");
     }
 

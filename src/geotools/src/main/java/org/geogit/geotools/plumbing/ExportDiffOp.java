@@ -87,9 +87,8 @@ public class ExportDiffOp extends AbstractGeoGitOp<SimpleFeatureStore> {
      * 
      * @return a FeatureCollection with the specified features
      */
-    @SuppressWarnings("deprecation")
     @Override
-    public SimpleFeatureStore call() {
+    protected  SimpleFeatureStore _call() {
 
         final SimpleFeatureStore targetStore = getTargetStore();
 

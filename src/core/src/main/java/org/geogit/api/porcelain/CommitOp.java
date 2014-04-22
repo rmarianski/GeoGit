@@ -229,7 +229,7 @@ public class CommitOp extends AbstractGeoGitOp<RevCommit> {
      *         staging tree and the repository HEAD tree.
      */
     @Override
-    public RevCommit call() throws RuntimeException {
+    protected  RevCommit _call() throws RuntimeException {
         final String committer = resolveCommitter();
         final String committerEmail = resolveCommitterEmail();
         final String author = resolveAuthor();

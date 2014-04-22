@@ -28,7 +28,7 @@ public class ReadOSMMappingLogEntry extends AbstractGeoGitOp<Optional<OSMMapping
     }
 
     @Override
-    public Optional<OSMMappingLogEntry> call() {
+    protected Optional<OSMMappingLogEntry> _call() {
         final File osmMapFolder = command(ResolveOSMMappingLogFolder.class).call();
         File file = new File(osmMapFolder, path);
         OSMMappingLogEntry entry = null;

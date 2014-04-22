@@ -174,7 +174,7 @@ public class OSMImportOp extends AbstractGeoGitOp<Optional<OSMReport>> {
 
     @SuppressWarnings("deprecation")
     @Override
-    public Optional<OSMReport> call() {
+    protected  Optional<OSMReport> _call() {
 
         checkNotNull(urlOrFilepath);
 

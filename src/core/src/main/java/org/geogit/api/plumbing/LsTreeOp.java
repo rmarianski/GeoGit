@@ -113,7 +113,7 @@ public class LsTreeOp extends AbstractGeoGitOp<Iterator<NodeRef>> implements
     /**
      * @see java.util.concurrent.Callable#call()
      */
-    public Iterator<NodeRef> call() {
+    protected  Iterator<NodeRef> _call() {
         String ref = this.ref;
 
         if (ref == null) {

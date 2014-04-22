@@ -6,6 +6,7 @@ package org.geogit.repository;
 
 import java.io.Closeable;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 import org.geogit.api.AbstractGeoGitOp;
@@ -41,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 /**
@@ -58,6 +60,14 @@ import com.google.inject.Inject;
 public class Repository implements Injector {
     private static Logger LOGGER = LoggerFactory.getLogger(Repository.class);
 
+    public static interface RepositoryListener {
+        public void opened(Repository repo);
+
+        public void closed();
+    }
+
+    private List<RepositoryListener> listeners = Lists.newCopyOnWriteArrayList();
+
     private Injector injector;
 
     private URL repositoryLocation;
@@ -67,6 +77,12 @@ public class Repository implements Injector {
     @Inject
     public Repository(Injector injector) {
         this.injector = injector;
+    }
+
+    public void addListener(RepositoryListener listener) {
+        if (!this.listeners.contains(listener)) {
+            this.listeners.add(listener);
+        }
     }
 
     public void configure() throws RepositoryConnectionException {
@@ -88,6 +104,9 @@ public class Repository implements Injector {
         Optional<URL> repoUrl = command(ResolveGeogitDir.class).call();
         Preconditions.checkState(repoUrl.isPresent(), "Repository URL can't be located");
         this.repositoryLocation = repoUrl.get();
+        for (RepositoryListener l : listeners) {
+            l.opened(this);
+        }
     }
 
     /**
@@ -98,6 +117,9 @@ public class Repository implements Injector {
         close(injector.objectDatabase());
         close(injector.graphDatabase());
         close(injector.stagingDatabase());
+        for (RepositoryListener l : listeners) {
+            l.closed();
+        }
     }
 
     private void close(Closeable db) {

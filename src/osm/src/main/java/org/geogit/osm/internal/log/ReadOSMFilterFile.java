@@ -32,7 +32,7 @@ public class ReadOSMFilterFile extends AbstractGeoGitOp<Optional<String>> {
     }
 
     @Override
-    public Optional<String> call() {
+    protected Optional<String> _call() {
         Preconditions.checkNotNull(entry);
         URL url = command(ResolveOSMLogfile.class).call();
         File logfile = new File(url.getFile());

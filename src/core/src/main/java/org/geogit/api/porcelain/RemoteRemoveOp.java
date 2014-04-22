@@ -34,7 +34,7 @@ public class RemoteRemoveOp extends AbstractGeoGitOp<Remote> {
      *         didn't exist.
      */
     @Override
-    public Remote call() {
+    protected Remote _call() {
         if (name == null || name.isEmpty()) {
             throw new RemoteException(StatusCode.MISSING_NAME);
         }

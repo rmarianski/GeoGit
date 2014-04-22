@@ -18,11 +18,6 @@ class ShellScriptHook implements CommandHook {
     }
 
     @Override
-    public Class<? extends AbstractGeoGitOp<?>> targetCommand() {
-        return null;
-    }
-
-    @Override
     public <C extends AbstractGeoGitOp<?>> C pre(C command)
             throws CannotRunGeogitOperationException {
 
@@ -37,15 +32,21 @@ class ShellScriptHook implements CommandHook {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T post(AbstractGeoGitOp<T> command, Object retVal) throws Exception {
+    public <T> T post(AbstractGeoGitOp<T> command, Object retVal, boolean success) throws Exception {
 
         if (postScript == null) {
             return (T) retVal;
         }
 
-        Scripting.runShellScript(preScript);
-
+        if (success) {
+            Scripting.runShellScript(preScript);
+        }
         return (T) retVal;
+    }
+
+    @Override
+    public boolean appliesTo(Class<? extends AbstractGeoGitOp> clazz) {
+        return true;
     }
 
 }

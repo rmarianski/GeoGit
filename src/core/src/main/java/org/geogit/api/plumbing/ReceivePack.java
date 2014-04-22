@@ -14,7 +14,7 @@ import org.geogit.api.porcelain.FetchResult;
 public class ReceivePack extends AbstractGeoGitOp<FetchResult> {
 
     @Override
-    public FetchResult call() {
+    protected FetchResult _call() {
         // TODO Auto-generated method stub
         return null;
     }

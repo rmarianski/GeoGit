@@ -7,7 +7,7 @@ package org.geogit.di;
 import org.geogit.api.DefaultPlatform;
 import org.geogit.api.Injector;
 import org.geogit.api.Platform;
-import org.geogit.api.hooks.CommandCallInterceptor;
+import org.geogit.api.hooks.CommandHooksDecorator;
 import org.geogit.api.hooks.Hookables;
 import org.geogit.repository.Index;
 import org.geogit.repository.Repository;
@@ -85,8 +85,7 @@ public class GeogitModule extends AbstractModule {
 
         bindConflictCheckingInterceptor();
 
-        bindInterceptor(Hookables.classMatcher(), Hookables.methodMatcher(),
-                new CommandCallInterceptor());
+        bindDecorator(binder(), new CommandHooksDecorator());
     }
 
     private void bindConflictCheckingInterceptor() {

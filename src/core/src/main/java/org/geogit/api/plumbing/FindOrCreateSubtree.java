@@ -88,7 +88,7 @@ public class FindOrCreateSubtree extends AbstractGeoGitOp<RevTree> {
      * @return the subtree if it was found, or a new one if it wasn't
      */
     @Override
-    public RevTree call() {
+    protected  RevTree _call() {
         checkNotNull(parentSupplier, "parent");
         checkNotNull(childPath, "childPath");
 

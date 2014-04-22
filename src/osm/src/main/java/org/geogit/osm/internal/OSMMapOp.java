@@ -77,7 +77,7 @@ public class OSMMapOp extends AbstractGeoGitOp<RevTree> {
     }
 
     @Override
-    public RevTree call() {
+    protected RevTree _call() {
 
         checkNotNull(mapping);
 

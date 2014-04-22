@@ -63,7 +63,7 @@ public class DiffWorkTree extends AbstractGeoGitOp<Iterator<DiffEntry>> implemen
      * @see DiffEntry
      */
     @Override
-    public Iterator<DiffEntry> call() {
+    protected  Iterator<DiffEntry> _call() {
 
         final Optional<String> ref = Optional.fromNullable(refSpec);
 

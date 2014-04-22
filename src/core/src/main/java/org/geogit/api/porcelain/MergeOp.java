@@ -130,7 +130,7 @@ public class MergeOp extends AbstractGeoGitOp<MergeOp.MergeReport> {
      * @return always {@code true}
      */
     @Override
-    public MergeReport call() throws RuntimeException {
+    protected  MergeReport _call() throws RuntimeException {
 
         Preconditions.checkArgument(commits.size() > 0, "No commits specified for merge.");
         Preconditions.checkArgument(!(ours && theirs), "Cannot use both --ours and --theirs.");

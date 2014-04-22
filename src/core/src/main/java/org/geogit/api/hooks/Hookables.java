@@ -5,11 +5,8 @@
 package org.geogit.api.hooks;
 
 import java.io.File;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -22,8 +19,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.inject.matcher.Matcher;
-import com.google.inject.matcher.Matchers;
 
 /**
  * A class for managing GeoGit operations that can be hooked and the filenames of the corresponding
@@ -35,56 +30,6 @@ public class Hookables {
     private static final ImmutableList<CommandHook> classPathHooks;
     static {
         classPathHooks = Hookables.loadClasspathHooks();
-    }
-
-    /**
-     * returns a matcher that matches classes representing GeoGit operations that allow hooks
-     * 
-     * @return
-     */
-    public static Matcher<AnnotatedElement> classMatcher() {
-        return Matchers.annotatedWith(Hookable.class);
-        // return matcher;
-    }
-
-    /**
-     * returns a matcher that matches the call method from a GeoGit operation, excluding synthetic
-     * methods
-     * 
-     * @return
-     */
-    public static Matcher<? super Method> methodMatcher() {
-        try {
-            return new Matcher<Method>() {
-
-                Method method = AbstractGeoGitOp.class.getMethod("call");
-
-                @Override
-                public boolean matches(Method t) {
-                    if (!t.isSynthetic()) {
-                        if (method.getName().equals(t.getName())) {
-                            if (Arrays.equals(method.getParameterTypes(), t.getParameterTypes())) {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                }
-
-                @Override
-                public Matcher<Method> and(Matcher<? super Method> other) {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public Matcher<Method> or(Matcher<? super Method> other) {
-                    throw new UnsupportedOperationException();
-                }
-            };
-        } catch (NoSuchMethodException e) {
-            throw Throwables.propagate(e);
-        }
-
     }
 
     /**
@@ -110,7 +55,15 @@ public class Hookables {
         return SPIHooks;
     }
 
-    
+    public static boolean hasClasspathHooks(Class<? extends AbstractGeoGitOp<?>> commandClass) {
+        for (CommandHook hook : classPathHooks) {
+            if (hook.appliesTo(commandClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static List<CommandHook> findHooksFor(AbstractGeoGitOp<?> operation) {
 
         final File hooksDir = findHooksDirectory(operation);
@@ -126,7 +79,7 @@ public class Hookables {
 
         List<CommandHook> hooks = Lists.newLinkedList();
         for (CommandHook hook : classPathHooks) {
-            if (hook.targetCommand().isAssignableFrom(clazz)) {
+            if (hook.appliesTo(clazz)) {
                 hooks.add(hook);
             }
         }

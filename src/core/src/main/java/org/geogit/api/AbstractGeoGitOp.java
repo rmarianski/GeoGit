@@ -4,7 +4,11 @@
  */
 package org.geogit.api;
 
-import java.util.concurrent.Callable;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.geogit.repository.Repository;
 import org.geogit.repository.StagingArea;
@@ -20,19 +24,46 @@ import org.geogit.storage.StagingDatabase;
  * 
  * @param <T> the type of the result of the execution of the command
  */
-public abstract class AbstractGeoGitOp<T> implements Callable<T> {
+public abstract class AbstractGeoGitOp<T> {
 
     private static final ProgressListener NULL_PROGRESS_LISTENER = new DefaultProgressListener();
 
     private ProgressListener progressListener = NULL_PROGRESS_LISTENER;
 
+    private List<CommandListener> listeners;
+
     protected Injector injector;
+
+    private Map<Serializable, Serializable> metadata;
+
+    public static interface CommandListener {
+        public void preCall(AbstractGeoGitOp<?> command);
+
+        public void postCall(AbstractGeoGitOp<?> command, Object result, boolean success);
+    }
 
     /**
      * Constructs a new abstract operation.
      */
     public AbstractGeoGitOp() {
         //
+    }
+
+    public void addListener(CommandListener l) {
+        if (listeners == null) {
+            listeners = new ArrayList<AbstractGeoGitOp.CommandListener>(2);
+        }
+        listeners.add(l);
+    }
+
+    /**
+     * @return a content holder for client code data that can be used by decorators/interceptors
+     */
+    public Map<Serializable, Serializable> getClientData() {
+        if (metadata == null) {
+            metadata = new HashMap<Serializable, Serializable>();
+        }
+        return metadata;
     }
 
     /**
@@ -84,7 +115,38 @@ public abstract class AbstractGeoGitOp<T> implements Callable<T> {
      * 
      * @see java.util.concurrent.Callable#call()
      */
-    public abstract T call();
+    public final T call() {
+        notifyPre();
+        try {
+            T result = _call();
+            notifyPost(result, true);
+            return result;
+        } catch (RuntimeException e) {
+            notifyPost(null, false);
+            throw e;
+        }
+    }
+
+    protected abstract T _call();
+
+    private void notifyPre() {
+        if (listeners == null) {
+            return;
+        }
+        for (CommandListener l : listeners) {
+            l.preCall(this);
+        }
+    }
+
+    private void notifyPost(T result, boolean success) {
+        if (listeners == null) {
+            return;
+        }
+        for (CommandListener l : listeners) {
+            l.postCall(this, result, success);
+        }
+    }
+
 
     /**
      * Shortcut for {@link Injector#workingTree() getCommandLocator().getWorkingTree()}
@@ -127,7 +189,7 @@ public abstract class AbstractGeoGitOp<T> implements Callable<T> {
         return injector.graphDatabase();
     }
 
-    protected Repository repository() {
+    public Repository repository() {
         return injector.repository();
     }
 }

@@ -36,7 +36,7 @@ public class CleanOp extends AbstractGeoGitOp<WorkingTree> {
     /**
      * @see java.util.concurrent.Callable#call()
      */
-    public WorkingTree call() {
+    protected  WorkingTree _call() {
 
         if (path != null) {
             // check that is a valid path

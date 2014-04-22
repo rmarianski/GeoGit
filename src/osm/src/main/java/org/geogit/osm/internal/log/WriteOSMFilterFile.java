@@ -36,7 +36,7 @@ public class WriteOSMFilterFile extends AbstractGeoGitOp<Void> {
     }
 
     @Override
-    public Void call() {
+    protected Void _call() {
         Preconditions.checkNotNull(entry);
         Preconditions.checkNotNull(filter);
         URL url = command(ResolveOSMLogfile.class).call();

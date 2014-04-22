@@ -34,7 +34,7 @@ public class DescribeFeatureType extends AbstractGeoGitOp<ImmutableSet<PropertyD
      * @return a sorted set of all the property descriptors of the feature type.
      */
     @Override
-    public ImmutableSet<PropertyDescriptor> call() {
+    protected  ImmutableSet<PropertyDescriptor> _call() {
         Preconditions.checkState(featureType != null, "FeatureType has not been set.");
 
         FeatureType type = featureType.type();

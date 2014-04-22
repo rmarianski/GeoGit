@@ -31,7 +31,7 @@ public class CatObject extends AbstractGeoGitOp<CharSequence> {
     }
 
     @Override
-    public CharSequence call() {
+    protected CharSequence _call() {
         Preconditions.checkState(object != null);
         RevObject revObject = object.get();
 

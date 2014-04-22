@@ -64,7 +64,7 @@ public class BlameOp extends AbstractGeoGitOp<BlameReport> {
     }
 
     @Override
-    public BlameReport call() {
+    protected  BlameReport _call() {
         String fullPath = (commit != null ? commit.toString() : Ref.HEAD) + ":" + path;
         Optional<ObjectId> id = command(RevParse.class).setRefSpec(fullPath).call();
         if (!id.isPresent()) {

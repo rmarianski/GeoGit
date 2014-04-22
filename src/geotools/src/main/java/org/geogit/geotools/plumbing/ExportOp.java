@@ -102,9 +102,8 @@ public class ExportOp extends AbstractGeoGitOp<SimpleFeatureStore> {
      * 
      * @return a FeatureCollection with the specified features
      */
-    @SuppressWarnings("deprecation")
     @Override
-    public SimpleFeatureStore call() {
+    protected SimpleFeatureStore _call() {
         final StagingDatabase database = stagingDatabase();
         if (filterFeatureTypeId != null) {
             RevObject filterType = database.getIfPresent(filterFeatureTypeId);

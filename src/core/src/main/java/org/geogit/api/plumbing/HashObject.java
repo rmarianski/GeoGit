@@ -54,7 +54,7 @@ public class HashObject extends AbstractGeoGitOp<ObjectId> {
      * @return a new ObjectId created from the hash of the RevObject.
      */
     @Override
-    public ObjectId call() {
+    protected  ObjectId _call() {
         Preconditions.checkState(object != null, "Object has not been set.");
 
         final Hasher hasher = ObjectId.HASH_FUNCTION.newHasher();

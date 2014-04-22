@@ -38,7 +38,7 @@ public class WriteOSMMappingEntries extends AbstractGeoGitOp<Void> {
     }
 
     @Override
-    public Void call() {
+    protected Void _call() {
         Preconditions.checkNotNull(entry);
         Preconditions.checkNotNull(mapping);
         final File osmMapFolder = command(ResolveOSMMappingLogFolder.class).call();

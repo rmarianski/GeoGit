@@ -57,7 +57,7 @@ public class RefParse extends AbstractGeoGitOp<Optional<Ref>> {
      *         namespace
      */
     @Override
-    public Optional<Ref> call() {
+    protected Optional<Ref> _call() {
         Preconditions.checkState(refSpec != null, "name has not been set");
 
         if (STANDARD_REFS.contains(refSpec) || refSpec.startsWith("refs/")) {

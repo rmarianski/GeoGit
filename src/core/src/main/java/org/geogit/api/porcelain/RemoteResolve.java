@@ -39,7 +39,7 @@ public class RemoteResolve extends AbstractGeoGitOp<Optional<Remote>> implements
      * @return the {@link Remote} that was added.
      */
     @Override
-    public Optional<Remote> call() {
+    protected Optional<Remote> _call() {
         if (name == null || name.isEmpty()) {
             throw new RemoteException(StatusCode.MISSING_NAME);
         }

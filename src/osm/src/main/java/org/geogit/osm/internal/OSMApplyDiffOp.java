@@ -71,7 +71,7 @@ public class OSMApplyDiffOp extends AbstractGeoGitOp<Optional<OSMReport>> {
 
     @SuppressWarnings("deprecation")
     @Override
-    public Optional<OSMReport> call() {
+    protected  Optional<OSMReport> _call() {
         checkNotNull(file);
         Preconditions.checkArgument(file.exists(), "File does not exist: " + file);
 

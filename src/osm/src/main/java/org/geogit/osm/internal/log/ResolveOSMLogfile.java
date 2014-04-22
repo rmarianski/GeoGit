@@ -27,7 +27,7 @@ import com.google.common.io.Files;
 public class ResolveOSMLogfile extends AbstractGeoGitOp<URL> {
 
     @Override
-    public URL call() {
+    protected URL _call() {
         final URL geogitDirUrl = command(ResolveGeogitDir.class).call().get();
         File repoDir;
         try {

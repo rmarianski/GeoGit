@@ -87,7 +87,7 @@ public class ResetOp extends AbstractGeoGitOp<Boolean> {
      * @return always {@code true}
      */
     @Override
-    public Boolean call() {
+    protected Boolean _call() {
         Preconditions.checkState(!(patterns.size() > 0 && mode != ResetMode.NONE),
                 "Ambiguous call, cannot specify paths and reset mode.");
 

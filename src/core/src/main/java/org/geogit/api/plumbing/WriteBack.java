@@ -133,7 +133,7 @@ public class WriteBack extends AbstractGeoGitOp<ObjectId> {
      * @return the {@link ObjectId id} of the resulting new ancestor tree.
      */
     @Override
-    public ObjectId call() {
+    protected ObjectId _call() {
         checkNotNull(tree, "child tree not set");
         checkNotNull(childPath, "child tree path not set");
 

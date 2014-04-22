@@ -53,7 +53,7 @@ public class CheckMergeScenarioOp extends AbstractGeoGitOp<Boolean> {
     }
 
     @Override
-    public Boolean call() {
+    protected  Boolean _call() {
         if (commits.size() < 2) {
             return Boolean.FALSE;
         }

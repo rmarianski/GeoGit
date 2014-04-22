@@ -87,7 +87,7 @@ public class BranchCreateOp extends AbstractGeoGitOp<Ref> {
         return this;
     }
 
-    public Ref call() {
+    protected  Ref _call() {
         checkState(branchName != null, "branch name was not provided");
         final String branchRefPath = Ref.HEADS_PREFIX + branchName;
         checkArgument(force || !command(RefParse.class).setName(branchRefPath).call().isPresent(),

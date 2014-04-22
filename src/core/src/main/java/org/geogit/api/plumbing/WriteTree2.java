@@ -114,7 +114,7 @@ public class WriteTree2 extends AbstractGeoGitOp<ObjectId> {
      *         indicated by the {@link #getProgressListener() progress listener}.
      */
     @Override
-    public ObjectId call() {
+    protected ObjectId _call() {
         final ProgressListener progress = getProgressListener();
 
         TreeDifference treeDifference = computeTreeDifference();

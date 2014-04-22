@@ -42,7 +42,7 @@ public class MergeFeaturesOp extends AbstractGeoGitOp<Feature> {
     private NodeRef ancestorRef;
 
     @Override
-    public Feature call() {
+    protected  Feature _call() {
         checkNotNull(nodeRefA, "first feature version not specified");
         checkNotNull(nodeRefB, "second feature version not specified");
         checkNotNull(ancestorRef, "ancestor version not specified");

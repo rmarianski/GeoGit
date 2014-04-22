@@ -6,7 +6,9 @@ package org.geogit.metrics;
 
 import java.lang.management.ManagementFactory;
 
+import org.geogit.api.Platform;
 import org.geogit.di.GeogitModule;
+import org.geogit.storage.ConfigDatabase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,58 +59,35 @@ public class MetricsModule extends AbstractModule {
 
     public static final long startTimeSecs = ManagementFactory.getRuntimeMXBean().getStartTime() / 1000;
 
-    @SuppressWarnings("rawtypes")
     @Override
     protected void configure() {
-/*
-        Provider<Platform> platform = getProvider(Platform.class);
-        Provider<ConfigDatabase> configDb = getProvider(ConfigDatabase.class);
 
-        bindInterceptor(subclassesOf(AbstractGeoGitOp.class), new MethodMatcher(
-                AbstractGeoGitOp.class, "call"), new GeogitOpMeteredInterceptor(platform, configDb));
+        // Provider<Platform> platform = getProvider(Platform.class);
+        // Provider<ConfigDatabase> configDb = getProvider(ConfigDatabase.class);
 
-        final Matcher<Class> stagingDatabase = subclassesOf(StagingDatabase.class);
-        final Matcher<Class> objectDatabase = subclassesOf(ObjectDatabase.class).and(
-                Matchers.not(stagingDatabase));
-
-        bindInterceptor(objectDatabase, new MethodMatcher(ObjectDatabase.class, "putAll",
-                Iterator.class), new NamedMeteredInterceptor(platform, configDb,
-                "ObjectDatabase.putAll"));
-
-        bindInterceptor(stagingDatabase, new MethodMatcher(StagingDatabase.class, "putAll",
-                Iterator.class), new NamedMeteredInterceptor(platform, configDb,
-                "StagingDatabase.putAll"));
-
-        bindInterceptor(objectDatabase, new MethodMatcher(ObjectDatabase.class, "close"),
-                new NamedMeteredInterceptor(platform, configDb, "ObjectDatabase.close"));
-
-        bindInterceptor(stagingDatabase, new MethodMatcher(StagingDatabase.class, "close"),
-                new NamedMeteredInterceptor(platform, configDb, "StagingDatabase.close"));
+        // final Matcher<Class> stagingDatabase = subclassesOf(StagingDatabase.class);
+        // final Matcher<Class> objectDatabase = subclassesOf(ObjectDatabase.class).and(
+        // Matchers.not(stagingDatabase));
+        //
+        // bindInterceptor(objectDatabase, new MethodMatcher(ObjectDatabase.class, "putAll",
+        // Iterator.class), new NamedMeteredInterceptor(platform, configDb,
+        // "ObjectDatabase.putAll"));
+        //
+        // bindInterceptor(stagingDatabase, new MethodMatcher(StagingDatabase.class, "putAll",
+        // Iterator.class), new NamedMeteredInterceptor(platform, configDb,
+        // "StagingDatabase.putAll"));
+        //
+        // bindInterceptor(objectDatabase, new MethodMatcher(ObjectDatabase.class, "close"),
+        // new NamedMeteredInterceptor(platform, configDb, "ObjectDatabase.close"));
+        //
+        // bindInterceptor(stagingDatabase, new MethodMatcher(StagingDatabase.class, "close"),
+        // new NamedMeteredInterceptor(platform, configDb, "StagingDatabase.close"));
 
         // bind JVM metrics to the repository life cycle
         final HeapMemoryMetricsService jvmMetricsService = new HeapMemoryMetricsService(
                 getProvider(Platform.class), getProvider(ConfigDatabase.class));
 
-        bindInterceptor(Matchers.subclassesOf(Repository.class), new MethodMatcher(
-                Repository.class, "open"), new MethodInterceptor() {
-
-            @Override
-            public Object invoke(MethodInvocation invocation) throws Throwable {
-                jvmMetricsService.startAndWait();
-                return invocation.proceed();
-            }
-        });
-
-        bindInterceptor(Matchers.subclassesOf(Repository.class), new MethodMatcher(
-                Repository.class, "close"), new MethodInterceptor() {
-
-            @Override
-            public Object invoke(MethodInvocation invocation) throws Throwable {
-                jvmMetricsService.stop();
-                return invocation.proceed();
-            }
-        });
-    */
+        GeogitModule.bindDecorator(binder(), new RepositoryDecorator(jvmMetricsService));
     }
-    
+
 }

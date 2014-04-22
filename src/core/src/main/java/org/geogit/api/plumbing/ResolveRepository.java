@@ -14,7 +14,7 @@ import org.geogit.repository.Repository;
 public class ResolveRepository extends AbstractGeoGitOp<Repository> {
 
     @Override
-    public Repository call() {
+    protected Repository _call() {
         return repository();
     }
 }

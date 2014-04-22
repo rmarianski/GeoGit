@@ -88,7 +88,7 @@ public class FeatureNodeRefFromRefspec extends AbstractGeoGitOp<Optional<NodeRef
     }
 
     @Override
-    public Optional<NodeRef> call() {
+    protected  Optional<NodeRef> _call() {
 
         Optional<RevFeature> feature = getFeatureFromRefSpec();
 

@@ -24,10 +24,10 @@ import org.geogit.api.AbstractGeoGitOp;
 @ThreadSafe
 public interface CommandHook {
 
-    public Class<? extends AbstractGeoGitOp<?>> targetCommand();
-
     public <C extends AbstractGeoGitOp<?>> C pre(C command)
             throws CannotRunGeogitOperationException;
 
-    public <T> T post(AbstractGeoGitOp<T> command, Object retVal) throws Exception;
+    public <T> T post(AbstractGeoGitOp<T> command, Object retVal, boolean success) throws Exception;
+
+    public boolean appliesTo(Class<? extends AbstractGeoGitOp> clazz);
 }

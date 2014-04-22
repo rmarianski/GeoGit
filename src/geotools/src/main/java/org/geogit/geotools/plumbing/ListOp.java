@@ -30,7 +30,7 @@ public class ListOp extends AbstractGeoGitOp<Optional<List<String>>> {
      * @return a list of all tables, or Optional.absent() if none were found
      */
     @Override
-    public Optional<List<String>> call() {
+    protected  Optional<List<String>> _call() {
         if (dataStore == null) {
             throw new GeoToolsOpException(StatusCode.DATASTORE_NOT_DEFINED);
         }

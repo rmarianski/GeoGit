@@ -136,7 +136,7 @@ public class PullOp extends AbstractGeoGitOp<PullResult> {
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
     @Override
-    public PullResult call() {
+    protected PullResult _call() {
 
         if (remote == null) {
             setRemote("origin");

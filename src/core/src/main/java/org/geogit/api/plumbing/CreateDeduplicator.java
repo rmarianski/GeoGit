@@ -11,7 +11,7 @@ import org.geogit.storage.Deduplicator;
 public class CreateDeduplicator extends AbstractGeoGitOp<Deduplicator> {
 
     @Override
-    public Deduplicator call() {
+    protected  Deduplicator _call() {
         DeduplicationService deduplicationService;
         deduplicationService = injector.deduplicationService();
         return deduplicationService.createDeduplicator();

@@ -105,7 +105,7 @@ public class CheckoutOp extends AbstractGeoGitOp<CheckoutResult> {
      * @return the id of the new work tree
      */
     @Override
-    public CheckoutResult call() {
+    protected  CheckoutResult _call() {
         checkState(branchOrCommit != null || !paths.isEmpty(),
                 "No branch, tree, or path were specified");
         checkArgument(!(ours && theirs), "Cannot use both --ours and --theirs.");

@@ -71,7 +71,7 @@ public class DiffIndex extends AbstractGeoGitOp<Iterator<DiffEntry>> implements
      * @see DiffEntry
      */
     @Override
-    public Iterator<DiffEntry> call() {
+    protected  Iterator<DiffEntry> _call() {
         final String oldVersion = Optional.fromNullable(refSpec).or(Ref.HEAD);
         final Optional<ObjectId> rootTreeId;
         rootTreeId = command(ResolveTreeish.class).setTreeish(oldVersion).call();

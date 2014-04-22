@@ -13,7 +13,7 @@ import com.google.common.base.Optional;
 
 public class ConflictsCheckOp extends AbstractGeoGitOp<Boolean> {
     @Override
-    public Boolean call() {
+    protected  Boolean _call() {
         final Optional<URL> repoUrl = command(ResolveGeogitDir.class).call();
         Boolean hasConflicts = Boolean.FALSE;
 

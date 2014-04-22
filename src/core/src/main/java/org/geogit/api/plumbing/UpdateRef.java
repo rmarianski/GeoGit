@@ -91,7 +91,7 @@ public class UpdateRef extends AbstractGeoGitOp<Optional<Ref>> {
      * @return the new value of the ref
      */
     @Override
-    public Optional<Ref> call() {
+    protected Optional<Ref> _call() {
         Preconditions.checkState(name != null, "name has not been set");
         Preconditions.checkState(delete || newValue != null, "value has not been set");
 

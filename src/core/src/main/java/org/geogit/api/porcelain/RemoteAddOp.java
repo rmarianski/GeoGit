@@ -38,7 +38,7 @@ public class RemoteAddOp extends AbstractGeoGitOp<Remote> {
      * @return the {@link Remote} that was added.
      */
     @Override
-    public Remote call() {
+    protected Remote _call() {
         if (name == null || name.isEmpty()) {
             throw new RemoteException(StatusCode.MISSING_NAME);
         }

@@ -24,7 +24,7 @@ import com.google.common.base.Throwables;
 public class ResolveOSMMappingLogFolder extends AbstractGeoGitOp<File> {
 
     @Override
-    public File call() {
+    protected File _call() {
         final URL geogitDirUrl = command(ResolveGeogitDir.class).call().get();
         File repoDir;
         try {
