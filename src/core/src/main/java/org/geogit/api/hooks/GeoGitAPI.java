@@ -78,7 +78,7 @@ public class GeoGitAPI {
     }
 
     public Feature[] getUnstagedFeatures(String path, boolean noDeletions) {
-        Iterator<DiffEntry> diffs = repository.getWorkingTree().getUnstaged(path);
+        Iterator<DiffEntry> diffs = repository.workingTree().getUnstaged(path);
         List<Feature> list = Lists.newArrayList();
         while (diffs.hasNext()) {
             DiffEntry diff = diffs.next();
