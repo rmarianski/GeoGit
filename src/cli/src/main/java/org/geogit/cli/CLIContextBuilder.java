@@ -59,7 +59,7 @@ public class CLIContextBuilder extends ContextBuilder {
                 .getInstance(org.geogit.api.Context.class);
     }
 
-    private class DefaultPlugins extends AbstractModule {
+    public static class DefaultPlugins extends AbstractModule {
         @Override
         protected void configure() {
             bind(PluginDefaults.class).toInstance(defaults);

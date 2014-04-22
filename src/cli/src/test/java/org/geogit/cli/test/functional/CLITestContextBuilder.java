@@ -7,9 +7,11 @@ package org.geogit.cli.test.functional;
 import org.geogit.api.Context;
 import org.geogit.api.ContextBuilder;
 import org.geogit.api.TestPlatform;
+import org.geogit.cli.CLIContextBuilder;
 import org.geogit.di.GeogitModule;
+import org.geogit.di.PluginsModule;
+import org.geogit.di.caching.CachingModule;
 import org.geogit.repository.Hints;
-import org.geogit.test.integration.je.JETestStorageModule;
 
 import com.google.inject.Guice;
 import com.google.inject.util.Modules;
@@ -24,13 +26,13 @@ public class CLITestContextBuilder extends ContextBuilder {
 
     @Override
     public Context build(Hints hints) {
-        JETestStorageModule jeStorageModule = new JETestStorageModule();
         FunctionalTestModule functionalTestModule = new FunctionalTestModule(platform.clone());
 
-        Context injector = Guice.createInjector(
-                Modules.override(new GeogitModule()).with(jeStorageModule, functionalTestModule,
-                        new HintsModule(hints))).getInstance(org.geogit.api.Context.class);
-        return injector;
+        Context context = Guice.createInjector(
+                Modules.override(new GeogitModule()).with(new PluginsModule(),
+                        new CLIContextBuilder.DefaultPlugins(), functionalTestModule,
+                        new HintsModule(hints), new CachingModule())).getInstance(Context.class);
+        return context;
     }
 
 }
