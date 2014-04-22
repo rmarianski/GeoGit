@@ -58,7 +58,7 @@ public class CLIInjectorBuilder extends InjectorBuilder {
                 new HintsModule(hints)));
     }
 
-    private class DefaultPlugins extends AbstractModule {
+    public static class DefaultPlugins extends AbstractModule {
         @Override
         protected void configure() {
             bind(PluginDefaults.class).toInstance(defaults);
