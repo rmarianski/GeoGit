@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
 import org.geogit.api.RevObject.TYPE;
@@ -65,9 +65,9 @@ public class RefParseTest {
             when(mockRefDb.getRef(eq(name))).thenReturn(allRefs.get(name));
         }
 
-        Injector mockCommandLocator = mock(Injector.class);
+        Context mockCommandLocator = mock(Context.class);
         when(mockCommandLocator.refDatabase()).thenReturn(mockRefDb);
-        command.setInjector(mockCommandLocator);
+        command.setContext(mockCommandLocator);
         ResolveObjectType mockResolveObjectType = mock(ResolveObjectType.class);
         when(mockCommandLocator.command(eq(ResolveObjectType.class))).thenReturn(
                 mockResolveObjectType);

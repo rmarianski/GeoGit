@@ -13,7 +13,7 @@ import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.GeoGIT;
 import org.geogit.api.GeogitTransaction;
 import org.geogit.api.NodeRef;
@@ -227,8 +227,8 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
         return ImmutableList.copyOf(list);
     }
 
-    public Injector getCommandLocator(@Nullable Transaction transaction) {
-        Injector commandLocator = null;
+    public Context getCommandLocator(@Nullable Transaction transaction) {
+        Context commandLocator = null;
 
         if (transaction != null && !Transaction.AUTO_COMMIT.equals(transaction)) {
             GeogitTransactionState state;
@@ -240,7 +240,7 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
         }
 
         if (commandLocator == null) {
-            commandLocator = geogit.getCommandLocator();
+            commandLocator = geogit.getContext();
         }
         return commandLocator;
     }
@@ -297,7 +297,7 @@ public class GeoGitDataStore extends ContentDataStore implements DataStore {
     private List<NodeRef> findTypeRefs(@Nullable Transaction tx) {
 
         final String rootRef = getRootRef(tx);
-        Injector commandLocator = getCommandLocator(tx);
+        Context commandLocator = getCommandLocator(tx);
         List<NodeRef> typeTrees = commandLocator.command(FindFeatureTypeTrees.class)
                 .setRootTreeRef(rootRef).call();
         return typeTrees;

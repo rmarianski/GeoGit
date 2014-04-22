@@ -33,7 +33,7 @@ import com.google.common.base.Preconditions;
  * @see org.geogit.api.plumbing.TransactionBegin
  * @see org.geogit.api.plumbing.TransactionEnd
  */
-public class GeogitTransaction implements Injector {
+public class GeogitTransaction implements Context {
 
     public static final String TRANSACTIONS_NAMESPACE = "transactions";
 
@@ -41,7 +41,7 @@ public class GeogitTransaction implements Injector {
 
     private UUID transactionId;
 
-    private Injector injector;
+    private Context injector;
 
     private final StagingArea transactionIndex;
 
@@ -59,7 +59,7 @@ public class GeogitTransaction implements Injector {
      * @param locator the non transactional command locator
      * @param transactionId the id of the transaction
      */
-    public GeogitTransaction(Injector locator, UUID transactionId) {
+    public GeogitTransaction(Context locator, UUID transactionId) {
         Preconditions.checkArgument(!(locator instanceof GeogitTransaction));
         this.injector = locator;
         this.transactionId = transactionId;
@@ -120,7 +120,7 @@ public class GeogitTransaction implements Injector {
     @Override
     public <T extends AbstractGeoGitOp<?>> T command(Class<T> commandClass) {
         T instance = injector.command(commandClass);
-        instance.setInjector(this);
+        instance.setContext(this);
         return instance;
     }
 

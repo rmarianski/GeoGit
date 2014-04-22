@@ -32,7 +32,7 @@ public abstract class AbstractGeoGitOp<T> {
 
     private List<CommandListener> listeners;
 
-    protected Injector injector;
+    protected Context context;
 
     private Map<Serializable, Serializable> metadata;
 
@@ -73,14 +73,14 @@ public abstract class AbstractGeoGitOp<T> {
      * @return a new instance of the requested command class, with its dependencies resolved
      */
     public <C extends AbstractGeoGitOp<?>> C command(Class<C> commandClass) {
-        return injector.command(commandClass);
+        return context.command(commandClass);
     }
 
     /**
      * @param locator the command locator to use when finding commands
      */
-    public AbstractGeoGitOp<?> setInjector(Injector locator) {
-        this.injector = locator;
+    public AbstractGeoGitOp<?> setContext(Context locator) {
+        this.context = locator;
         return this;
     }
 
@@ -147,49 +147,48 @@ public abstract class AbstractGeoGitOp<T> {
         }
     }
 
-
     /**
-     * Shortcut for {@link Injector#workingTree() getCommandLocator().getWorkingTree()}
+     * Shortcut for {@link Context#workingTree() getCommandLocator().getWorkingTree()}
      */
     protected WorkingTree workingTree() {
-        return injector.workingTree();
+        return context.workingTree();
     }
 
     /**
-     * Shortcut for {@link Injector#index() getCommandLocator().getIndex()}
+     * Shortcut for {@link Context#index() getCommandLocator().getIndex()}
      */
     protected StagingArea index() {
-        return injector.index();
+        return context.index();
     }
 
     /**
-     * Shortcut for {@link Injector#refDatabase() getCommandLocator().getRefDatabase()}
+     * Shortcut for {@link Context#refDatabase() getCommandLocator().getRefDatabase()}
      */
     protected RefDatabase refDatabase() {
-        return injector.refDatabase();
+        return context.refDatabase();
     }
 
     protected Platform platform() {
-        return injector.platform();
+        return context.platform();
     }
 
     protected ObjectDatabase objectDatabase() {
-        return injector.objectDatabase();
+        return context.objectDatabase();
     }
 
     protected StagingDatabase stagingDatabase() {
-        return injector.stagingDatabase();
+        return context.stagingDatabase();
     }
 
     protected ConfigDatabase configDatabase() {
-        return injector.configDatabase();
+        return context.configDatabase();
     }
 
     protected GraphDatabase graphDatabase() {
-        return injector.graphDatabase();
+        return context.graphDatabase();
     }
 
     public Repository repository() {
-        return injector.repository();
+        return context.repository();
     }
 }

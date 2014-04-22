@@ -15,12 +15,12 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 
-import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
 import org.geogit.api.TestPlatform;
 import org.geogit.api.porcelain.AddOp;
 import org.geogit.api.porcelain.CommitOp;
 import org.geogit.cli.GeogitPy4JEntryPoint;
-import org.geogit.cli.test.functional.CLITestInjectorBuilder;
+import org.geogit.cli.test.functional.CLITestContextBuilder;
 import org.geogit.cli.test.functional.GlobalState;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class GeogitPy4JEntryPointTest {
         File homeDirectory = tempFolder.newFolder("fakeHomeDir").getCanonicalFile();
         File currentDirectory = tempFolder.newFolder("testrepo").getCanonicalFile();
         GlobalState.platform = new TestPlatform(currentDirectory, homeDirectory);
-        GlobalInjectorBuilder.builder = new CLITestInjectorBuilder(platform);
+        GlobalContextBuilder.builder = new CLITestContextBuilder(platform);
     }
 
     @Test

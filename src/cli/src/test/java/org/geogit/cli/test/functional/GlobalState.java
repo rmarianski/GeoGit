@@ -25,9 +25,9 @@ import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.GlobalInjectorBuilder;
-import org.geogit.api.Injector;
-import org.geogit.api.InjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
+import org.geogit.api.Context;
+import org.geogit.api.ContextBuilder;
 import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
@@ -104,15 +104,15 @@ public class GlobalState {
         // new TeeOutputStream(stdOut, System.err), new UnsupportedTerminal());
         GlobalState.consoleReader = new ConsoleReader(stdIn, stdOut, new UnsupportedTerminal());
 
-        InjectorBuilder injectorBuilder = new CLITestInjectorBuilder(platform);
-        Injector injector = injectorBuilder.build();
+        ContextBuilder injectorBuilder = new CLITestContextBuilder(platform);
+        Context injector = injectorBuilder.build();
 
         if (geogitCLI != null) {
             geogitCLI.close();
         }
 
         geogitCLI = new GeogitCLI(GlobalState.consoleReader);
-        GlobalInjectorBuilder.builder = injectorBuilder;
+        GlobalContextBuilder.builder = injectorBuilder;
         Platform platform = injector.platform();
         geogitCLI.setPlatform(platform);
     }

@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -37,7 +37,7 @@ class WorkingTreeInsertHelper {
 
     private final ObjectDatabase indexDatabase;
 
-    private final Injector commandLocator;
+    private final Context context;
 
     private final RevTree workHead;
 
@@ -47,11 +47,11 @@ class WorkingTreeInsertHelper {
 
     private final ExecutorService executorService;
 
-    public WorkingTreeInsertHelper(ObjectDatabase db, Injector cmdLocator, RevTree workHead,
+    public WorkingTreeInsertHelper(ObjectDatabase db, Context context, RevTree workHead,
             final Function<Feature, String> treePathResolver, final ExecutorService executorService) {
 
         this.indexDatabase = db;
-        this.commandLocator = cmdLocator;
+        this.context = context;
         this.workHead = workHead;
         this.treePathResolver = treePathResolver;
         this.executorService = executorService;
@@ -94,7 +94,7 @@ class WorkingTreeInsertHelper {
 
     private NodeRef findOrCreateTree(final String treePath, final FeatureType type) {
 
-        RevTree tree = commandLocator.command(FindOrCreateSubtree.class).setChildPath(treePath)
+        RevTree tree = context.command(FindOrCreateSubtree.class).setChildPath(treePath)
                 .setIndex(true).setParent(workHead).setParentPath(NodeRef.ROOT).call();
 
         ObjectId metadataId = ObjectId.NULL;
@@ -179,7 +179,7 @@ class WorkingTreeInsertHelper {
             if (NodeRef.ROOT.equals(parentPath)) {
                 parentMetadataId = ObjectId.NULL;
             } else {
-                Optional<NodeRef> parentRef = commandLocator.command(FindTreeChild.class)
+                Optional<NodeRef> parentRef = context.command(FindTreeChild.class)
                         .setChildPath(parentPath).setIndex(true).setParent(workHead)
                         .setParentPath(NodeRef.ROOT).call();
 

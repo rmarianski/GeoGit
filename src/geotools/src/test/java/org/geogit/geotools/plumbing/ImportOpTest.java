@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevFeature;
@@ -348,11 +348,11 @@ public class ImportOpTest extends RepositoryTestCase {
     @Test
     public void testDeleteException() throws Exception {
         WorkingTree workTree = mock(WorkingTree.class);
-        Injector cmdl = mock(Injector.class);
+        Context cmdl = mock(Context.class);
         when(cmdl.workingTree()).thenReturn(workTree);
         doThrow(new RuntimeException("Exception")).when(workTree).delete(any(String.class));
         ImportOp importOp = new ImportOp();
-        importOp.setInjector(cmdl);
+        importOp.setContext(cmdl);
         importOp.setDataStore(TestHelper.createTestFactory().createDataStore(null));
         importOp.setAll(true);
         exception.expect(GeoToolsOpException.class);

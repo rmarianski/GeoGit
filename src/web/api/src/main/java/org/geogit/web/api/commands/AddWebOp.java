@@ -4,7 +4,7 @@
  */
 package org.geogit.web.api.commands;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.porcelain.AddOp;
 import org.geogit.web.api.AbstractWebAPICommand;
 import org.geogit.web.api.CommandContext;
@@ -44,7 +44,7 @@ public class AddWebOp extends AbstractWebAPICommand {
             throw new CommandSpecException(
                     "No transaction was specified, add requires a transaction to preserve the stability of the repository.");
         }
-        final Injector geogit = this.getCommandLocator(context);
+        final Context geogit = this.getCommandLocator(context);
 
         AddOp command = geogit.command(AddOp.class);
 

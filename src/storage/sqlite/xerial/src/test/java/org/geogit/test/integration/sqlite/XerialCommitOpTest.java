@@ -6,7 +6,7 @@ package org.geogit.test.integration.sqlite;
 
 import static org.geogit.test.integration.sqlite.XerialTests.injector;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.TestPlatform;
 import org.geogit.test.integration.CommitOpTest;
 import org.junit.Rule;
@@ -19,7 +19,7 @@ public class XerialCommitOpTest extends CommitOpTest {
     public TemporaryFolder temp = new TemporaryFolder();
 
     @Override
-    protected Injector createInjector() {
+    protected Context createInjector() {
         return injector(new TestPlatform(temp.getRoot()));
     }
 }

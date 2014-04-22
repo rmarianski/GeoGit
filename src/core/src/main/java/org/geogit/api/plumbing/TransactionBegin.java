@@ -31,10 +31,10 @@ public class TransactionBegin extends AbstractGeoGitOp<GeogitTransaction> {
      */
     @Override
     protected GeogitTransaction _call() {
-        Preconditions.checkState(!(injector instanceof GeogitTransaction),
+        Preconditions.checkState(!(context instanceof GeogitTransaction),
                 "Cannot start a new transaction within a transaction!");
 
-        GeogitTransaction t = new GeogitTransaction(injector, UUID.randomUUID());
+        GeogitTransaction t = new GeogitTransaction(context, UUID.randomUUID());
 
         // Lock the repository
         try {

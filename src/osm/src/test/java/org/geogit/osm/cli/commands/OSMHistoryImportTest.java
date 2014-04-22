@@ -12,7 +12,7 @@ import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
 import org.geogit.api.Platform;
 import org.geogit.api.RevFeature;
 import org.geogit.api.RevFeatureType;
@@ -22,7 +22,7 @@ import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffEntry.ChangeType;
 import org.geogit.api.porcelain.DiffOp;
 import org.geogit.cli.GeogitCLI;
-import org.geogit.cli.test.functional.CLITestInjectorBuilder;
+import org.geogit.cli.test.functional.CLITestContextBuilder;
 import org.geotools.referencing.CRS;
 import org.junit.After;
 import org.junit.Assert;
@@ -57,7 +57,7 @@ public class OSMHistoryImportTest extends Assert {
 
         File workingDirectory = tempFolder.getRoot();
         TestPlatform platform = new TestPlatform(workingDirectory);
-        GlobalInjectorBuilder.builder = new CLITestInjectorBuilder(platform);
+        GlobalContextBuilder.builder = new CLITestContextBuilder(platform);
         cli.setPlatform(platform);
         cli.execute("init");
         assertTrue(new File(workingDirectory, ".geogit").exists());

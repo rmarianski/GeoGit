@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 
 import org.geogit.api.Bounded;
 import org.geogit.api.Bucket;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.FeatureBuilder;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
@@ -146,7 +146,7 @@ class GeogitFeatureReader<T extends FeatureType, F extends Feature> implements F
      * @param filter
      * @param queryBounds
      */
-    public GeogitFeatureReader(final Injector commandLocator, final SimpleFeatureType schema,
+    public GeogitFeatureReader(final Context commandLocator, final SimpleFeatureType schema,
             final Filter origFilter, final String typeTreePath, @Nullable final String headRef,
             @Nullable Integer offset, @Nullable Integer maxFeatures) {
 
@@ -287,7 +287,7 @@ class GeogitFeatureReader<T extends FeatureType, F extends Feature> implements F
 
         private RevTree parentTree;
 
-        public FindFeatureRefFunction(Injector commandLocator, RevTree featureTypeTree) {
+        public FindFeatureRefFunction(Context commandLocator, RevTree featureTypeTree) {
             this.parentTree = featureTypeTree;
             this.command = commandLocator.command(FindTreeChild.class);
         }
@@ -309,7 +309,7 @@ class GeogitFeatureReader<T extends FeatureType, F extends Feature> implements F
 
         private FeatureBuilder featureBuilder;
 
-        public NodeRefToFeature(Injector commandLocator, SimpleFeatureType schema) {
+        public NodeRefToFeature(Context commandLocator, SimpleFeatureType schema) {
             this.featureBuilder = new FeatureBuilder(schema);
             this.parseRevFeatureCommand = commandLocator.command(RevObjectParse.class);
         }

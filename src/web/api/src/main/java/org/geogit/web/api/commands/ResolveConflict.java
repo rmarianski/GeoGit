@@ -6,7 +6,7 @@ package org.geogit.web.api.commands;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -71,7 +71,7 @@ public class ResolveConflict extends AbstractWebAPICommand {
             throw new CommandSpecException(
                     "No transaction was specified, add requires a transaction to preserve the stability of the repository.");
         }
-        final Injector geogit = this.getCommandLocator(context);
+        final Context geogit = this.getCommandLocator(context);
 
         RevTree revTree = geogit.workingTree().getTree();
 

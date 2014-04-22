@@ -6,7 +6,7 @@
 package org.geogit.di;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.Platform;
 import org.geogit.repository.Repository;
 import org.geogit.repository.StagingArea;
@@ -24,15 +24,15 @@ import com.google.inject.Provider;
 /**
  * Provides a method for finding and creating instances of GeoGit operations.
  * 
- * @see Injector
+ * @see Context
  * @see AbstractGeoGitOp
  */
-public class GuiceInjector implements Injector {
+public class GuiceInjector implements Context {
 
     private com.google.inject.Injector guiceInjector;
 
     /**
-     * Constructs a new {@code GuiceCommandLocator} with the given {@link Injector}.
+     * Constructs a new {@code GuiceCommandLocator} with the given {@link Context}.
      * 
      * @param injector the injector which has commands bound to it
      */
@@ -50,7 +50,7 @@ public class GuiceInjector implements Injector {
     @Override
     public <T extends AbstractGeoGitOp<?>> T command(Class<T> commandClass) {
         T command = getInstance(commandClass);
-        command.setInjector(this);
+        command.setContext(this);
         command = getDecoratedInstance(command);
         return command;
     }

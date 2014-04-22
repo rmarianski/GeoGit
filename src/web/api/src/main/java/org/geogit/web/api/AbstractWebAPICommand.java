@@ -6,7 +6,7 @@ package org.geogit.web.api;
 
 import java.util.UUID;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.GeogitTransaction;
 
 /**
@@ -44,11 +44,11 @@ public abstract class AbstractWebAPICommand implements WebAPICommand {
      * @param context - the context to get the information needed to get the commandLocator
      * @return
      */
-    public Injector getCommandLocator(CommandContext context) {
+    public Context getCommandLocator(CommandContext context) {
         if (transactionId != null) {
-            return new GeogitTransaction(context.getGeoGIT().getCommandLocator(), transactionId);
+            return new GeogitTransaction(context.getGeoGIT().getContext(), transactionId);
         }
-        return context.getGeoGIT().getCommandLocator();
+        return context.getGeoGIT().getContext();
     }
 
     public abstract void run(CommandContext context);

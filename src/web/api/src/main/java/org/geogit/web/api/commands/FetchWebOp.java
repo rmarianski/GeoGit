@@ -4,7 +4,7 @@
  */
 package org.geogit.web.api.commands;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.porcelain.FetchOp;
 import org.geogit.api.porcelain.FetchResult;
 import org.geogit.api.porcelain.SynchronizationException;
@@ -63,7 +63,7 @@ public class FetchWebOp extends AbstractWebAPICommand {
      */
     @Override
     public void run(CommandContext context) {
-        final Injector geogit = this.getCommandLocator(context);
+        final Context geogit = this.getCommandLocator(context);
 
         FetchOp command = geogit.command(FetchOp.class);
 

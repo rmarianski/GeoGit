@@ -9,7 +9,7 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
 import org.geogit.api.Ref;
 import org.geogit.api.Remote;
 import org.geogit.api.SymRef;
@@ -121,7 +121,7 @@ public class CloneOp extends AbstractGeoGitOp<Void> {
         if (!depth.isPresent()) {
             // See if we are cloning a shallow clone. If so, a depth must be specified.
             Optional<IRemoteRepo> remoteRepo = RemoteUtils.newRemote(
-                    GlobalInjectorBuilder.builder.build(Hints.readOnly()), remote, repository,
+                    GlobalContextBuilder.builder.build(Hints.readOnly()), remote, repository,
                     repository.deduplicationService());
 
             Preconditions.checkState(remoteRepo.isPresent(), "Failed to connect to the remote.");

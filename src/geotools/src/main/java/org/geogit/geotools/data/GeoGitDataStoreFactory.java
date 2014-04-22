@@ -26,9 +26,9 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.GlobalInjectorBuilder;
-import org.geogit.api.InjectorBuilder;
-import org.geogit.cli.CLIInjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
+import org.geogit.api.ContextBuilder;
+import org.geogit.cli.CLIContextBuilder;
 import org.geogit.repository.Repository;
 import org.geotools.data.DataStoreFactorySpi;
 
@@ -40,9 +40,9 @@ public class GeoGitDataStoreFactory implements DataStoreFactorySpi {
     public static final String DISPLAY_NAME = "GeoGIT";
 
     static {
-        if (GlobalInjectorBuilder.builder == null
-                || GlobalInjectorBuilder.builder.getClass().equals(InjectorBuilder.class)) {
-            GlobalInjectorBuilder.builder = new CLIInjectorBuilder();
+        if (GlobalContextBuilder.builder == null
+                || GlobalContextBuilder.builder.getClass().equals(ContextBuilder.class)) {
+            GlobalContextBuilder.builder = new CLIContextBuilder();
         }
     }
 

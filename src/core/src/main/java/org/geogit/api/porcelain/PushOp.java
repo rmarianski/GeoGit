@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
 import org.geogit.api.Ref;
 import org.geogit.api.Remote;
 import org.geogit.api.SymRef;
@@ -221,8 +221,8 @@ public class PushOp extends AbstractGeoGitOp<Boolean> {
         Hints remoteHints = new Hints();
         remoteHints.set(Hints.REMOTES_READ_ONLY, Boolean.FALSE);
         Repository localRepository = repository();
-        DeduplicationService deduplicationService = injector.deduplicationService();
-        return RemoteUtils.newRemote(GlobalInjectorBuilder.builder.build(remoteHints), remote,
+        DeduplicationService deduplicationService = context.deduplicationService();
+        return RemoteUtils.newRemote(GlobalContextBuilder.builder.build(remoteHints), remote,
                 localRepository, deduplicationService);
     }
 }

@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
@@ -96,7 +96,7 @@ public class PullWebOp extends AbstractWebAPICommand {
      */
     @Override
     public void run(CommandContext context) {
-        final Injector geogit = this.getCommandLocator(context);
+        final Context geogit = this.getCommandLocator(context);
 
         PullOp command = geogit.command(PullOp.class)
                 .setAuthor(authorName.orNull(), authorEmail.orNull()).setRemote(remoteName)

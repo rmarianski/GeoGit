@@ -6,7 +6,7 @@ package org.geogit.storage.integration.mongo;
 
 import java.io.File;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.Platform;
 import org.geogit.api.TestPlatform;
 import org.geogit.di.GeogitModule;
@@ -22,7 +22,7 @@ public class MongoCommitOpTest extends org.geogit.test.integration.CommitOpTest 
     public TemporaryFolder mockWorkingDirTempFolder = new TemporaryFolder();
 
     @Override
-    protected Injector createInjector() {
+    protected Context createInjector() {
         File workingDirectory;
         try {
             workingDirectory = mockWorkingDirTempFolder.getRoot();
@@ -32,7 +32,7 @@ public class MongoCommitOpTest extends org.geogit.test.integration.CommitOpTest 
         Platform testPlatform = new TestPlatform(workingDirectory);
         return Guice.createInjector(
                 Modules.override(new GeogitModule()).with(new MongoTestStorageModule(),
-                        new TestModule(testPlatform))).getInstance(Injector.class);
+                        new TestModule(testPlatform))).getInstance(Context.class);
     }
 
 }

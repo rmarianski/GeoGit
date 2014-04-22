@@ -4,7 +4,7 @@
  */
 package org.geogit.storage.integration.mongo;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.di.GeogitModule;
 
 import com.google.inject.Guice;
@@ -12,9 +12,9 @@ import com.google.inject.util.Modules;
 
 public class MongoLogOpTest extends org.geogit.test.integration.LogOpTest {
     @Override
-    protected Injector createInjector() {
+    protected Context createInjector() {
         return Guice.createInjector(
                 Modules.override(new GeogitModule()).with(new MongoTestStorageModule()))
-                .getInstance(Injector.class);
+                .getInstance(Context.class);
     }
 }

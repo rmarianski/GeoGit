@@ -11,12 +11,12 @@ import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
 import org.geogit.api.RevFeature;
 import org.geogit.api.TestPlatform;
 import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.cli.GeogitCLI;
-import org.geogit.cli.test.functional.CLITestInjectorBuilder;
+import org.geogit.cli.test.functional.CLITestContextBuilder;
 import org.geogit.osm.internal.OSMImportOp;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,7 +41,7 @@ public class OSMApplyDiffTest extends Assert {
 
         File workingDirectory = tempFolder.getRoot();
         TestPlatform platform = new TestPlatform(workingDirectory);
-        GlobalInjectorBuilder.builder = new CLITestInjectorBuilder(platform);
+        GlobalContextBuilder.builder = new CLITestContextBuilder(platform);
         cli.setPlatform(platform);
         cli.execute("init");
         cli.execute("config", "user.name", "Gabriel Roldan");

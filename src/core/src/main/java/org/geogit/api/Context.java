@@ -18,9 +18,10 @@ import org.geogit.storage.RefDatabase;
 import org.geogit.storage.StagingDatabase;
 
 /**
- * Service locator interface for acquiring command instances
+ * A context object for a single repository, provides access to the different repository objects,
+ * and a factory method for commands.
  */
-public interface Injector {
+public interface Context {
 
     /**
      * Finds and returns an instance of a command of the specified class.

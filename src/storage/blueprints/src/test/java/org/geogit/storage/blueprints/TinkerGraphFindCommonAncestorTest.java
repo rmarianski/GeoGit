@@ -4,7 +4,7 @@
  */
 package org.geogit.storage.blueprints;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.di.GeogitModule;
 
 import com.google.inject.Guice;
@@ -13,9 +13,9 @@ import com.google.inject.util.Modules;
 public class TinkerGraphFindCommonAncestorTest extends
         org.geogit.test.integration.FindCommonAncestorTest {
     @Override
-    protected Injector createInjector() {
+    protected Context createInjector() {
         return Guice.createInjector(
                 Modules.override(new GeogitModule()).with(new TinkerGraphTestModule()))
-                .getInstance(Injector.class);
+                .getInstance(Context.class);
     }
 }

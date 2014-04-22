@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.NodeRef;
 import org.geogit.api.Platform;
 import org.geogit.api.ProgressListener;
@@ -99,7 +99,7 @@ public class OSMApplyDiffOp extends AbstractGeoGitOp<Optional<OSMReport>> {
         XmlChangeReader reader = new XmlChangeReader(file, true, resolveCompressionMethod(file));
 
         ProgressListener progressListener = getProgressListener();
-        ConvertAndImportSink sink = new ConvertAndImportSink(target, injector,
+        ConvertAndImportSink sink = new ConvertAndImportSink(target, context,
                 workingTree(), platform(), new SubProgressListener(progressListener, 100));
         reader.setChangeSink(sink);
 
@@ -177,7 +177,7 @@ public class OSMApplyDiffOp extends AbstractGeoGitOp<Optional<OSMReport>> {
 
         private Geometry bbox;
 
-        public ConvertAndImportSink(QueueIterator<Feature> target, Injector cmdLocator,
+        public ConvertAndImportSink(QueueIterator<Feature> target, Context cmdLocator,
                 WorkingTree workTree, Platform platform, ProgressListener progressListener) {
             super();
             this.target = target;

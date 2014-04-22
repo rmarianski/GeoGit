@@ -74,7 +74,7 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
      * Constructs a new {@code InitOp} with the specified parameters.
      * 
      * @param platform where to get the current directory from
-     * @param injector where to get the repository from (with auto-wired dependencies) once ensured
+     * @param context where to get the repository from (with auto-wired dependencies) once ensured
      *        the {@code .geogit} repository directory is found or created.
      */
     @Inject
@@ -203,7 +203,7 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
         Repository repository;
         try {
             if (!repoExisted) {
-                ConfigDatabase configDB = injector.configDatabase();
+                ConfigDatabase configDB = context.configDatabase();
                 try {
                     for (Entry<String, String> pair : effectiveConfigBuilder.entrySet()) {
                         String key = pair.getKey();

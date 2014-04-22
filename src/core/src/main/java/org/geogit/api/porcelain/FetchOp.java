@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
 import org.geogit.api.ObjectId;
 import org.geogit.api.ProgressListener;
 import org.geogit.api.Ref;
@@ -294,7 +294,7 @@ public class FetchOp extends AbstractGeoGitOp<FetchResult> {
      */
     public Optional<IRemoteRepo> getRemoteRepo(Remote remote,
             DeduplicationService deduplicationService) {
-        return RemoteUtils.newRemote(GlobalInjectorBuilder.builder.build(Hints.readOnly()), remote,
+        return RemoteUtils.newRemote(GlobalContextBuilder.builder.build(Hints.readOnly()), remote,
                 repository(), deduplicationService);
     }
 

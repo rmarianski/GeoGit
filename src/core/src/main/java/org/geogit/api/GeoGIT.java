@@ -30,7 +30,7 @@ import com.google.common.base.Throwables;
  */
 public class GeoGIT {
 
-    private Injector injector;
+    private Context context;
 
     private Repository repository;
 
@@ -38,8 +38,7 @@ public class GeoGIT {
      * Constructs a new instance of the GeoGit facade.
      */
     public GeoGIT() {
-        injector = GlobalInjectorBuilder.builder.build();// Guice.createInjector(new
-                                                         // GeogitModule());
+        context = GlobalContextBuilder.builder.build();
     }
 
     /**
@@ -49,16 +48,16 @@ public class GeoGIT {
      */
     public GeoGIT(File workingDir) {
         this();
-        injector.platform().setWorkingDir(workingDir);
+        context.platform().setWorkingDir(workingDir);
     }
 
     /**
      * Constructs a new instance of the GeoGit facade with the given Guice injector
      * 
      * @param injector the injector to use
-     * @see Injector
+     * @see Context
      */
-    public GeoGIT(final Injector injector) {
+    public GeoGIT(final Context injector) {
         this(injector, null);
     }
 
@@ -68,11 +67,11 @@ public class GeoGIT {
      * 
      * @param injector the injector to use
      * @param workingDir the working directory for this instance of GeoGit
-     * @see Injector
+     * @see Context
      */
-    public GeoGIT(final Injector injector, @Nullable final File workingDir) {
+    public GeoGIT(final Context injector, @Nullable final File workingDir) {
         Preconditions.checkNotNull(injector, "injector");
-        this.injector = injector;
+        this.context = injector;
         if (workingDir != null) {
             Platform instance = injector.platform();
             instance.setWorkingDir(workingDir);
@@ -87,7 +86,7 @@ public class GeoGIT {
             repository.close();
             repository = null;
         }
-        injector = null;
+        context = null;
     }
 
     /**
@@ -97,7 +96,7 @@ public class GeoGIT {
      * @return a new instance of the requested command class, with its dependencies resolved
      */
     public <T extends AbstractGeoGitOp<?>> T command(Class<T> commandClass) {
-        return injector.command(commandClass);
+        return context.command(commandClass);
     }
 
     /**
@@ -142,7 +141,7 @@ public class GeoGIT {
         final Optional<URL> repoLocation = command(ResolveGeogitDir.class).call();
         if (repoLocation.isPresent()) {
             try {
-                repository = injector.repository();
+                repository = context.repository();
                 repository.open();
             } catch (Exception e) {
                 throw Throwables.propagate(e);
@@ -155,14 +154,14 @@ public class GeoGIT {
      * @return the platform for this GeoGit facade
      */
     public Platform getPlatform() {
-        return injector.platform();
+        return context.platform();
     }
 
     /**
      * @return
      */
-    public Injector getCommandLocator() {
-        return injector;
+    public Context getContext() {
+        return context;
     }
 
     public DiffObjectCount countUnstaged() {

@@ -11,9 +11,9 @@ import java.util.Map;
 
 import org.geogit.api.DefaultPlatform;
 import org.geogit.api.GeoGIT;
-import org.geogit.api.GlobalInjectorBuilder;
-import org.geogit.api.Injector;
-import org.geogit.api.InjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
+import org.geogit.api.Context;
+import org.geogit.api.ContextBuilder;
 import org.geogit.api.Platform;
 import org.geogit.api.plumbing.ResolveGeogitDir;
 import org.geogit.di.GeogitModule;
@@ -25,7 +25,6 @@ import org.geogit.storage.bdbje.JEStorageModule;
 import org.geogit.storage.blueprints.BlueprintsGraphModule;
 import org.restlet.Application;
 import org.restlet.Component;
-import org.restlet.Context;
 import org.restlet.Router;
 import org.restlet.data.Protocol;
 import org.restlet.data.Request;
@@ -55,7 +54,7 @@ public class Main extends Application {
     }
 
     @Override
-    public void setContext(Context context) {
+    public void setContext(org.restlet.Context context) {
         super.setContext(context);
         assert context != null;
 
@@ -106,7 +105,7 @@ public class Main extends Application {
     static GeoGIT loadGeoGIT(String repo) {
         Platform platform = new DefaultPlatform();
         platform.setWorkingDir(new File(repo));
-        Injector inj = GlobalInjectorBuilder.builder.build();
+        Context inj = GlobalContextBuilder.builder.build();
         GeoGIT geogit = new GeoGIT(inj, platform.pwd());
 
         if (geogit.command(ResolveGeogitDir.class).call().isPresent()) {
@@ -119,7 +118,7 @@ public class Main extends Application {
 
     static void startServer(String repo) throws Exception {
         GeoGIT geogit = loadGeoGIT(repo);
-        Context context = new Context();
+        org.restlet.Context context = new org.restlet.Context();
         Application application = new Main(geogit);
         application.setContext(context);
         Component comp = new Component();
@@ -129,13 +128,13 @@ public class Main extends Application {
     }
 
     static void setup() {
-        GlobalInjectorBuilder.builder = new InjectorBuilder() {
+        GlobalContextBuilder.builder = new ContextBuilder() {
             @Override
-            public Injector build(Hints hints) {
+            public Context build(Hints hints) {
                 return Guice.createInjector(
                         Modules.override(new GeogitModule()).with(new JEStorageModule(),
                                 new BlueprintsGraphModule(), new HintsModule(hints))).getInstance(
-                        Injector.class);
+                        Context.class);
             }
         };
     }

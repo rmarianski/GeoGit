@@ -13,8 +13,8 @@ import java.util.List;
 
 import org.geogit.api.GeoGIT;
 import org.geogit.api.GeogitTransaction;
-import org.geogit.api.GlobalInjectorBuilder;
-import org.geogit.api.Injector;
+import org.geogit.api.GlobalContextBuilder;
+import org.geogit.api.Context;
 import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
@@ -137,7 +137,7 @@ public abstract class RepositoryTestCase extends Assert {
 
     protected File envHome;
 
-    protected Injector injector;
+    protected Context injector;
 
     @Rule
     public TemporaryFolder repositoryTempFolder = new TemporaryFolder();
@@ -200,10 +200,10 @@ public abstract class RepositoryTestCase extends Assert {
         setUpInternal();
     }
 
-    protected Injector createInjector() {
+    protected Context createInjector() {
         Platform testPlatform = createPlatform();
-        GlobalInjectorBuilder.builder = new TestInjectorBuilder(testPlatform);
-        return GlobalInjectorBuilder.builder.build();
+        GlobalContextBuilder.builder = new TestContextBuilder(testPlatform);
+        return GlobalContextBuilder.builder.build();
     }
 
     protected Platform createPlatform() {

@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.api.Ref;
@@ -47,7 +47,7 @@ public class InitOpTest {
 
     private Platform platform;
 
-    private Injector injector;
+    private Context injector;
 
     private PluginDefaults defaults;
 
@@ -71,7 +71,7 @@ public class InitOpTest {
 
     @Before
     public void setUp() throws IOException {
-        injector = mock(Injector.class);
+        injector = mock(Context.class);
 
         mockRefParse = mock(RefParse.class);
         when(mockRefParse.setName(anyString())).thenReturn(mockRefParse);
@@ -98,7 +98,7 @@ public class InitOpTest {
         when(injector.platform()).thenReturn(platform);
         defaults = PluginDefaults.NO_PLUGINS;
         init = new InitOp(defaults);
-        init.setInjector(injector);
+        init.setContext(injector);
 
         mockRepo = mock(Repository.class);
 
@@ -161,11 +161,11 @@ public class InitOpTest {
 
         when(mockRefParse.call()).thenReturn(Optional.of(master));
 
-        Injector injector = mock(Injector.class);
+        Context injector = mock(Context.class);
         when(injector.command(eq(RefParse.class))).thenReturn(mockRefParse);
         when(injector.platform()).thenReturn(platform);
         when(injector.repository()).thenReturn(mockRepo);
-        init.setInjector(injector);
+        init.setContext(injector);
 
         assertTrue(ResolveGeogitDir.lookup(platform.pwd()).isPresent());
         assertNotNull(init.call());

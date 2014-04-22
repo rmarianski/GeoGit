@@ -7,7 +7,7 @@ package org.geogit.repository;
 import java.io.Serializable;
 import java.util.Map;
 
-import org.geogit.api.InjectorBuilder;
+import org.geogit.api.ContextBuilder;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
@@ -17,7 +17,7 @@ import com.google.common.collect.Maps;
  * enable/disable operational modes on databases. In the future may provide other kind of hints to
  * other components.
  * 
- * @see InjectorBuilder#build(Hints)
+ * @see ContextBuilder#build(Hints)
  */
 public class Hints implements Serializable {
 

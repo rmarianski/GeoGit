@@ -11,7 +11,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -63,10 +63,10 @@ import com.google.inject.Inject;
 @Singleton
 public class Index implements StagingArea {
 
-    private Injector injector;
+    private Context injector;
 
     @Inject
-    public Index(final Injector injector) {
+    public Index(final Context injector) {
         Preconditions.checkNotNull(injector);
         this.injector = injector;
     }

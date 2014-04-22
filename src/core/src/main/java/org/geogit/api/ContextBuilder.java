@@ -10,9 +10,9 @@ import org.geogit.repository.Hints;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 
-public class InjectorBuilder {
+public class ContextBuilder {
 
-    public final Injector build() {
+    public final Context build() {
         return build(new Hints());
     }
 
@@ -20,9 +20,9 @@ public class InjectorBuilder {
      * @param hints a set of hints to pass over to the injector to be injected into components that
      *        can make use of it
      */
-    public Injector build(Hints hints) {
+    public Context build(Hints hints) {
         return Guice.createInjector(new GeogitModule(), new HintsModule(hints)).getInstance(
-                org.geogit.api.Injector.class);
+                org.geogit.api.Context.class);
     }
 
     protected static class HintsModule extends AbstractModule {

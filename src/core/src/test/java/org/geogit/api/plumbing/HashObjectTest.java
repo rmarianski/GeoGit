@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.geogit.api.CommitBuilder;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevFeature;
@@ -141,8 +141,8 @@ public class HashObjectTest extends RepositoryTestCase {
 
         hashCommand = new HashObject();
 
-        Injector mockCommandLocator = mock(Injector.class);
-        hashCommand.setInjector(mockCommandLocator);
+        Context mockCommandLocator = mock(Context.class);
+        hashCommand.setContext(mockCommandLocator);
         when(mockCommandLocator.command(eq(DescribeFeatureType.class))).thenReturn(
                 new DescribeFeatureType());
     }

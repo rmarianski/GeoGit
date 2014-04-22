@@ -4,7 +4,7 @@
  */
 package org.geogit.test.performance.je;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.di.GeogitModule;
 import org.geogit.storage.bdbje.JEStorageModule;
 import org.geogit.test.performance.RevTreeBuilderPerformanceTest;
@@ -14,9 +14,9 @@ import com.google.inject.util.Modules;
 
 public class JERevTreeBuilderPerformanceTest extends RevTreeBuilderPerformanceTest {
     @Override
-    protected Injector createInjector() {
+    protected Context createInjector() {
         return Guice.createInjector(
                 Modules.override(new GeogitModule()).with(new JEStorageModule())).getInstance(
-                Injector.class);
+                Context.class);
     }
 }

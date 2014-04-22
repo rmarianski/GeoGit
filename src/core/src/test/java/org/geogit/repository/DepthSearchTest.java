@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.MemoryModule;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
@@ -65,8 +65,8 @@ public class DepthSearchTest {
     public void setUp() throws IOException {
         File envHome = tempFolder.getRoot();
         Platform testPlatform = new TestPlatform(envHome);
-        Injector injector = Guice.createInjector(Modules.override(new GeogitModule()).with(
-                new MemoryModule(testPlatform))).getInstance(Injector.class);
+        Context injector = Guice.createInjector(Modules.override(new GeogitModule()).with(
+                new MemoryModule(testPlatform))).getInstance(Context.class);
 
         fakeGeogit = new GeoGIT(injector);
         Repository fakeRepo = fakeGeogit.getOrCreateRepository();
@@ -85,10 +85,10 @@ public class DepthSearchTest {
     private RevTreeBuilder addTree(RevTreeBuilder root, final String treePath,
             String... singleNodeNames) {
 
-        Injector mockInjector = mock(Injector.class);
+        Context mockInjector = mock(Context.class);
         when(mockInjector.objectDatabase()).thenReturn(odb);
         CreateTree op = new CreateTree().setIndex(false);
-        op.setInjector(mockInjector);
+        op.setContext(mockInjector);
         RevTreeBuilder subTreeBuilder =op.call();
         
         if (singleNodeNames != null) {

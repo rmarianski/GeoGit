@@ -13,7 +13,7 @@ import com.google.inject.AbstractModule;
  * Guice module with tweaks to run functional tests on the target {@link Platform}'s working
  * directory.
  * 
- * @see CLITestInjectorBuilder
+ * @see CLITestContextBuilder
  */
 public class FunctionalTestModule extends AbstractModule {
 

@@ -13,7 +13,7 @@ public class CreateDeduplicator extends AbstractGeoGitOp<Deduplicator> {
     @Override
     protected  Deduplicator _call() {
         DeduplicationService deduplicationService;
-        deduplicationService = injector.deduplicationService();
+        deduplicationService = context.deduplicationService();
         return deduplicationService.createDeduplicator();
     }
 }

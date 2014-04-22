@@ -4,7 +4,7 @@
  */
 package org.geogit.web.api.commands;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
 import org.geogit.api.SymRef;
@@ -77,7 +77,7 @@ public class UpdateRefWeb extends AbstractWebAPICommand {
                     "Nothing specified to update with, must specify either deletion or new value to update to.");
         }
 
-        final Injector geogit = this.getCommandLocator(context);
+        final Context geogit = this.getCommandLocator(context);
         Optional<Ref> ref;
 
         try {

@@ -4,8 +4,8 @@
  */
 package org.geogit.api;
 
-public class GlobalInjectorBuilder {
+public class GlobalContextBuilder {
 
-    public static InjectorBuilder builder = new InjectorBuilder();
+    public static ContextBuilder builder = new ContextBuilder();
 
 }

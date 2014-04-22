@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.geogit.api.CommitBuilder;
 import org.geogit.api.GeoGIT;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
 import org.geogit.api.RevCommit;
@@ -48,7 +48,7 @@ public class LocalMappedRemoteRepo extends AbstractMappedRemoteRepo {
 
     private GeoGIT remoteGeoGit;
 
-    private Injector injector;
+    private Context injector;
 
     private File workingDirectory;
 
@@ -58,7 +58,7 @@ public class LocalMappedRemoteRepo extends AbstractMappedRemoteRepo {
      * @param injector the Guice injector for the new repository
      * @param workingDirectory the directory of the remote repository
      */
-    public LocalMappedRemoteRepo(Injector injector, File workingDirectory,
+    public LocalMappedRemoteRepo(Context injector, File workingDirectory,
             Repository localRepository) {
         super(localRepository);
         this.injector = injector;

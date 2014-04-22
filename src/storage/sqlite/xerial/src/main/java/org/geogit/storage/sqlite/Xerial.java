@@ -10,7 +10,7 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.di.GeogitModule;
 import org.slf4j.Logger;
 import org.sqlite.SQLiteConfig.SynchronousMode;
@@ -71,9 +71,9 @@ public class Xerial {
     /**
      * Creates the injector to enable xerial sqlite storage.
      */
-    public static Injector injector() {
+    public static Context injector() {
         return Guice.createInjector(Modules.override(new GeogitModule()).with(
-                new XerialSQLiteModule())).getInstance(Injector.class);
+                new XerialSQLiteModule())).getInstance(Context.class);
     }
 
     public static SQLiteDataSource newDataSource(File db) {

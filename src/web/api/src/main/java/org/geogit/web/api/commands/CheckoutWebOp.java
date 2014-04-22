@@ -4,7 +4,7 @@
  */
 package org.geogit.web.api.commands;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.Ref;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.RefParse;
@@ -81,7 +81,7 @@ public class CheckoutWebOp extends AbstractWebAPICommand {
                     "No transaction was specified, checkout requires a transaction to preserve the stability of the repository.");
         }
 
-        final Injector geogit = this.getCommandLocator(context);
+        final Context geogit = this.getCommandLocator(context);
         CheckoutOp command = geogit.command(CheckoutOp.class);
         if (branchOrCommit != null) {
             Optional<Ref> head = geogit.command(RefParse.class).setName(Ref.HEAD).call();

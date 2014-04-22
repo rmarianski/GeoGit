@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.geogit.api.AbstractGeoGitOp;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -57,7 +57,7 @@ import com.google.inject.Inject;
  * @see WorkingTree
  */
 @Singleton
-public class Repository implements Injector {
+public class Repository implements Context {
     private static Logger LOGGER = LoggerFactory.getLogger(Repository.class);
 
     public static interface RepositoryListener {
@@ -68,14 +68,14 @@ public class Repository implements Injector {
 
     private List<RepositoryListener> listeners = Lists.newCopyOnWriteArrayList();
 
-    private Injector injector;
+    private Context injector;
 
     private URL repositoryLocation;
 
     public static final String DEPTH_CONFIG_KEY = "core.depth";
 
     @Inject
-    public Repository(Injector injector) {
+    public Repository(Context injector) {
         this.injector = injector;
     }
 

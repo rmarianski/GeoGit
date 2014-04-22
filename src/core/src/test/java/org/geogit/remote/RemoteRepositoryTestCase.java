@@ -18,9 +18,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.GlobalInjectorBuilder;
-import org.geogit.api.Injector;
-import org.geogit.api.InjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
+import org.geogit.api.Context;
+import org.geogit.api.ContextBuilder;
 import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
@@ -39,7 +39,7 @@ import org.geogit.api.porcelain.PushOp;
 import org.geogit.repository.Repository;
 import org.geogit.repository.WorkingTree;
 import org.geogit.storage.DeduplicationService;
-import org.geogit.test.integration.TestInjectorBuilder;
+import org.geogit.test.integration.TestContextBuilder;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.NameImpl;
 import org.geotools.feature.SchemaException;
@@ -121,14 +121,14 @@ public abstract class RemoteRepositoryTestCase {
 
         public File envHome;
 
-        public Injector injector;
+        public Context injector;
 
         public GeogitContainer(final String workingDirectory) throws IOException {
 
             envHome = tempFolder.newFolder(workingDirectory);
 
-            InjectorBuilder injectorBuilder = createInjectorBuilder();
-            GlobalInjectorBuilder.builder = injectorBuilder;
+            ContextBuilder injectorBuilder = createInjectorBuilder();
+            GlobalContextBuilder.builder = injectorBuilder;
             injector = injectorBuilder.build();
 
             geogit = new GeoGIT(injector, envHome);
@@ -148,13 +148,13 @@ public abstract class RemoteRepositoryTestCase {
             injector = null;
         }
 
-        public Injector getInjector() {
+        public Context getInjector() {
             return injector;
         }
 
-        private InjectorBuilder createInjectorBuilder() {
+        private ContextBuilder createInjectorBuilder() {
             Platform testPlatform = new TestPlatform(envHome);
-            return new TestInjectorBuilder(testPlatform);
+            return new TestContextBuilder(testPlatform);
         }
     }
 

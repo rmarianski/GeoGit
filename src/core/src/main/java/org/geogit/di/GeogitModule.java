@@ -5,7 +5,7 @@
 package org.geogit.di;
 
 import org.geogit.api.DefaultPlatform;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.Platform;
 import org.geogit.api.hooks.CommandHooksDecorator;
 import org.geogit.api.hooks.Hookables;
@@ -36,7 +36,7 @@ import com.google.inject.multibindings.Multibinder;
 /**
  * Provides bindings for GeoGit singletons.
  * 
- * @see Injector
+ * @see Context
  * @see Platform
  * @see Repository
  * @see ConfigDatabase
@@ -59,7 +59,7 @@ public class GeogitModule extends AbstractModule {
     @Override
     protected void configure() {
 
-        bind(Injector.class).to(GuiceInjector.class).in(Scopes.SINGLETON);
+        bind(Context.class).to(GuiceInjector.class).in(Scopes.SINGLETON);
 
         Multibinder.newSetBinder(binder(), Decorator.class);
         bind(DecoratorProvider.class).in(Scopes.SINGLETON);

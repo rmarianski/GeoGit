@@ -17,7 +17,7 @@ import java.io.File;
 import java.util.Iterator;
 
 import org.geogit.api.CommitBuilder;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.api.RevCommit;
@@ -89,7 +89,7 @@ public class CachingModuleTest {
 
             @Override
             protected void configure() {
-                bind(Injector.class).to(GuiceInjector.class).in(Scopes.SINGLETON);
+                bind(Context.class).to(GuiceInjector.class).in(Scopes.SINGLETON);
 
                 Multibinder.newSetBinder(binder(), Decorator.class);
                 bind(DecoratorProvider.class).in(Scopes.SINGLETON);
@@ -108,9 +108,9 @@ public class CachingModuleTest {
             }
         };
 
-        Injector injector = Guice
+        Context injector = Guice
                 .createInjector(Modules.override(new CachingModule()).with(module)).getInstance(
-                        org.geogit.api.Injector.class);
+                        org.geogit.api.Context.class);
 
         odb = injector.objectDatabase();
         index = injector.stagingDatabase();

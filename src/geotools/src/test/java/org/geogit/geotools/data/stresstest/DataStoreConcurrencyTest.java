@@ -13,14 +13,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.RevCommit;
 import org.geogit.api.TestPlatform;
 import org.geogit.api.porcelain.ConfigOp;
 import org.geogit.api.porcelain.ConfigOp.ConfigAction;
 import org.geogit.api.porcelain.InitOp;
 import org.geogit.api.porcelain.LogOp;
-import org.geogit.cli.test.functional.CLITestInjectorBuilder;
+import org.geogit.cli.test.functional.CLITestContextBuilder;
 import org.geogit.geotools.data.GeoGitDataStore;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.DefaultTransaction;
@@ -75,7 +75,7 @@ public class DataStoreConcurrencyTest {
         File userHomeDirectory = tmp.newFolder("home");
         TestPlatform platform = new TestPlatform(workingDirectory);
         platform.setUserHome(userHomeDirectory);
-        Injector injector = new CLITestInjectorBuilder(platform).build();
+        Context injector = new CLITestContextBuilder(platform).build();
         GeoGIT geogit = new GeoGIT(injector);
         geogit.command(InitOp.class).call();
         geogit.command(ConfigOp.class).setAction(ConfigAction.CONFIG_SET).setName("user.name")

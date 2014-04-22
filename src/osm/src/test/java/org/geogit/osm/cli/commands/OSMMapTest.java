@@ -13,7 +13,7 @@ import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.GlobalInjectorBuilder;
+import org.geogit.api.GlobalContextBuilder;
 import org.geogit.api.NodeRef;
 import org.geogit.api.RevFeature;
 import org.geogit.api.RevFeatureType;
@@ -23,7 +23,7 @@ import org.geogit.api.plumbing.LsTreeOp;
 import org.geogit.api.plumbing.ResolveFeatureType;
 import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.cli.GeogitCLI;
-import org.geogit.cli.test.functional.CLITestInjectorBuilder;
+import org.geogit.cli.test.functional.CLITestContextBuilder;
 import org.geogit.osm.internal.OSMImportOp;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,7 +50,7 @@ public class OSMMapTest extends Assert {
         cli = new GeogitCLI(consoleReader);
         File workingDirectory = tempFolder.getRoot();
         TestPlatform platform = new TestPlatform(workingDirectory);
-        GlobalInjectorBuilder.builder = new CLITestInjectorBuilder(platform);
+        GlobalContextBuilder.builder = new CLITestContextBuilder(platform);
 
         cli.setPlatform(platform);
         cli.execute("init");

@@ -9,7 +9,7 @@ import java.io.File;
 import java.util.Iterator;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.MemoryModule;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
@@ -47,8 +47,8 @@ public class DiffTreeTest extends Assert {
 
         File workingDirectory = tempFolder.newFolder("mockWorkingDir");
         Platform testPlatform = new TestPlatform(workingDirectory);
-        Injector injector = Guice.createInjector(Modules.override(new GeogitModule()).with(
-                new MemoryModule(testPlatform))).getInstance(org.geogit.api.Injector.class);
+        Context injector = Guice.createInjector(Modules.override(new GeogitModule()).with(
+                new MemoryModule(testPlatform))).getInstance(org.geogit.api.Context.class);
 
         fakeGeogit = new GeoGIT(injector);
         assertNotNull(fakeGeogit.getOrCreateRepository());

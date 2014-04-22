@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.GeoGIT;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -215,7 +215,7 @@ public class Log extends AbstractWebAPICommand {
      */
     @Override
     public void run(final CommandContext context) {
-        final Injector geogit = this.getCommandLocator(context);
+        final Context geogit = this.getCommandLocator(context);
 
         LogOp op = geogit.command(LogOp.class).setFirstParentOnly(firstParentOnly);
 

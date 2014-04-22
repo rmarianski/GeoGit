@@ -4,7 +4,7 @@
  */
 package org.geogit.web.api.commands;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.GeogitTransaction;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
@@ -54,7 +54,7 @@ public class EndTransaction extends AbstractWebAPICommand {
             throw new CommandSpecException("There isn't a transaction to end.");
         }
 
-        final Injector transaction = this.getCommandLocator(context);
+        final Context transaction = this.getCommandLocator(context);
 
         TransactionEnd endTransaction = context.getGeoGIT().command(TransactionEnd.class);
         try {

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.geogit.api.GeoGIT;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.plumbing.ResolveGeogitDir;
 import org.geogit.api.porcelain.InitOp;
 import org.geogit.cli.AbstractCommand;
@@ -77,7 +77,7 @@ public class Init extends AbstractCommand implements CLICommand {
         {
             GeoGIT geogit = cli.getGeogit();
             if (geogit == null) {
-                Injector geogitInjector = cli.getGeogitInjector();
+                Context geogitInjector = cli.getGeogitInjector();
                 geogit = new GeoGIT(geogitInjector);
             }
             repoExisted = determineIfRepoExists(targetDirectory, geogit);

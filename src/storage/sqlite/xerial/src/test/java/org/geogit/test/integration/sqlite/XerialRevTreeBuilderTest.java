@@ -6,7 +6,7 @@ package org.geogit.test.integration.sqlite;
 
 import static org.geogit.test.integration.sqlite.XerialTests.injector;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.TestPlatform;
 import org.geogit.test.integration.RevTreeBuilderTest;
 import org.junit.Rule;
@@ -18,7 +18,7 @@ public class XerialRevTreeBuilderTest extends RevTreeBuilderTest {
     public TemporaryFolder temp = new TemporaryFolder();
 
     @Override
-    protected Injector createInjector() {
+    protected Context createInjector() {
         return injector(new TestPlatform(temp.getRoot()));
     }
 }

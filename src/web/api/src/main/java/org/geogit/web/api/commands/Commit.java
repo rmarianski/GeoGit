@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.plumbing.diff.DiffEntry;
@@ -82,7 +82,7 @@ public class Commit extends AbstractWebAPICommand {
             throw new CommandSpecException(
                     "No transaction was specified, commit requires a transaction to preserve the stability of the repository.");
         }
-        final Injector geogit = this.getCommandLocator(context);
+        final Context geogit = this.getCommandLocator(context);
         RevCommit commit;
         try {
             commit = geogit.command(CommitOp.class)

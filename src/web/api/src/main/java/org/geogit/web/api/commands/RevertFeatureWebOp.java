@@ -9,7 +9,7 @@ import static com.google.common.base.Preconditions.checkState;
 import javax.annotation.Nullable;
 
 import org.geogit.api.CommitBuilder;
-import org.geogit.api.Injector;
+import org.geogit.api.Context;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
@@ -128,7 +128,7 @@ public class RevertFeatureWebOp extends AbstractWebAPICommand {
             throw new CommandSpecException(
                     "No transaction was specified, revert feature requires a transaction to preserve the stability of the repository.");
         }
-        final Injector geogit = this.getCommandLocator(context);
+        final Context geogit = this.getCommandLocator(context);
 
         Optional<RevTree> newTree = Optional.absent();
         Optional<RevTree> oldTree = Optional.absent();
