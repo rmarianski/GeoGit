@@ -122,10 +122,11 @@ public class Hookables {
      */
     @Nullable
     private static File findHooksDirectory(AbstractGeoGitOp<?> operation) {
-        if (operation.repository() == null || operation.repository().getLocation() == null) {
+        if (operation.context().repository() == null
+                || operation.context().repository().getLocation() == null) {
             return null;
         }
-        URL url = operation.repository().getLocation();
+        URL url = operation.context().repository().getLocation();
         if (!"file".equals(url.getProtocol())) {
             // Hooks not in a filesystem are not supported
             return null;

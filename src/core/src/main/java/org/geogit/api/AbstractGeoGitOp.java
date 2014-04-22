@@ -84,6 +84,10 @@ public abstract class AbstractGeoGitOp<T> {
         return this;
     }
 
+    public Context context() {
+        return this.context;
+    }
+
     /**
      * @param listener the progress listener to use
      * @return {@code this}
@@ -188,7 +192,7 @@ public abstract class AbstractGeoGitOp<T> {
         return context.graphDatabase();
     }
 
-    public Repository repository() {
+    protected Repository repository() {
         return context.repository();
     }
 }

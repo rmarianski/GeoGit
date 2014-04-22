@@ -30,10 +30,10 @@ public class MeteredCommandHook implements CommandHook {
     public <C extends AbstractGeoGitOp<?>> C pre(C command)
             throws CannotRunGeogitOperationException {
         Boolean enabled;
-        if (command.repository() == null) {
+        if (command.context().repository() == null) {
             return command;
         }
-        ConfigDatabase configDb = command.repository().configDatabase();
+        ConfigDatabase configDb = command.context().configDatabase();
         try {
             enabled = configDb.get(METRICS_ENABLED, Boolean.class).or(Boolean.FALSE);
         } catch (ConfigException e) {
@@ -47,7 +47,7 @@ public class MeteredCommandHook implements CommandHook {
             return command;
         }
 
-        final Platform platform = command.repository().platform();
+        final Platform platform = command.context().platform();
         final long startTime = platform.currentTimeMillis();
         final long nanoTime = platform.nanoTime();
         final String name = command.getClass().getSimpleName();
@@ -60,11 +60,11 @@ public class MeteredCommandHook implements CommandHook {
     public <T> T post(AbstractGeoGitOp<T> command, Object retVal, boolean success) throws Exception {
 
         CallStack stack = (CallStack) command.getClientData().get("metrics.callStack");
-        if (stack == null || command.repository() == null) {
+        if (stack == null || command.context().repository() == null) {
             return (T) retVal;
         }
 
-        final Platform platform = command.repository().platform();
+        final Platform platform = command.context().platform();
         long endTime = platform.nanoTime();
         stack = CallStack.pop(endTime, success);
         long ellapsed = stack.getEllapsedNanos();
