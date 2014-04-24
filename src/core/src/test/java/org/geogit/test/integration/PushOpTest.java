@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -23,6 +24,7 @@ import org.geogit.api.porcelain.CloneOp;
 import org.geogit.api.porcelain.CommitOp;
 import org.geogit.api.porcelain.LogOp;
 import org.geogit.api.porcelain.PushOp;
+import org.geogit.api.porcelain.SynchronizationException;
 import org.geogit.remote.RemoteRepositoryTestCase;
 import org.junit.Rule;
 import org.junit.Test;
@@ -162,6 +164,22 @@ public class PushOpTest extends RemoteRepositoryTestCase {
         }
 
         assertEquals(expectedMaster, logged);
+    }
+
+    @Test
+    public void testPushToRemoteHEAD() throws Exception {
+        insertAndAdd(localGeogit.geogit, lines3);
+        localGeogit.geogit.command(CommitOp.class).call();
+
+        PushOp push = push();
+        try {
+            push.setRemote("origin").addRefSpec("HEAD").call();
+            fail();
+        } catch (SynchronizationException e) {
+            assertEquals(SynchronizationException.StatusCode.CANNOT_PUSH_TO_SYMBOLIC_REF,
+                    e.statusCode);
+        }
+
     }
 
     @Test
@@ -310,7 +328,8 @@ public class PushOpTest extends RemoteRepositoryTestCase {
         push.call();
 
         // verify that the remote got the commit
-        Optional<Ref> remoteRef = remoteGeogit.geogit.command(RefParse.class).setName("Branch1").call();
+        Optional<Ref> remoteRef = remoteGeogit.geogit.command(RefParse.class).setName("Branch1")
+                .call();
         assertTrue(remoteRef.isPresent());
         assertTrue(remoteRef.get().getName().startsWith(Ref.HEADS_PREFIX));
         remoteGeogit.geogit.command(CheckoutOp.class).setSource("Branch1").call();

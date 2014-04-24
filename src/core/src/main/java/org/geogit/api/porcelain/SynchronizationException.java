@@ -14,7 +14,7 @@ public class SynchronizationException extends RuntimeException {
      * Possible status codes for Push exceptions.
      */
     public enum StatusCode {
-        NOTHING_TO_PUSH, REMOTE_HAS_CHANGES, HISTORY_TOO_SHALLOW
+        NOTHING_TO_PUSH, REMOTE_HAS_CHANGES, HISTORY_TOO_SHALLOW, CANNOT_PUSH_TO_SYMBOLIC_REF
     }
 
     public StatusCode statusCode;

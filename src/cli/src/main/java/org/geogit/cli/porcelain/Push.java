@@ -74,6 +74,9 @@ public class Push extends AbstractCommand implements CLICommand {
             case HISTORY_TOO_SHALLOW:
                 throw new CommandFailedException(
                         "Push failed: There is not enough local history to complete the push.", e);
+            case CANNOT_PUSH_TO_SYMBOLIC_REF:
+                throw new CommandFailedException(
+                        "Push failed: Cannot push to a symbolic reference", e);
             default:
                 break;
             }

@@ -19,3 +19,15 @@ Feature: "push" command
       And I run the command "commit -m Commit6"
       And I run the command "push"
      Then it should answer ""
+     
+  Scenario: Try to push a symbolic reference
+    Given I am in an empty directory
+      And there is a remote repository
+     When I run the command "clone remoterepo localrepo"
+     Then the response should contain "Cloning into 'localrepo'..."
+      And the response should contain "Done."
+      And if I change to the respository subdirectory "localrepo"
+     When I modify and add a feature
+      And I run the command "commit -m Commit6"
+      And I run the command "push origin HEAD"
+     Then it should answer "Push failed: Cannot push to a symbolic reference"     
