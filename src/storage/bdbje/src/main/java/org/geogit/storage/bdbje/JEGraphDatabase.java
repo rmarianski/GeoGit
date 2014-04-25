@@ -131,6 +131,7 @@ public class JEGraphDatabase implements GraphDatabase {
             dbConfig.setCacheMode(CacheMode.MAKE_COLD);
             dbConfig.setKeyPrefixing(false);// can result in a slightly smaller db size
 
+            dbConfig.setReadOnly(readOnly);
             boolean transactional = environment.getConfig().getTransactional();
             dbConfig.setTransactional(transactional);
             dbConfig.setDeferredWrite(!transactional);
@@ -152,7 +153,6 @@ public class JEGraphDatabase implements GraphDatabase {
      */
     private synchronized Environment createEnvironment(boolean readOnly)
             throws com.sleepycat.je.EnvironmentLockedException {
-
         Environment env = envProvider.setRelativePath(this.envName).setReadOnly(readOnly).get();
 
         return env;
