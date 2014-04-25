@@ -16,6 +16,7 @@ import java.util.Queue;
 import javax.annotation.Nullable;
 
 import org.geogit.api.ObjectId;
+import org.geogit.repository.Hints;
 import org.geogit.repository.RepositoryConnectionException;
 import org.geogit.storage.ConfigDatabase;
 import org.geogit.storage.GraphDatabase;
@@ -68,11 +69,15 @@ public class JEGraphDatabase implements GraphDatabase {
 
     private final String databaseName = "GraphDatabase";
 
+    private final boolean readOnly;
+
     @Inject
-    public JEGraphDatabase(final ConfigDatabase config, final EnvironmentBuilder envProvider) {
+    public JEGraphDatabase(final ConfigDatabase config, final EnvironmentBuilder envProvider,
+            final Hints hints) {
         this.configDb = config;
         this.envProvider = envProvider;
         this.envName = JEGraphDatabase.ENVIRONMENT_NAME;
+        this.readOnly = hints.getBoolean(Hints.OBJECTS_READ_ONLY);
     }
 
     @Override
@@ -92,20 +97,30 @@ public class JEGraphDatabase implements GraphDatabase {
 
         Environment environment;
         try {
-            environment = createEnvironment();
+            environment = createEnvironment(readOnly);
         } catch (EnvironmentLockedException e) {
             throw new IllegalStateException(
                     "The repository is already open by another process for writing", e);
         }
 
         if (!environment.getDatabaseNames().contains(databaseName)) {
+            if (readOnly) {
+                environment.close();
+                try {
+                    environment = createEnvironment(false);
+                } catch (EnvironmentLockedException e) {
+                    throw new IllegalStateException(String.format(
+                            "Environment open readonly but database %s does not exist.",
+                            databaseName));
+                }
+            }
             DatabaseConfig dbConfig = new DatabaseConfig();
             dbConfig.setAllowCreate(true);
             Database openDatabase = environment.openDatabase(null, databaseName, dbConfig);
             openDatabase.close();
             environment.flushLog(true);
             environment.close();
-            environment = createEnvironment();
+            environment = createEnvironment(readOnly);
         }
 
         Database database;
@@ -135,10 +150,10 @@ public class JEGraphDatabase implements GraphDatabase {
     /**
      * @return creates and returns the environment
      */
-    private synchronized Environment createEnvironment()
+    private synchronized Environment createEnvironment(boolean readOnly)
             throws com.sleepycat.je.EnvironmentLockedException {
 
-        Environment env = envProvider.setRelativePath(this.envName).get();
+        Environment env = envProvider.setRelativePath(this.envName).setReadOnly(readOnly).get();
 
         return env;
     }
@@ -173,8 +188,10 @@ public class JEGraphDatabase implements GraphDatabase {
                 graphDb = null;
             }
             LOGGER.trace("GraphDatabase closed. Closing environment...");
-            env.sync();
-            env.cleanLog();
+            if (!readOnly) {
+                env.sync();
+                env.cleanLog();
+            }
         } finally {
             env.close();
             env = null;
