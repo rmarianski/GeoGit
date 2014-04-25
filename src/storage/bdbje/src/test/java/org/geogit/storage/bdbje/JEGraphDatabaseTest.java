@@ -7,6 +7,7 @@ package org.geogit.storage.bdbje;
 import java.io.File;
 
 import org.geogit.api.Platform;
+import org.geogit.repository.Hints;
 import org.geogit.storage.ConfigDatabase;
 import org.geogit.storage.GraphDatabase;
 import org.geogit.storage.GraphDatabaseTest;
@@ -27,6 +28,6 @@ public class JEGraphDatabaseTest extends GraphDatabaseTest {
         envProvider = new EnvironmentBuilder(platform);
 
         ConfigDatabase configDB = new IniFileConfigDatabase(platform);
-        return new JEGraphDatabase(configDB, envProvider);
+        return new JEGraphDatabase(configDB, envProvider, new Hints());
     }
 }

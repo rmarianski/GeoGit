@@ -7,6 +7,7 @@ package org.geogit.storage.bdbje;
 import java.io.File;
 
 import org.geogit.api.TestPlatform;
+import org.geogit.repository.Hints;
 import org.geogit.storage.ConfigDatabase;
 import org.geogit.storage.GraphDatabase;
 import org.geogit.storage.GraphDatabaseStressTest;
@@ -26,7 +27,7 @@ public class JEGraphDatabaseStressTest extends GraphDatabaseStressTest {
         envProvider = new EnvironmentBuilder(platform);
 
         ConfigDatabase configDB = new IniFileConfigDatabase(platform);
-        return new JEGraphDatabase(configDB, envProvider);
+        return new JEGraphDatabase(configDB, envProvider, new Hints());
     }
 
 }
