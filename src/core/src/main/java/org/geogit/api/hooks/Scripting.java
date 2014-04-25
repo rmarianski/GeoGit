@@ -76,16 +76,15 @@ public class Scripting {
         } catch (ScriptException e) {
             Throwable cause = Throwables.getRootCause(e);
             // TODO: improve this hack to check exception type
-            if (cause.toString().contains(CannotRunGeogitOperationException.class.getSimpleName())) {
+            if (cause instanceof CannotRunGeogitOperationException) {
                 String msg = cause.getMessage();
                 msg = msg.substring(CannotRunGeogitOperationException.class.getName().length() + 2,
                         msg.lastIndexOf("(")).trim();
                 msg += " (command aborted by .geogit/hooks/" + scriptFile.getName() + ")";
                 throw new CannotRunGeogitOperationException(msg);
             } else {
-                // we ignore all exceptions caused by malformed scripts. We consider them as if
-                // there was no script for this hook
-                return;
+                throw new CannotRunGeogitOperationException(String.format(
+                        "Script %s threw an exception: '%s'", scriptFile, e.getMessage()), e);
             }
         } catch (Exception e) {
         }

@@ -8,6 +8,10 @@ public class CannotRunGeogitOperationException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
+    public CannotRunGeogitOperationException() {
+        // default constructor, needed by jdk6
+    }
+
     /**
      * Constructs a new {@code CannotRunGeogitOperationException} with the given message.
      * 
@@ -15,6 +19,10 @@ public class CannotRunGeogitOperationException extends RuntimeException {
      */
     public CannotRunGeogitOperationException(String msg) {
         super(msg);
+    }
+
+    public CannotRunGeogitOperationException(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

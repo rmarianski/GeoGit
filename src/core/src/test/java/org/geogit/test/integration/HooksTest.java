@@ -63,8 +63,17 @@ public class HooksTest extends RepositoryTestCase {
             geogit.command(CommitOp.class).setMessage("A short message").call();
             fail();
         } catch (Exception e) {
-            assertTrue(e.getMessage(),
-                    e.getMessage().startsWith("Commit messages must have at least 30 characters"));
+            String javaVersion = System.getProperty("java.version");
+            // Rhino in jdk6 throws a different exception
+            if (javaVersion.startsWith("1.6")) {
+                String expected = "Script " + commitPreHookFile + " threw an exception";
+                assertTrue(e.getMessage(), e.getMessage().contains(expected));
+            } else {
+                assertTrue(
+                        e.getMessage(),
+                        e.getMessage().startsWith(
+                                "Commit messages must have at least 30 characters"));
+            }
         }
 
         String longMessage = "THIS IS A LONG UPPERCASE COMMIT MESSAGE";
