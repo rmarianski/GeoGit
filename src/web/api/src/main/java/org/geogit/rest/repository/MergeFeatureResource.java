@@ -440,7 +440,7 @@ public class MergeFeatureResource extends Resource {
         case TIME:
             return java.sql.Time.valueOf(value);
         case TIMESTAMP:
-            return java.sql.Timestamp.valueOf(value);
+            return new java.sql.Timestamp(new SimpleDateFormat().parse(value).getTime());
         case POINT:
             geom = new WKTReader2().read(value);
             if (geom instanceof Point) {
