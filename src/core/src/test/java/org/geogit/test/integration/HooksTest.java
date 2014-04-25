@@ -39,8 +39,12 @@ public class HooksTest extends RepositoryTestCase {
         Files.write(wrongHookCode, commitPreHookFile, Charsets.UTF_8);
 
         insertAndAdd(points1);
-        geogit.command(CommitOp.class).setMessage("A message").call();
-
+        try {
+            geogit.command(CommitOp.class).setMessage("A message").call();
+            fail();
+        } catch (Exception e) {
+            assertTrue(true);
+        }
     }
 
     @Test

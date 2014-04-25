@@ -76,7 +76,7 @@ public class Scripting {
         } catch (ScriptException e) {
             Throwable cause = Throwables.getRootCause(e);
             // TODO: improve this hack to check exception type
-            if (cause instanceof CannotRunGeogitOperationException) {
+            if (cause != e) {
                 String msg = cause.getMessage();
                 msg = msg.substring(CannotRunGeogitOperationException.class.getName().length() + 2,
                         msg.lastIndexOf("(")).trim();
