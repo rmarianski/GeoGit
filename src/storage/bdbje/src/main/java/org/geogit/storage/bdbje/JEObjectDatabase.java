@@ -77,7 +77,7 @@ public class JEObjectDatabase extends AbstractObjectDatabase implements ObjectDa
 
     /** Name of the BDB JE Environment inside the .geogit folder used for the objects database */
     static final String ENVIRONMENT_NAME = "objects";
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JEObjectDatabase.class);
 
     private static final int SYNC_BYTES_LIMIT = 512 * 1024 * 1024;
@@ -97,6 +97,8 @@ public class JEObjectDatabase extends AbstractObjectDatabase implements ObjectDa
     private static final Integer DEFAULT_BULK_PARTITIONING = 10 * 1000;
 
     private static final String BULK_PARTITIONING_CONFIG_KEY = "bdbje.bulkpartition";
+
+    private static final String OBJECT_DURABILITY_CONFIG_KEY = "bdbje.object_durability";
 
     private EnvironmentBuilder envProvider;
 
@@ -847,7 +849,10 @@ public class JEObjectDatabase extends AbstractObjectDatabase implements ObjectDa
         if (transactional) {
             TransactionConfig txConfig = new TransactionConfig();
             txConfig.setReadUncommitted(true);
-            Optional<String> durability = configDB.get("bdbje.object_durability");
+            Optional<String> durability = configDB.get(OBJECT_DURABILITY_CONFIG_KEY);
+            if (!durability.isPresent()) {
+                durability = configDB.getGlobal(OBJECT_DURABILITY_CONFIG_KEY);
+            }
             if ("safe".equals(durability.orNull())) {
                 txConfig.setDurability(Durability.COMMIT_SYNC);
             } else {
