@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,7 +70,8 @@ public class Scripting {
             Map<String, Object> params = getParamMap(operation);
             engine.put(PARAMS, params);
             Repository repo = operation.command(ResolveRepository.class).call();
-            engine.put(GEOGIT, new GeoGitAPI(repo));
+            GeoGitAPI api = new GeoGitAPI(repo);
+            engine.put(GEOGIT, api);
             engine.eval(new FileReader(scriptFile));
             Object map = engine.get(PARAMS);
             setParamMap((Map<String, Object>) map, operation);
@@ -190,6 +192,11 @@ public class Scripting {
             Field[] fields = operation.getClass().getDeclaredFields();
             Set<String> keys = map.keySet();
             for (Field field : fields) {
+                final int modifiers = field.getModifiers();
+                if (field.isSynthetic() || Modifier.isStatic(modifiers)
+                        || Modifier.isFinal(modifiers)) {
+                    continue;
+                }
                 if (keys.contains(field.getName())) {
                     field.setAccessible(true);
                     field.set(operation, map.get(field.getName()));
