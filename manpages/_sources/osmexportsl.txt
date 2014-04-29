@@ -25,19 +25,10 @@ OPTIONS
 
 --mapping <mapping_file> 	The file that contains the mapping file to use. The mapping must contain a single rule. Additional rules will be ignored. The rule defines the name of the output table.
 
--o, --overwrite 			Overwrite the output table if it already exists.
+--database      			The database to connect to.  Default: database
 
---host          			Machine name or IP address to connect to. Default: localhost
+--user          			User name.  Default: user
 
---port          			Port number to connect to.  Default: 5432
-
---schema        			The database schema to access.  Default: public
-
---database      			The databse to connect to.  Default: database
-
---user          			User name.  Default: postgres
-
---password      			Password.  Default: <no password>
 
 SEE ALSO
 ********
@@ -45,8 +36,6 @@ SEE ALSO
 :ref:`geogit-osm-export-pg`
 
 :ref:`geogit-osm-export-shp`
-
-:ref:`geogit-osm-export-sl`
 
 
 BUGS

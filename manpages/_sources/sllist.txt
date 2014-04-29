@@ -14,12 +14,12 @@ geogit sl list [options]
 DESCRIPTION
 ***********
 
-This command simply lists of the tables available in the specified SpatiaLite database.
+This command simply lists the tables available in the specified SpatiaLite database.
 
 OPTIONS
 *******    
 
---database      The databse to connect to.  Default: database
+--database      The database to connect to.  Default: database
 
 --user          User name.  Default: user
 

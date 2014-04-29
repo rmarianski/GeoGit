@@ -2,7 +2,7 @@
 .. _geogit-geojson-import:
 
 geogit-geojson-import documentation
-################################
+###################################
 
 
 
@@ -22,7 +22,7 @@ OPTIONS
 
 --path <path>                   The path to import to. If not specified, it uses the filename of the GeoJSON file.
 
---fid-attrib <attrib_name>      Uses the specified attribute as the feature id of each feature to import. If not used, a nummber indicating the position in the GeoJSON file is used
+--fid-attrib <attrib_name>      Uses the specified attribute as the feature id of each feature to import. If not used, a number indicating the position in the GeoJSON file is used
 
 --add                           Adds the imported feature to the corresponding tree without removing previous features in case the tree already exists
 
@@ -30,7 +30,7 @@ OPTIONS
 
 --geom-name	<name>				Instead of using the default name for the geometry field ('geometry'), it will use the passed name.
 
---geom-name-auto				Uses the name of the geomettry attribute in the destination tree, if it already exist, to name the geometry field of the data being imported. If the destination tree does not exist, or if the data contained in the tree has no geometry, it uses the default name ('geometry'). It cannot be used with --geom-name
+--geom-name-auto				Uses the name of the geometry attribute in the destination tree, if it already exist, to name the geometry field of the data being imported. If the destination tree does not exist, or if the data contained in the tree has no geometry, it uses the default name ('geometry'). It cannot be used with --geom-name
 
 BUGS
 ****

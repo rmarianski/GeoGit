@@ -33,7 +33,7 @@ OPTIONS
 
 --schema        The database schema to access.  Default: public
 
---database      The databse to connect to.  Default: database
+--database      The database to connect to.  Default: database
 
 --user          User name.  Default: postgres
 

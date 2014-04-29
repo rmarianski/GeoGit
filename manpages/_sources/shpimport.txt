@@ -16,7 +16,7 @@ OPTIONS
 
 --path <path>					The path to import to. If not specified, it uses the filename of the shapefile
 
---fid-attrib <attrib_name>		Uses the specified attribute as the feature id of each feature to import. If not used, a nummber indicating the position in the shapefile is used
+--fid-attrib <attrib_name>		Uses the specified attribute as the feature id of each feature to import. If not used, a number indicating the position in the shapefile is used
 
 --add							Adds the imported feature to the corresponding tree without removing previous features in case the tree already exists
 

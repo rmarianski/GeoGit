@@ -2,7 +2,7 @@
 .. _geogit-sl-describe:
 
 geogit-sl-describe documentation
-#################################
+################################
 
 
 
@@ -21,7 +21,7 @@ OPTIONS
 
 -t, --table     The table to describe.
 
---database      The databse to connect to.  Default: database
+--database      The database to connect to.  Default: database
 
 --user          User name.  Default: user
 

@@ -1,7 +1,7 @@
 .. geogit:
 
-NAME
-####
+geogit
+######
 
 
 SYNOPSIS

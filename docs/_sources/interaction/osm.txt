@@ -300,6 +300,7 @@ Usually, ``my_tag`` and ``my_field`` will be identical, so the name of the tag i
 
 Valid types for the ``FIELD_TYPE`` are
 
+* ``BOOLEAN``
 * ``INTEGER``
 * ``FLOAT``
 * ``DOUBLE``

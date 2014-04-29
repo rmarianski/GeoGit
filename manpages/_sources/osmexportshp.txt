@@ -21,7 +21,7 @@ OPTIONS
 
 --mapping <mapping_file> 	The file that contains the mapping file to use. The mapping must contain a single rule. Additional rules will be ignored.
     
---overwrite, -o 			Overwrites the specified outut file if it already exists.
+--overwrite, -o 			Overwrites the specified output file if it already exists.
 
 SEE ALSO
 ********

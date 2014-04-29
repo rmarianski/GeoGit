@@ -1,3 +1,4 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -5,7 +6,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>An Introduction to GeoGit &mdash; GeoGit 0.6 Workshop</title>
+  <title>An Introduction to GeoGit &mdash; GeoGit 0.8 Workshop</title>
   <link rel="stylesheet" href="_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -16,14 +17,14 @@
   <link rel="stylesheet" href="_static/offcanvas.css" type="text/css" />
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.6',
+        URL_ROOT:    '#',
+        VERSION:     '0.8',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
   <link rel="shortcut icon" href="_static/favicon.ico"/>
-      <link rel="top" title="GeoGit 0.6 Workshop" href="index.html" />
+      <link rel="top" title="GeoGit 0.8 Workshop" href="index.html" />
       <link rel="prev" title="GeoGit Workshop" href="index.html" />
 </head>
 <body class="workshop">
@@ -77,7 +78,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="index.html">GeoGit 0.6 Workshop</a> &raquo;</li>
+  <li><a href="index.html">GeoGit 0.8 Workshop</a> &raquo;</li>
   <li>An Introduction to GeoGit</li>
 </ul>
 <ul id="relatedlinks" class="selfclear">
@@ -161,7 +162,7 @@
 </div>
 <div class="section" id="setting-up-postgis">
 <h3>Setting up PostGIS<a class="headerlink" href="#setting-up-postgis" title="Permalink to this headline">¶</a></h3>
-<p>A database is required to work with PostGIS. We will create a new database named <tt class="docutils literal"><span class="pre">workshop</span></tt> that we will use for storing all the data used in this workshop.</p>
+<p>A database is required to work with PostGIS. We will create a new database named <tt class="docutils literal"><span class="pre">geogit-ethiopia</span></tt> that we will use for storing all the data used in this workshop.</p>
 <p>The database can be created from the <em>pgAdmin II</em> utility. Open <em>pgAdmin III</em></p>
 <div class="figure">
 <img alt="_images/pgadmin.png" src="_images/pgadmin.png" />
@@ -190,17 +191,23 @@
 <ul class="simple">
 <li><em>Name</em>: <tt class="docutils literal"><span class="pre">geogit-ethiopia</span></tt></li>
 <li><em>Owner</em>: <tt class="docutils literal"><span class="pre">geogit</span></tt></li>
-<li><em>Encoding</em>: <tt class="docutils literal"><span class="pre">UTF8</span></tt></li>
-<li><em>Template</em> <tt class="docutils literal"><span class="pre">template_postgis</span></tt> (<tt class="docutils literal"><span class="pre">postgis_21_sample</span></tt> in case you have installed PostGIS manually and not as part of OpenGeo Suite)</li>
 </ul>
 <div class="figure">
-<img alt="_images/pgadmin_03.png" src="_images/pgadmin_03.png" />
+<img alt="_images/create_pg_database.png" src="_images/create_pg_database.png" />
 </div>
-<p>The template and encoding are specified on the <em>Definition</em> panel.</p>
+<p>Select the new <tt class="docutils literal"><span class="pre">workshop</span></tt> database and open it up to display the tree of objects. You’ll see the <tt class="docutils literal"><span class="pre">public</span></tt> schema.</p>
 <div class="figure">
-<img alt="_images/pgadmin_03a.png" src="_images/pgadmin_03a.png" />
+<img alt="_images/workshop_db.png" src="_images/workshop_db.png" />
 </div>
-<p>The tabe is now created and we can already add data to it and create new tables in it.</p>
+<p>Click on the SQL query button indicated below (or go to Tools &gt; Query Tool).</p>
+<div class="figure">
+<img alt="_images/sql_query.png" src="_images/sql_query.png" />
+</div>
+<p>Enter the following query into the query text field to load the PostGIS spatial extension:</p>
+<div class="highlight-python"><pre>CREATE EXTENSION postgis;</pre>
+</div>
+<p>Click the Play button in the toolbar (or press F5) to <em>Execute the query.</em></p>
+<p>The database is now created and we can already add data to it and create new tables in it.</p>
 </div>
 </div>
 <div class="section" id="preparing-and-importing-the-data">

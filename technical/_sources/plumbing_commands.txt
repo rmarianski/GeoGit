@@ -18,7 +18,9 @@ The ls-tree command replaces the ``ls`` command and shows a list of elements (tr
 
 ::
 
-	<feature_type_id> <blank_space> <element_type<feature|tree>> <feature_id> <blank_space> <path>
+	<feature_type_id> <blank_space> <element_type<feature|tree>> <object_id> <blank_space> <path> <blank_space> <xmin;xmax;ymin;ymax> [<blank_space> <size> <blank_space> num_trees]
+
+Size and number of trees are only printed if the eeent described is a tree 
 
 Paths are absolute paths to the tree. Elements are shown in depthfirst order, so elements under a given tree will appear inmediatly after it.
 
@@ -29,26 +31,24 @@ The following are some examples of the output produced by the ``ls-tree`` comman
 ::
 
 	$geogit ls-tree -v parks
-	6350a6955b124119850f5a6906f70dc02ebb31c9 feature d8cc931603603bd64506880dc1760b372808ef2d parks.2
-	6350a6955b124119850f5a6906f70dc02ebb31c9 feature 8761a24800cdc1c11b6c3c1483a8c9069f657f1f parks.3
-	6350a6955b124119850f5a6906f70dc02ebb31c9 feature ff51bfc2a36d02a3a51d72eef3e7f44de9c4e231 parks.1
+	6beb800506a526e151e8f77c422c111cd54bcf7e tree 292f917fbd5153fcfb3def60f5cc57f628ae1252 elevation 18.666297912597656;18.715967178344727;45.776702880859375;45.811668395996094 2 0
+	1e6988eab76ab6b9da5da4d174278cca26049ab8 tree 3a2530e0818647b70afc17d09b1d56201aeb6fd3 landuse 18.66728973388672;18.71497344970703;45.77732849121094;45.811126708984375 3 0
 
 	$geogit ls-tree -v -r
-	6350a6955b124119850f5a6906f70dc02ebb31c9 feature d8cc931603603bd64506880dc1760b372808ef2d parks/parks.2
-	6350a6955b124119850f5a6906f70dc02ebb31c9 feature 8761a24800cdc1c11b6c3c1483a8c9069f657f1f parks/parks.3
-	6350a6955b124119850f5a6906f70dc02ebb31c9 feature ff51bfc2a36d02a3a51d72eef3e7f44de9c4e231 parks/parks.1
-
-	$geogit ls-tree -v -r -t
-	6350a6955b124119850f5a6906f70dc02ebb31c9 tree ad21258c0bade71a879180daf156e1ad1a0c3279 parks
-	6350a6955b124119850f5a6906f70dc02ebb31c9 feature d8cc931603603bd64506880dc1760b372808ef2d parks/parks.2
-	6350a6955b124119850f5a6906f70dc02ebb31c9 feature 8761a24800cdc1c11b6c3c1483a8c9069f657f1f parks/parks.3
-	6350a6955b124119850f5a6906f70dc02ebb31c9 feature ff51bfc2a36d02a3a51d72eef3e7f44de9c4e231 parks/parks.1
+	6beb800506a526e151e8f77c422c111cd54bcf7e feature c42b927161372297a4c04640cd42a641da2c14be elevation/1 18.69426727294922;18.69426727294922;45.80892562866211;45.80892562866211
+	6beb800506a526e151e8f77c422c111cd54bcf7e feature 43c0c94a353406eb4e0c10d616d54dea3e7a875f elevation/2 18.694978713989258;18.694978713989258;45.808895111083984;45.808895111083984
+	1e6988eab76ab6b9da5da4d174278cca26049ab8 feature da06caf087e0eea927896b9fd4b8a4cdc34ffc70 landuse/1 18.676733016967773;18.71497344970703;45.77738571166992;45.81097412109375
+	1e6988eab76ab6b9da5da4d174278cca26049ab8 feature 3fc0459c87a4f46df3ec01d0dc64ce7de8ae6511 landuse/2 18.670719146728516;18.672962188720703;45.7775993347168;45.77836608886719
+	1e6988eab76ab6b9da5da4d174278cca26049ab8 feature e7d870b11be957a488c026ef5e4c8123145fbb3e landuse/3 18.707529067993164;18.714677810668945;45.77732849121094;45.78892517089844
 
 	$geogit ls-tree -r -t
-	parks
-	parks/parks.2
-	parks/parks.3
-	parks/parks.1
+	elevation
+	landuse
+	elevation/1
+	elevation/1
+	landuse/1
+	landuse/2
+	landuse/3
 
 diff-tree
 -----------

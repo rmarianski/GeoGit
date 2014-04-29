@@ -11,7 +11,7 @@ geogit sl [--help] <command> [commandargs]
 DESCRIPTION
 ***********
 
-The SpatiaLite command extension is meant to provide a means for importing and exporting geospatial data to and from GeoGit into a SpatiaLite database.
+The SpatiaLite command extension provides a means for importing and exporting geospatial data to and from GeoGit into a SpatiaLite database.
 
 
 OPTIONS
@@ -24,19 +24,19 @@ EXAMPLES
 ********
 ::
 
-   geogit pg --help
+   geogit sl --help
 
 
 SEE ALSO
 ********
 
-:ref:`geogit-pg-import`
+:ref:`geogit-sl-import`
 
-:ref:`geogit-pg-export`
+:ref:`geogit-sl-export`
 
-:ref:`geogit-pg-describe`
+:ref:`geogit-sl-describe`
 
-:ref:`geogit-pg-list`
+:ref:`geogit-sl-list`
 
 
 

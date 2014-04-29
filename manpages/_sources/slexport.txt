@@ -2,7 +2,7 @@
 .. _geogit-sl-export:
 
 geogit-sl-export documentation
-###############################
+##############################
 
 
 
@@ -27,7 +27,7 @@ OPTIONS
 
 -o 	        	Overwrite the output table if it already exists.   
 
---database      The databse to connect to.  Default: database
+--database      The database to connect to.  Default: database
 
 --user          User name.  Default: user
 

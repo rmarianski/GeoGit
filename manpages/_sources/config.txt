@@ -38,6 +38,18 @@ OPTIONS
 
 -l, --list          List all variables from the config file.
 
+GEOGIT CONFIGURATION
+********************
+
+This list is not comprehensive; some configuration options are documented in relevant man pages.
+
+bdbje.object_durability     Determines how safe to be when persisting objects in the BDB object store.  Valid values include: safe (be as safe as possible) and fast (sacrifice some safety to improve performance.)
+
+SEE ALSO
+********
+
+geogit-init
+
 BUGS
 ****
 

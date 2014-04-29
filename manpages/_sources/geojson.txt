@@ -1,7 +1,7 @@
 .. _geogit-geojson:
 
 geogit-geojson documentation
-#########################
+############################
 
 SYNOPSIS
 ********

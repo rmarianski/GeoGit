@@ -2,7 +2,7 @@
 .. _geogit-show:
 
 geogit-show documentation
-############################
+#########################
 
 
 

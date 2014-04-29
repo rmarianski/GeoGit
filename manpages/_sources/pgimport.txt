@@ -21,7 +21,7 @@ OPTIONS
 
 --path <path>					The path to import to. Only allowed when importing a single table. If not specified, it uses the table name
 
---fid-attrib <attrib_name>		Uses the specified attribute as the feature id of each feature to import. If not used, a nummber indicating the position in the shapefile is used
+--fid-attrib <attrib_name>		Uses the specified attribute as the feature id of each feature to import. If not used, a number indicating the position in the shapefile is used
 
 --add							Adds the imported feature to the corresponding tree without removing previous features in case the tree already exists
 
@@ -37,7 +37,7 @@ OPTIONS
 				
 --schema        				The database schema to access.  Default: public
 				
---database      				The databse to connect to.  Default: database
+--database      				The database to connect to.  Default: database
 				
 --user          				User name.  Default: postgres
 				
