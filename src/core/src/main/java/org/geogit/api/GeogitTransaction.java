@@ -156,7 +156,8 @@ public class GeogitTransaction implements Context {
 
     @Override
     public StagingDatabase stagingDatabase() {
-        return injector.stagingDatabase();
+        return transactionIndex != null ? transactionIndex.getDatabase() : injector
+                .stagingDatabase();
     }
 
     @Override
