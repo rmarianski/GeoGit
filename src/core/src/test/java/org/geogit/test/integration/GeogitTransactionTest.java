@@ -17,9 +17,14 @@ import org.geogit.api.porcelain.BranchCreateOp;
 import org.geogit.api.porcelain.CheckoutOp;
 import org.geogit.api.porcelain.CommitOp;
 import org.geogit.api.porcelain.LogOp;
+import org.geogit.api.porcelain.MergeOp;
+import org.geogit.api.plumbing.merge.Conflict;
+import org.geogit.api.plumbing.merge.ConflictsReadOp;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import com.google.common.base.Suppliers;
 
 public class GeogitTransactionTest extends RepositoryTestCase {
     @Rule
@@ -275,6 +280,29 @@ public class GeogitTransactionTest extends RepositoryTestCase {
         assertEquals(logs.next(), mainCommit);
         assertFalse(logs.hasNext());
 
+    }
+
+    @Test
+    public void testConflictIsolation() throws Exception {
+        insertAndAdd(points2);
+        geogit.command(CommitOp.class).setMessage("foo").call();
+        geogit.command(BranchCreateOp.class).setAutoCheckout(true).setName("branch1").call();
+        insertAndAdd(points1);
+        RevCommit mainCommit = geogit.command(CommitOp.class).setMessage("Commit1").call();
+        geogit.command(CheckoutOp.class).setSource("master").call();
+        insertAndAdd(points1_modified);
+        RevCommit modifiedCommit = geogit.command(CommitOp.class).setMessage("Commit2").call();
+        GeogitTransaction tx = geogit.command(TransactionBegin.class).call();
+        try {
+            tx.command(MergeOp.class).addCommit(Suppliers.ofInstance(mainCommit.getId())).call();
+            fail("Expected a merge conflict!");
+        } catch (org.geogit.api.porcelain.MergeConflictsException e) {
+            // expected.
+        }
+        List<Conflict> txConflicts = tx.command(ConflictsReadOp.class).call();
+        List<Conflict> baseConflicts = geogit.command(ConflictsReadOp.class).call();
+        assertTrue("There should be no conflicts outside the transaction", baseConflicts.size() == 0);
+        assertTrue("There should be conflicts in the transaction", txConflicts.size() != 0);
     }
 
     @Test
