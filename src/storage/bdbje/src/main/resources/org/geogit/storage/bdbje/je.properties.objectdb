@@ -7,10 +7,39 @@ je.log.fileMax=268435456
 je.checkpointer.bytesInterval=268435456
 je.checkpointer.highPriority=true
 
-je.log.writeQueueSize=33554432
-je.log.bufferSize=10485760
-je.log.numBuffers=8
-je.log.groupCommitThreshold=100
+
+#In JE, when the durability specified for a transaction dictates force-writing to disk (for example, a commitSync() call),
+#it calls fsync(). On modern disk drives an fsync() will take on the order of several milliseconds. This is a relatively 
+#long time compared to the time required to do a write() call, which only moves data to the operating system's file cache.
+#
+#JE's group commit mechanism seeks to reduce the number of fsyncs required by issuing one fsync for batches of multiple 
+#transaction commits. For example, if a thread T1 requires an fsync(), and JE determines that no fsync() is in progress, 
+#it will execute that fsync() immediately. If, while T1 is executing the fsync(), some other thread(s) require an fsync(s),
+#JE will block those threads until T1 finishes. When T1's fsync() completes, a new fsync() executes on behalf of the blocked thread(s).
+#
+#The past JE group commit implementation assumed that the underlying platform (OS + file system combination) allow IO operations 
+#like seek(), read() and write() to execute concurrently with an fsync() call (on the same file, but using different file descriptors).
+#
+#On Solaris and Windows this is true. Hence, on these platforms, a thread which is performing an fsync() does not block another 
+#thread performing a concurrent write(). But, on several Linux file systems, ext3 in particular, an exclusive mutex on the inode 
+#is grabbed during any IO operation. So a write() call on a file (inode) will be blocked by an fsync() operation on the same file 
+#(inode). This negates any performance improvement which might be achieved by group commit.
+#
+#The JE group commit code has been improved to batch write() and fsync() calls, rather than just fsync() calls. Just before a write() 
+#call is executed, JE checks if an fsync() is in progress and if so, the write call is queued in a (new) Write Queue. Once the fsync() 
+#completes, all pending writes in the Write Queue are executed.
+#
+#This change in behavior is enabled by default and may be disabled by setting the je.log.useWriteQueue configuration parameter to false.
+#The size of the Write Queue (i.e. the amount of data it can queue until any currently-executing IO operations complete) can be controlled 
+#with the je.log.writeQueueSize parameter. The default for je.log.writeQueueSize is 1MB with a minimum value of 4KB and 
+#a maximum value of 32MB. The Write Queue does not use cache space controlled by the je.maxMemory parameter. [#16440]
+#
+#On a production environment you may want to experiment increasing the je.log.writeQueueSize setting up to 32MB and see
+#if it brings a significant performance gain (and reduces database size) 
+#je.log.writeQueueSize=33554432
+#je.log.bufferSize=10485760
+#je.log.numBuffers=8
+#je.log.groupCommitThreshold=100
 
 je.evictor.forcedYield=true
 je.evictor.coreThreads=1
