@@ -3,7 +3,7 @@
 # 67108864 = 64MB
 # 268435456 = 256MB
 je.log.fileMax=67108864
-je.checkpointer.bytesInterval=268435456
+#je.checkpointer.bytesInterval=268435456
 
 ############################
 # CACHE AND MEMORY SETTINGS
