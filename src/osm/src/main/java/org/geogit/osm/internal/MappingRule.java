@@ -136,6 +136,8 @@ public class MappingRule {
 
     private GeomRestriction geomRestriction;
 
+    private ArrayList<String> _mandatoryTags = null;
+
     private static GeometryFactory gf = new GeometryFactory();
 
     public MappingRule(final String name, final Map<String, List<String>> filter,
@@ -336,17 +338,29 @@ public class MappingRule {
             return true;
         }
         boolean ret = false;
+        ArrayList<String> tagNames = Lists.newArrayList();
         for (Tag tag : tags) {
+            tagNames.add(tag.getKey());
             if (exclude != null && exclude.keySet().contains(tag.getKey())) {
                 List<String> values = exclude.get(tag.getKey());
-                if (values.isEmpty() || values.contains(tag.getValue())) {
-                    return false;
+                if (values != null) {
+                    if (values.isEmpty() || values.contains(tag.getValue())) {
+                        return false;
+                    }
                 }
             }
             if (filter.keySet().contains(tag.getKey())) {
                 List<String> values = filter.get(tag.getKey());
                 if (values.isEmpty() || values.contains(tag.getValue())) {
                     ret = true;
+                }
+            }
+
+        }
+        if (ret) {
+            for (String mandatory : getMandatoryTags()) {
+                if (!tagNames.contains(mandatory)) {
+                    return false;
                 }
             }
         }
@@ -408,4 +422,18 @@ public class MappingRule {
         }
     }
 
+    private ArrayList<String> getMandatoryTags() {
+        if (_mandatoryTags == null) {
+            _mandatoryTags = Lists.newArrayList();
+            if (exclude != null) {
+                for (String key : this.exclude.keySet()) {
+                    if (exclude.get(key) == null) {
+                        _mandatoryTags.add(key);
+                    }
+                }
+            }
+        }
+        return _mandatoryTags;
+
+    }
 }

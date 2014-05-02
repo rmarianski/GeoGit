@@ -258,7 +258,7 @@ The following mapping will copy all ways to a feature type that only contains th
 	  }
 	]}
 
-To get all entities that have a given tag, no matter which value the tag gas, just use an empty list for the accepted values. For instance, to get all the nodes with the tag ``power`` (can be ``power=tower``, ``power=pole``, etc.), use the following mapping:
+To get all entities that have a given tag, no matter which value the tag has, just use an empty list for the accepted values. For instance, to get all the nodes with the tag ``power`` (can be ``power=tower``, ``power=pole``, etc.), use the following mapping:
 
 ::
 
@@ -276,6 +276,26 @@ To get all entities that have a given tag, no matter which value the tag gas, ju
  	]}
 
 Any way/node that matches any of the supplied filters will pass through the rule. For instance, to get a subset of buildings and air terminals (a special case of building) use:
+
+You can made tags mandatory by adding them in the exclude section, with a ``null`` value. That will exclude not the elements that include a given tag or a given value for that tag, but instead all those that do not have the tag. Here's an example.
+
+::
+	{"rules":[
+	  {
+		"name":"namedhighways",
+		"filter":{
+			"highway":[]
+		},
+		"exclude":{
+			"name":null
+		},
+		"fields":{
+			"geom":{"name":"geom","type":"POINT"}			
+		}
+	  }
+	]}
+
+That mapping will map all highways, but exclude those ones that do not have a name. Only the geometry is used and no tags are added to the mapped feature.
 
 ::
 

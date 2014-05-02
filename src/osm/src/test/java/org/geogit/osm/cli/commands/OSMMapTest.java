@@ -216,4 +216,37 @@ public class OSMMapTest extends Assert {
         cli.execute("osm", "map", mappingFile.getAbsolutePath());
 
     }
+
+    @Test
+    public void testMappingExcludingFeaturesWithMissingTag() throws Exception {
+        // import and check
+        String filename = OSMImportOp.class.getResource("ways.xml").getFile();
+        File file = new File(filename);
+        cli.execute("osm", "import", file.getAbsolutePath());
+        cli.execute("add");
+        cli.execute("commit", "-m", "message");
+        GeoGIT geogit = cli.newGeoGIT();
+        Optional<RevTree> tree = geogit.command(RevObjectParse.class).setRefSpec("HEAD:node")
+                .call(RevTree.class);
+        assertTrue(tree.isPresent());
+        assertTrue(tree.get().size() > 0);
+        tree = geogit.command(RevObjectParse.class).setRefSpec("HEAD:way").call(RevTree.class);
+        assertTrue(tree.isPresent());
+        assertTrue(tree.get().size() > 0);
+        // map
+        String mappingFilename = OSMMapTest.class.getResource("mapping_exclude_missing_tag.json")
+                .getFile();
+        File mappingFile = new File(mappingFilename);
+        cli.execute("osm", "map", mappingFile.getAbsolutePath());
+        // check that a feature was correctly mapped
+        Optional<RevFeature> revFeature = geogit.command(RevObjectParse.class)
+                .setRefSpec("HEAD:namedhighways/2059114068").call(RevFeature.class);
+        assertTrue(revFeature.isPresent());
+        // check that a feature was correctly ignored
+        revFeature = geogit.command(RevObjectParse.class).setRefSpec("HEAD:namedhighways/81953612")
+                .call(RevFeature.class);
+        assertFalse(revFeature.isPresent());
+        geogit.close();
+
+    }
 }
