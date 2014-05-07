@@ -6,6 +6,7 @@
 package org.geogit.api.plumbing;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -70,7 +71,7 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
      *         ancestor was found
      */
     @Override
-    protected  Optional<ObjectId> _call() {
+    protected Optional<ObjectId> _call() {
         Preconditions.checkState(left != null, "Left commit has not been set.");
         Preconditions.checkState(right != null, "Right commit has not been set.");
 
@@ -153,7 +154,9 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
                 stopAncestryPath(commit, theirQueue, theirSet);
                 return true;
             }
-            for (GraphEdge parentEdge : commit.getEdges(Direction.OUT)) {
+            Iterator<GraphEdge> edges = commit.getEdges(Direction.OUT);
+            while (edges.hasNext()) {
+                GraphEdge parentEdge = edges.next();
                 GraphNode parent = parentEdge.getToNode();
                 myQueue.add(parent);
             }
@@ -176,13 +179,15 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
             Set<GraphNode> theirSet) {
         Queue<GraphNode> ancestorQueue = new LinkedList<GraphNode>();
         ancestorQueue.add(commit);
-        List<GraphNode> processed = new LinkedList<GraphNode>();
+        Set<GraphNode> processed = new HashSet<GraphNode>();
         while (!ancestorQueue.isEmpty()) {
             GraphNode ancestor = ancestorQueue.poll();
-            for (GraphEdge parent : ancestor.getEdges(Direction.BOTH)) {
-                GraphNode parentNode = parent.getToNode();
-                if (!parentNode.getIdentifier().equals(ancestor.getIdentifier())) {
-                    if (theirSet.contains(parentNode)) {
+            Iterator<GraphEdge> edges = ancestor.getEdges(Direction.OUT);
+            while (edges.hasNext()) {
+                GraphEdge relationship = edges.next();
+                GraphNode parentNode = relationship.getToNode();
+                if (theirSet.contains(parentNode)) {
+                    if (!processed.contains(parentNode)) {
                         ancestorQueue.add(parentNode);
                         processed.add(parentNode);
                     }
@@ -214,7 +219,9 @@ public class FindCommonAncestor extends AbstractGeoGitOp<Optional<ObjectId>> {
             ancestorQueue.add(v);
             while (!ancestorQueue.isEmpty()) {
                 GraphNode ancestor = ancestorQueue.poll();
-                for (GraphEdge parent : ancestor.getEdges(Direction.OUT)) {
+                Iterator<GraphEdge> edges = ancestor.getEdges(Direction.OUT);
+                while (edges.hasNext()) {
+                    GraphEdge parent = edges.next();
                     GraphNode parentNode = parent.getToNode();
                     if (parentNode.getIdentifier() != ancestor.getIdentifier()) {
                         if (leftSet.contains(parentNode) || rightSet.contains(parentNode)) {

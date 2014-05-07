@@ -25,10 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.sleepycat.bind.tuple.TupleBinding;
@@ -449,8 +451,11 @@ public class JEGraphDatabase implements GraphDatabase {
     private class JEGraphNode extends GraphNode {
         NodeData node;
 
+        List<GraphEdge> edges;
+
         public JEGraphNode(NodeData node) {
             this.node = node;
+            this.edges = null;
         }
 
         @Override
@@ -459,23 +464,38 @@ public class JEGraphDatabase implements GraphDatabase {
         }
 
         @Override
-        public List<GraphEdge> getEdges(Direction direction) {
-            List<GraphEdge> edges = new LinkedList<GraphEdge>();
-            if (direction == Direction.IN || direction == Direction.BOTH) {
+        public Iterator<GraphEdge> getEdges(final Direction direction) {
+            if (edges == null) {
+                edges = new LinkedList<GraphEdge>();
                 Iterator<ObjectId> nodeEdges = node.incoming.iterator();
                 while (nodeEdges.hasNext()) {
                     ObjectId otherNode = nodeEdges.next();
                     edges.add(new GraphEdge(new JEGraphNode(getNodeInternal(otherNode, true)), this));
                 }
-            }
-            if (direction == Direction.OUT || direction == Direction.BOTH) {
-                Iterator<ObjectId> nodeEdges = node.outgoing.iterator();
+
+                nodeEdges = node.outgoing.iterator();
                 while (nodeEdges.hasNext()) {
                     ObjectId otherNode = nodeEdges.next();
                     edges.add(new GraphEdge(this, new JEGraphNode(getNodeInternal(otherNode, true))));
                 }
             }
-            return edges;
+
+            final GraphNode myNode = this;
+
+            return Iterators.filter(edges.iterator(), new Predicate<GraphEdge>() {
+                @Override
+                public boolean apply(GraphEdge input) {
+                    switch (direction) {
+                    case OUT:
+                        return input.getFromNode() == myNode;
+                    case IN:
+                        return input.getToNode() == myNode;
+                    default:
+                        break;
+                    }
+                    return true;
+                }
+            });
         }
 
         @Override

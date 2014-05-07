@@ -5,6 +5,7 @@
 package org.geogit.storage;
 
 import java.io.Closeable;
+import java.util.Iterator;
 import java.util.List;
 
 import org.geogit.api.ObjectId;
@@ -50,7 +51,7 @@ public interface GraphDatabase extends Closeable {
     public abstract class GraphNode {
         public abstract ObjectId getIdentifier();
 
-        public abstract List<GraphEdge> getEdges(Direction direction);
+        public abstract Iterator<GraphEdge> getEdges(final Direction direction);
 
         public abstract boolean isSparse();
 
