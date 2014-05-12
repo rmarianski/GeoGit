@@ -5,11 +5,9 @@
 package org.geogit.api.porcelain;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -226,7 +224,7 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
      * @see org.geogit.api.AbstractGeoGitOp#call()
      */
     @Override
-    protected  Iterator<RevCommit> _call() {
+    protected Iterator<RevCommit> _call() {
 
         ObjectId newestCommitId;
         ObjectId oldestCommitId;
@@ -479,7 +477,7 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
 
         private final Range<Long> timeRange;
 
-        private final Map<String, ObjectId> paths;
+        private final Set<String> paths;
 
         private Pattern author;
 
@@ -505,18 +503,8 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
             this.timeRange = timeRange;
             this.author = author;
             this.committer = commiter;
-            if (paths != null && paths.size() > 0) {
-                findTreeChild = command(FindTreeChild.class);
-                // We can determine if the path was affected by comparing the hash of the node with
-                // the hash of the node in the parent tree, this map stores the most recent hash.
-                // Specifying null as the hash will cause the first commit to find the first hash.
-                this.paths = new HashMap<String, ObjectId>();
-                for (String path : paths) {
-                    this.paths.put(path, null);
-                }
-            } else {
-                this.paths = null;
-            }
+            this.paths = paths;
+            findTreeChild = command(FindTreeChild.class);
         }
 
         /**
@@ -553,41 +541,35 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
             }
             if (paths != null) {
                 applies = false;
-                // did this commit touch any of the paths?
-                ObjectId parentId = commit.parentN(0).or(ObjectId.NULL);
                 final Repository repository = repository();
-                if (parentId.equals(ObjectId.NULL) || !repository.commitExists(parentId)) {
-                    // we have reached the bottom of a shallow clone or the end of history.
-                    for (String path : paths.keySet()) {
-                        ObjectId value = paths.get(path);
-                        if (value == null) {
-                            // First commit we are processing
-                            RevTree commitTree = repository.getTree(commit.getTreeId());
-                            value = getPathHash(commitTree, path);
+                // did this commit touch any of the paths?
+                RevTree commitTree = repository.getTree(commit.getTreeId());
+                ObjectId currentValue, parentValue;
+                for (String path : paths) {
+                    currentValue = getPathHash(commitTree, path);
+                    // See if the new value is different from any of the parents.
+                    int parentIndex = 0;
+                    do {
+                        ObjectId parentId = commit.parentN(parentIndex++).or(ObjectId.NULL);
+                        if (parentId.equals(ObjectId.NULL) || !repository.commitExists(parentId)) {
+                            // we have reached the bottom of a shallow clone or the end of history.
+                            if (!currentValue.equals(ObjectId.NULL)) {
+                                applies = true;
+                                break;
+                            }
+                        } else {
+                            RevCommit otherCommit = repository.getCommit(parentId);
+                            RevTree parentTree = repository.getTree(otherCommit.getTreeId());
+                            parentValue = getPathHash(parentTree, path);
+                            if (!parentValue.equals(currentValue)) {
+                                applies = true;
+                                break;
+                            }
                         }
-                        if (!value.equals(ObjectId.NULL)) {
-                            applies = true;
-                            break;
-                        }
-                    }
-                } else {
-                    RevTree parentTree = repository.getTree(
-                            repository.getCommit(parentId).getTreeId());
-                    ObjectId hash = ObjectId.NULL;
-                    ObjectId compare = null;
-                    for (String path : paths.keySet()) {
-                        compare = paths.get(path);
-                        if (compare == null) {
-                            // First commit we are processing
-                            RevTree commitTree = repository.getTree(commit.getTreeId());
-                            paths.put(path, getPathHash(commitTree, path));
-                        }
-                        hash = getPathHash(parentTree, path);
-                        if (!hash.equals(paths.get(path))) {
-                            applies = true;
-                            paths.put(path, hash);
-                            break;
-                        }
+                    } while (parentIndex < commit.getParentIds().size());
+
+                    if (applies) {
+                        break;
                     }
                 }
             }

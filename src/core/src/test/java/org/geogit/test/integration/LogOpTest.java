@@ -420,6 +420,70 @@ public class LogOpTest extends RepositoryTestCase {
     }
 
     @Test
+    public void testMergedWithPathFilter() throws Exception {
+        // Create the following revision graph
+        // o
+        // |
+        // o - Points 1 added
+        // |\
+        // | o - branch1 - Points 2 added
+        // |
+        // o - Points 3 added
+        // |
+        // o - master - HEAD - Lines 1 added
+        insertAndAdd(points1);
+        geogit.command(CommitOp.class).setMessage("commit for " + idP1).call();
+
+        // create branch1 and checkout
+        geogit.command(BranchCreateOp.class).setAutoCheckout(true).setName("branch1").call();
+        insertAndAdd(points2);
+        final RevCommit c2 = geogit.command(CommitOp.class).setMessage("commit for " + idP2).call();
+
+        // checkout master
+        geogit.command(CheckoutOp.class).setSource("master").call();
+        insertAndAdd(points3);
+        geogit.command(CommitOp.class).setMessage("commit for " + idP3).call();
+        insertAndAdd(lines1);
+        geogit.command(CommitOp.class).setMessage("commit for " + idL1).call();
+
+        // Merge branch1 into master to create the following revision graph
+        // o
+        // |
+        // o - Points 1 added
+        // |\
+        // | o - branch1 - Points 2 added
+        // | |
+        // o | - Points 3 added
+        // | |
+        // o | - Lines 1 added
+        // |/
+        // o - master - HEAD - Merge commit
+
+        Ref branch1 = geogit.command(RefParse.class).setName("branch1").call().get();
+        MergeReport mergeReport = geogit.command(MergeOp.class)
+                .addCommit(Suppliers.ofInstance(branch1.getObjectId()))
+                .setMessage("My merge message.").call();
+
+        RevCommit mergeCommit = mergeReport.getMergeCommit();
+
+        Iterator<RevCommit> iterator = logOp.addPath(pointsName + "/" + idP2).call();
+        assertNotNull(iterator);
+        assertTrue(iterator.hasNext());
+        assertEquals(mergeCommit, iterator.next());
+        assertTrue(iterator.hasNext());
+        assertEquals(c2, iterator.next());
+
+        // test log using first parent only. It should not contain commit 2)
+        LogOp op = geogit.command(LogOp.class).addPath(pointsName + "/" + idP2)
+                .setFirstParentOnly(true);
+        iterator = op.call();
+        assertNotNull(iterator);
+        assertTrue(iterator.hasNext());
+        assertEquals(mergeCommit, iterator.next());
+        assertFalse(iterator.hasNext());
+    }
+
+    @Test
     public void testAll() throws Exception {
         // Create the following revision graph
         // o
@@ -514,6 +578,12 @@ public class LogOpTest extends RepositoryTestCase {
         assertTrue(iterator.hasNext());
         assertEquals(firstCommit, iterator.next());
         assertFalse(iterator.hasNext());
+
+        iterator = logOp.setAuthor("secondauthor").call();
+        assertNotNull(iterator);
+        assertTrue(iterator.hasNext());
+        assertEquals(secondCommit, iterator.next());
+        assertFalse(iterator.hasNext());
     }
 
     @Test
@@ -530,6 +600,12 @@ public class LogOpTest extends RepositoryTestCase {
         assertNotNull(iterator);
         assertTrue(iterator.hasNext());
         assertEquals(firstCommit, iterator.next());
+        assertFalse(iterator.hasNext());
+
+        iterator = logOp.setAuthor("secondcommitter").call();
+        assertNotNull(iterator);
+        assertTrue(iterator.hasNext());
+        assertEquals(secondCommit, iterator.next());
         assertFalse(iterator.hasNext());
     }
 
