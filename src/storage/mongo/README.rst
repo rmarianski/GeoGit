@@ -16,8 +16,8 @@ Configuration
 
 The MongoDB store searches for two configuration options:
 
-  * mongo.host - the hostname or IP address where the MongoDB server is.
-  * mongo.port - the network port that MongoDB listens on.
+  * mongodb.uri - the URI where the MongoDB server is (e.g. ``mongodb://localhost:27017``)
+  * mongodb.databse - the database to use for testing (defaults to ``geogit``).
 
 Testing
 -------
@@ -32,4 +32,10 @@ Mongo.  If you would like to run the tests, enable them by activating the
 Otherwise, the tests are compiled but not executed as part of the build
 process.  By default the tests look for Mongo running on ``localhost`` at port
 ``27017``; if you would like to connect to Mongo at a different address you can
-provide settings in ``~/.geogit-mongo-tests.properties``
+provide settings in ``~/.geogit-mongo-tests.properties`` with contents as the following:
+
+```
+[mongodb]
+uri=mongodb://localhost:27018
+database=geogit_test
+```
