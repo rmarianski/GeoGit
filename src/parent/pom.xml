@@ -146,7 +146,6 @@
     <logback.version>1.0.13</logback.version>
     <mockito.version>1.9.5</mockito.version>
     <mockrunner.version>0.3.6</mockrunner.version>
-    <neo4j.version>1.9.2</neo4j.version>
     <restlet.version>1.0.8</restlet.version> <!-- matches version used in geoserver -->
     <slf4j.version>1.7.5</slf4j.version>
     <sqljdbc4.version>3.0</sqljdbc4.version>
@@ -246,18 +245,6 @@
         <version>${compress-lzf.version}</version>
       </dependency>
 
-      <dependency>
-        <groupId>org.neo4j</groupId>
-        <artifactId>neo4j</artifactId>
-        <version>${neo4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.neo4j</groupId>
-        <artifactId>neo4j-kernel</artifactId>
-        <version>${neo4j.version}</version>
-        <type>test-jar</type>
-      </dependency>
-
       <!-- Berkeley DB JE -->
       <dependency>
         <groupId>com.sleepycat</groupId>
@@ -323,11 +310,6 @@
       <dependency>
         <groupId>com.tinkerpop.gremlin</groupId>
         <artifactId>gremlin-java</artifactId>
-        <version>${blueprints.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.tinkerpop.blueprints</groupId>
-        <artifactId>blueprints-neo4j-graph</artifactId>
         <version>${blueprints.version}</version>
       </dependency>
       <dependency>

@@ -19,7 +19,6 @@
    <module>blueprints</module>
    <module>bdbje</module>
    <module>mongo</module>
-   <module>neo4j</module>
    <module>sqlite</module>
   </modules>
 </project>
