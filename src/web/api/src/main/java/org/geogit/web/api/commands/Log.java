@@ -167,17 +167,6 @@ public class Log extends AbstractWebAPICommand {
     }
 
     /**
-     * Mutator for the countChanges variable. This is deprecated, use setCountChanges instead.
-     * 
-     * @param countChanges - if true, each commit will include a count of each change type compared
-     *        to its first parent
-     */
-    @Deprecated
-    public void setSummarize(boolean countChanges) {
-        setCountChanges(countChanges);
-    }
-
-    /**
      * Mutator for the countChanges variable
      * 
      * @param countChanges - if true, each commit will include a count of each change type compared
@@ -282,8 +271,7 @@ public class Log extends AbstractWebAPICommand {
                     int removed = 0;
 
                     // If it's a shallow clone, the commit may not exist
-                    if (parent.equals(ObjectId.NULL)
-                            || geogit.stagingDatabase().exists(parent)) {
+                    if (parent.equals(ObjectId.NULL) || geogit.stagingDatabase().exists(parent)) {
                         final Iterator<DiffEntry> diff = geogit.command(DiffOp.class)
                                 .setOldVersion(parent).setNewVersion(input.getId())
                                 .setFilter(pathFilter).call();
