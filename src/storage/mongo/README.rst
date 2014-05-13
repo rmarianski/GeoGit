@@ -34,8 +34,9 @@ process.  By default the tests look for Mongo running on ``localhost`` at port
 ``27017``; if you would like to connect to Mongo at a different address you can
 provide settings in ``~/.geogit-mongo-tests.properties`` with contents as the following:
 
-```
-[mongodb]
-uri=mongodb://localhost:27018
-database=geogit_test
-```
+::
+
+    [mongodb]
+    uri=mongodb://localhost:27018
+    database=geogit_test
+
