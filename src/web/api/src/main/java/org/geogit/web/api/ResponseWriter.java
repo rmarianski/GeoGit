@@ -17,10 +17,12 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.codehaus.jettison.AbstractXMLStreamWriter;
+import org.geogit.api.Bucket;
+import org.geogit.api.Context;
 import org.geogit.api.FeatureBuilder;
 import org.geogit.api.FeatureInfo;
 import org.geogit.api.GeogitSimpleFeature;
-import org.geogit.api.Context;
+import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
@@ -50,6 +52,8 @@ import org.geogit.api.porcelain.FetchResult.ChangedRef;
 import org.geogit.api.porcelain.MergeOp.MergeReport;
 import org.geogit.api.porcelain.PullResult;
 import org.geogit.api.porcelain.ValueAndCommit;
+import org.geogit.storage.FieldType;
+import org.geogit.storage.text.CrsTextSerializer;
 import org.geogit.storage.text.TextValueSerializer;
 import org.geogit.web.api.commands.BranchWebOp;
 import org.geogit.web.api.commands.Commit;
@@ -71,6 +75,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
@@ -269,7 +274,7 @@ public class ResponseWriter {
         }
     }
 
-    private void writeCommit(RevCommit commit, String tag, @Nullable Integer adds,
+    public void writeCommit(RevCommit commit, String tag, @Nullable Integer adds,
             @Nullable Integer modifies, @Nullable Integer removes) throws XMLStreamException {
         out.writeStartElement(tag);
         writeElement("id", commit.getId().toString());
@@ -300,6 +305,107 @@ public class ResponseWriter {
             out.writeCData(commit.getMessage());
         }
         out.writeEndElement();
+
+        out.writeEndElement();
+    }
+
+    private void writeNode(Node node, String tag) throws XMLStreamException {
+        out.writeStartElement(tag);
+        writeElement("name", node.getName());
+        writeElement("type", node.getType().name());
+        writeElement("objectid", node.getObjectId().toString());
+        writeElement("metadataid", node.getMetadataId().or(ObjectId.NULL).toString());
+        out.writeEndElement();
+    }
+
+    public void writeTree(RevTree tree, String tag) throws XMLStreamException {
+        out.writeStartElement(tag);
+        writeElement("id", tree.getId().toString());
+        writeElement("size", Long.toString(tree.size()));
+        writeElement("numtrees", Integer.toString(tree.numTrees()));
+        if (tree.trees().isPresent()) {
+            ImmutableList<Node> trees = tree.trees().get();
+            for (Node ref : trees) {
+                writeNode(ref, "tree");
+            }
+        }
+        if (tree.features().isPresent()) {
+            ImmutableList<Node> features = tree.features().get();
+            for (Node ref : features) {
+                writeNode(ref, "feature");
+            }
+        } else if (tree.buckets().isPresent()) {
+            Map<Integer, Bucket> buckets = tree.buckets().get();
+            for (Entry<Integer, Bucket> entry : buckets.entrySet()) {
+                Integer bucketIndex = entry.getKey();
+                Bucket bucket = entry.getValue();
+                out.writeStartElement("bucket");
+                writeElement("bucketindex", bucketIndex.toString());
+                writeElement("bucketid", bucket.id().toString());
+                Envelope env = new Envelope();
+                env.setToNull();
+                bucket.expand(env);
+                out.writeStartElement("bbox");
+                writeElement("minx", Double.toString(env.getMinX()));
+                writeElement("maxx", Double.toString(env.getMaxX()));
+                writeElement("miny", Double.toString(env.getMinY()));
+                writeElement("maxy", Double.toString(env.getMaxY()));
+                out.writeEndElement();
+                out.writeEndElement();
+            }
+        }
+
+        out.writeEndElement();
+    }
+
+    public void writeFeature(RevFeature feature, String tag) throws XMLStreamException {
+        out.writeStartElement(tag);
+        writeElement("id", feature.getId().toString());
+        ImmutableList<Optional<Object>> values = feature.getValues();
+        for (Optional<Object> opt : values) {
+            final FieldType type = FieldType.forValue(opt);
+            String valueString = TextValueSerializer.asString(opt);
+            out.writeStartElement("attribute");
+            writeElement("type", type.toString());
+            writeElement("value", valueString);
+            out.writeEndElement();
+        }
+
+        out.writeEndElement();
+    }
+
+    public void writeFeatureType(RevFeatureType featureType, String tag) throws XMLStreamException {
+        out.writeStartElement(tag);
+        writeElement("id", featureType.getId().toString());
+        writeElement("name", featureType.getName().toString());
+        ImmutableList<PropertyDescriptor> descriptors = featureType.sortedDescriptors();
+        for (PropertyDescriptor descriptor : descriptors) {
+            out.writeStartElement("attribute");
+            writeElement("name", descriptor.getName().toString());
+            writeElement("type", FieldType.forBinding(descriptor.getType().getBinding()).name());
+            writeElement("minoccurs", Integer.toString(descriptor.getMinOccurs()));
+            writeElement("maxoccurs", Integer.toString(descriptor.getMaxOccurs()));
+            writeElement("nillable", Boolean.toString(descriptor.isNillable()));
+            PropertyType attrType = descriptor.getType();
+            if (attrType instanceof GeometryType) {
+                GeometryType gt = (GeometryType) attrType;
+                CoordinateReferenceSystem crs = gt.getCoordinateReferenceSystem();
+                String crsText = CrsTextSerializer.serialize(crs);
+                writeElement("crs", crsText);
+            }
+            out.writeEndElement();
+        }
+
+        out.writeEndElement();
+    }
+
+    public void writeTag(RevTag revTag, String tag) throws XMLStreamException {
+        out.writeStartElement(tag);
+        writeElement("id", revTag.getId().toString());
+        writeElement("commitid", revTag.getCommitId().toString());
+        writeElement("name", revTag.getName());
+        writeElement("message", revTag.getMessage());
+        writePerson("tagger", revTag.getTagger());
 
         out.writeEndElement();
     }
