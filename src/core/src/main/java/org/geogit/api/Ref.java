@@ -4,8 +4,6 @@
  */
 package org.geogit.api;
 
-import org.geogit.api.RevObject.TYPE;
-
 import com.google.common.base.Preconditions;
 
 /**
@@ -95,18 +93,6 @@ public class Ref implements Comparable<Ref> {
         Preconditions.checkNotNull(oid);
         this.name = name;
         this.objectId = oid;
-    }
-
-    /**
-     * @return {@link TYPE#COMMIT}
-     * @deprecated this method is scheduled to be removed in 0.9.0 as its practically of no use and
-     *             forces ref-parse to unnecessarily call on resolve-object-type, which can be
-     *             called separately in case some client code needs to figure out what kind of
-     *             object a ref points to with the ref's object id as argument.
-     */
-    @Deprecated
-    public RevObject.TYPE getType() {
-        return RevObject.TYPE.COMMIT;
     }
 
     /**
