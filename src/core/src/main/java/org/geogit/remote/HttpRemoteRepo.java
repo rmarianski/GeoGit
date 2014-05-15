@@ -250,16 +250,15 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
                 connection.setChunkedStreamingMode(4096);
 
                 OutputStream out = connection.getOutputStream();
-                BinaryPackedObjects.Callback<Void> callback = new BinaryPackedObjects.Callback<Void>() {
+                BinaryPackedObjects.Callback callback = new BinaryPackedObjects.Callback() {
                     @Override
-                    public Void callback(RevObject object, Void state) {
+                    public void callback(RevObject object) {
                         if (object instanceof RevCommit) {
                             RevCommit commit = (RevCommit) object;
                             toSend.remove(commit.getId());
                             roots.removeAll(commit.getParentIds());
                             roots.add(commit.getId());
                         }
-                        return null;
                     }
                 };
                 BinaryPackedObjects packer = new BinaryPackedObjects(
@@ -338,9 +337,9 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
         }
 
         BinaryPackedObjects unpacker = new BinaryPackedObjects(localRepository.objectDatabase());
-        BinaryPackedObjects.Callback<Void> callback = new BinaryPackedObjects.Callback<Void>() {
+        BinaryPackedObjects.Callback callback = new BinaryPackedObjects.Callback() {
             @Override
-            public Void callback(RevObject object, Void state) {
+            public void callback(RevObject object) {
                 if (object instanceof RevCommit) {
                     RevCommit commit = (RevCommit) object;
                     want.remove(commit.getId());
@@ -352,7 +351,6 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
                     have.remove(tag.getCommitId());
                     have.add(tag.getId());
                 }
-                return null;
             }
         };
         unpacker.ingest(in, callback);

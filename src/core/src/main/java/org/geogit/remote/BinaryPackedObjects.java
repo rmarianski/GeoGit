@@ -21,6 +21,7 @@ import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject;
 import org.geogit.repository.PostOrderIterator;
+import org.geogit.storage.BulkOpListener;
 import org.geogit.storage.Deduplicator;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.ObjectReader;
@@ -29,6 +30,7 @@ import org.geogit.storage.datastream.DataStreamSerializationFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
@@ -54,9 +56,8 @@ public final class BinaryPackedObjects {
         write(out, want, have, new HashSet<ObjectId>(), DEFAULT_CALLBACK, traverseCommits, deduplicator);
     }
 
-    public <T> T write(OutputStream out, List<ObjectId> want, List<ObjectId> have,
-            Set<ObjectId> sent, Callback<T> callback, boolean traverseCommits, Deduplicator deduplicator) throws IOException {
-        T state = null;
+    public void write(OutputStream out, List<ObjectId> want, List<ObjectId> have,
+            Set<ObjectId> sent, Callback callback, boolean traverseCommits, Deduplicator deduplicator) throws IOException {
         for (ObjectId i : want) {
             if (!database.exists(i)) {
                 throw new NoSuchElementException("Wanted id: " + i + " is not known");
@@ -77,10 +78,8 @@ public final class BinaryPackedObjects {
 
             out.write(object.getId().getRawValue());
             factory.createObjectWriter(object.getType()).write(object, out);
-            state = callback.callback(object, state);
+            callback.callback(object);
         }
-
-        return state;
     }
 
     /**
@@ -132,31 +131,36 @@ public final class BinaryPackedObjects {
         ingest(in, DEFAULT_CALLBACK);
     }
 
-    public <T> T ingest(final InputStream in, Callback<T> callback) {
-        T state = null;
-        while (true) {
-            try {
-                state = ingestOne(in, callback, state);
-            } catch (EOFException e) {
-                break;
-            } catch (IOException e) {
-                Throwables.propagate(e);
+    public void ingest(final InputStream in, final Callback callback) {
+        Iterator<RevObject> objects = streamToObjects(in);
+
+        BulkOpListener listener = new BulkOpListener() {
+            @Override
+            public void inserted(ObjectId objectId, @Nullable Integer storageSizeBytes) {
+                callback.callback(database.get(objectId));
             }
-        }
-        return state;
+        };
+        
+        database.putAll(objects, listener);
     }
 
-    private <T> T ingestOne(final InputStream in, Callback<T> callback, T state) throws IOException {
-        ObjectId id = readObjectId(in);
-        RevObject revObj = objectReader.read(id, in);
-        final T result;
-        if (!database.exists(id)) {
-            result = callback.callback(revObj, state);
-            database.put(revObj);
-        } else {
-            result = state;
-        }
-        return result;
+    
+    private Iterator<RevObject> streamToObjects(final InputStream in) {
+        return new AbstractIterator<RevObject>() {
+            @Override
+            protected RevObject computeNext() {
+                try {
+                    ObjectId id = readObjectId(in);
+                    RevObject revObj = objectReader.read(id, in);
+                    return revObj;
+                } catch (EOFException eof) {
+                    return endOfData();
+                } catch (IOException e) {
+                    Throwables.propagate(e);
+                }
+                throw new IllegalStateException("stream should have been fully consumed");
+            }
+        };
     }
 
     private ObjectId readObjectId(final InputStream in) throws IOException {
@@ -175,14 +179,14 @@ public final class BinaryPackedObjects {
         return id;
     }
 
-    public static interface Callback<T> {
-        public abstract T callback(RevObject object, T state);
+    public static interface Callback {
+        public abstract void callback(RevObject object);
     }
 
-    private static final Callback<Void> DEFAULT_CALLBACK = new Callback<Void>() {
+    private static final Callback DEFAULT_CALLBACK = new Callback() {
         @Override
-        public Void callback(RevObject object, Void state) {
-            return null;
+        public void callback(RevObject object) {
+            // empty body
         }
     };
 
