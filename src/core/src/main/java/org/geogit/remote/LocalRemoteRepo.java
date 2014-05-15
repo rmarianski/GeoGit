@@ -7,12 +7,10 @@ package org.geogit.remote;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.geogit.api.Bucket;
-import org.geogit.api.GeoGIT;
 import org.geogit.api.Context;
+import org.geogit.api.GeoGIT;
 import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
@@ -49,8 +47,6 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
     private Context injector;
 
     private File workingDirectory;
-
-    private List<ObjectId> touchedIds;
 
     /**
      * Constructs a new {@code LocalRemoteRepo} with the given parameters.
@@ -148,8 +144,6 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
     @Override
     public void fetchNewData(Ref ref, Optional<Integer> fetchLimit) {
 
-        touchedIds = new LinkedList<ObjectId>();
-
         CommitTraverser traverser = getFetchTraverser(fetchLimit);
 
         try {
@@ -159,13 +153,7 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
             }
 
         } catch (Exception e) {
-            for (ObjectId oid : touchedIds) {
-                localRepository.objectDatabase().delete(oid);
-            }
             Throwables.propagate(e);
-        } finally {
-            touchedIds.clear();
-            touchedIds = null;
         }
     }
 
@@ -180,7 +168,6 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
         Optional<Ref> remoteRef = remoteGeoGit.command(RefParse.class).setName(refspec).call();
         remoteRef = remoteRef.or(remoteGeoGit.command(RefParse.class).setName(Ref.TAGS_PREFIX + refspec).call());
         checkPush(ref, remoteRef);
-        touchedIds = new LinkedList<ObjectId>();
 
         CommitTraverser traverser = getPushTraverser(remoteRef);
 
@@ -207,13 +194,7 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
                 }
             }
         } catch (Exception e) {
-            for (ObjectId oid : touchedIds) {
-                remoteGeoGit.getRepository().objectDatabase().delete(oid);
-            }
             Throwables.propagate(e);
-        } finally {
-            touchedIds.clear();
-            touchedIds = null;
         }
     }
 
@@ -247,7 +228,6 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
                 walkCommit(tag.getCommitId(), from, to, objectInserter);
             }
             objectInserter.insert(object.get());
-            touchedIds.add(headId);
         }
     }
 
@@ -259,7 +239,6 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
                walkTree(commit.getTreeId(), from, to, objectInserter);
 
                objectInserter.insert(commit);
-               touchedIds.add(commitId);
         }
     }
 
@@ -275,7 +254,6 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
             RevTree tree = (RevTree) object.get();
 
             objectInserter.insert(tree);
-            touchedIds.add(treeId);
             // walk subtrees
             if (tree.buckets().isPresent()) {
                 for (Bucket bucket : tree.buckets().get().values()) {
@@ -310,7 +288,6 @@ class LocalRemoteRepo extends AbstractRemoteRepo {
                 walkTree(objectId, from, to, objectInserter);
             }
             objectInserter.insert(revObject);
-            touchedIds.add(objectId);
         }
     }
 

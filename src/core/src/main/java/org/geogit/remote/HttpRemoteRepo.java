@@ -49,8 +49,6 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
 
     private URL repositoryURL;
 
-    private List<ObjectId> fetchedIds;
-
     final private DeduplicationService deduplicationService;
 
     /**
@@ -186,7 +184,6 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
      */
     @Override
     public void fetchNewData(Ref ref, Optional<Integer> fetchLimit) {
-        fetchedIds = new LinkedList<ObjectId>();
 
         CommitTraverser traverser = getFetchTraverser(fetchLimit);
 
@@ -201,13 +198,7 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
                 fetchMoreData(want, have);
             }
         } catch (Exception e) {
-            for (ObjectId oid : fetchedIds) {
-                localRepository.objectDatabase().delete(oid);
-            }
             Throwables.propagate(e);
-        } finally {
-            fetchedIds.clear();
-            fetchedIds = null;
         }
     }
 
