@@ -27,6 +27,8 @@ import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.ObjectReader;
 import org.geogit.storage.ObjectSerializingFactory;
 import org.geogit.storage.datastream.DataStreamSerializationFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
@@ -39,6 +41,8 @@ import com.google.common.collect.Iterators;
 
 public final class BinaryPackedObjects {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(BinaryPackedObjects.class);
+    
     private final ObjectSerializingFactory factory;
 
     private final ObjectReader<RevObject> objectReader;
@@ -55,16 +59,19 @@ public final class BinaryPackedObjects {
 
     public void write(OutputStream out, List<ObjectId> want, List<ObjectId> have,
             boolean traverseCommits, Deduplicator deduplicator) throws IOException {
-        write(out, want, have, new HashSet<ObjectId>(), DEFAULT_CALLBACK, traverseCommits, deduplicator);
+        write(Suppliers.ofInstance(out), want, have, new HashSet<ObjectId>(), DEFAULT_CALLBACK, traverseCommits, deduplicator);
     }
 
-    public void write(OutputStream out, List<ObjectId> want, List<ObjectId> have,
+    public void write(Supplier<OutputStream> outputSupplier, List<ObjectId> want, List<ObjectId> have,
             Set<ObjectId> sent, Callback callback, boolean traverseCommits, Deduplicator deduplicator) throws IOException {
+        LOGGER.info("checking the {} wanted ids exist...", want.size());
         for (ObjectId i : want) {
             if (!database.exists(i)) {
                 throw new NoSuchElementException("Wanted id: " + i + " is not known");
             }
         }
+
+        LOGGER.info("scanning for previsit list...");
 
         ImmutableList<ObjectId> needsPrevisit = traverseCommits ? scanForPrevisitList(want, have, deduplicator)
                 : ImmutableList.copyOf(have);
@@ -72,16 +79,31 @@ public final class BinaryPackedObjects {
         ImmutableList<ObjectId> previsitResults = reachableContentIds(needsPrevisit, deduplicator);
         deduplicator.reset();
 
+        LOGGER.info("obtaining post order iterator on range...");
+
         int commitsSent = 0;
         Iterator<RevObject> objects = PostOrderIterator.range(want, new ArrayList<ObjectId>(
                 previsitResults), database, traverseCommits, deduplicator);
-        while (objects.hasNext() && commitsSent < CAP) {
-            RevObject object = objects.next();
+        int count = 0;
+        
+        
+        try{
+            OutputStream out = outputSupplier.get();
+            LOGGER.info("writing objects to remote...");
+            while (objects.hasNext() && commitsSent < CAP) {
+                RevObject object = objects.next();
 
-            out.write(object.getId().getRawValue());
-            factory.createObjectWriter(object.getType()).write(object, out);
-            callback.callback(Suppliers.ofInstance(object));
+                out.write(object.getId().getRawValue());
+                count++;
+                factory.createObjectWriter(object.getType()).write(object, out);
+                out.flush();
+                callback.callback(Suppliers.ofInstance(object));
+            }
+        }catch(IOException e){
+            LOGGER.warn(String.format("writing of objects failed after %,d objects", count));
+            throw e;
         }
+        LOGGER.info(String.format("WRITTEN %,d objects", count));
     }
 
     /**
