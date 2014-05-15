@@ -19,17 +19,12 @@ import javax.annotation.Nullable;
 
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
-import org.geogit.api.RevFeature;
-import org.geogit.api.RevFeatureType;
 import org.geogit.api.RevObject;
-import org.geogit.api.RevTag;
-import org.geogit.api.RevTree;
 import org.geogit.repository.PostOrderIterator;
 import org.geogit.storage.Deduplicator;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.ObjectReader;
 import org.geogit.storage.ObjectSerializingFactory;
-import org.geogit.storage.ObjectWriter;
 import org.geogit.storage.datastream.DataStreamSerializationFactory;
 
 import com.google.common.base.Function;
@@ -39,15 +34,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 
 public final class BinaryPackedObjects {
-    private final ObjectWriter<RevTag> tagWriter;
 
-    private final ObjectWriter<RevCommit> commitWriter;
-
-    private final ObjectWriter<RevTree> treeWriter;
-
-    private final ObjectWriter<RevFeatureType> featureTypeWriter;
-
-    private final ObjectWriter<RevFeature> featureWriter;
+    private final ObjectSerializingFactory factory;
 
     private final ObjectReader<RevObject> objectReader;
 
@@ -57,12 +45,7 @@ public final class BinaryPackedObjects {
 
     public BinaryPackedObjects(ObjectDatabase database) {
         this.database = database;
-        final ObjectSerializingFactory factory = new DataStreamSerializationFactory();
-        this.tagWriter = factory.createObjectWriter(RevObject.TYPE.TAG);
-        this.commitWriter = factory.createObjectWriter(RevObject.TYPE.COMMIT);
-        this.treeWriter = factory.createObjectWriter(RevObject.TYPE.TREE);
-        this.featureTypeWriter = factory.createObjectWriter(RevObject.TYPE.FEATURETYPE);
-        this.featureWriter = factory.createObjectWriter(RevObject.TYPE.FEATURE);
+        this.factory = new DataStreamSerializationFactory();
         this.objectReader = factory.createObjectReader();
     }
 
@@ -93,18 +76,7 @@ public final class BinaryPackedObjects {
             RevObject object = objects.next();
 
             out.write(object.getId().getRawValue());
-            if (object instanceof RevTag) {
-                tagWriter.write((RevTag) object, out);
-            } else if (object instanceof RevCommit) {
-                commitWriter.write((RevCommit) object, out);
-                commitsSent++;
-            } else if (object instanceof RevTree) {
-                treeWriter.write((RevTree) object, out);
-            } else if (object instanceof RevFeature) {
-                featureWriter.write((RevFeature) object, out);
-            } else if (object instanceof RevFeatureType) {
-                featureTypeWriter.write((RevFeatureType) object, out);
-            }
+            factory.createObjectWriter(object.getType()).write(object, out);
             state = callback.callback(object, state);
         }
 
@@ -188,9 +160,9 @@ public final class BinaryPackedObjects {
     }
 
     private ObjectId readObjectId(final InputStream in) throws IOException {
-        byte[] rawBytes = new byte[20];
+        final int len = ObjectId.NUM_BYTES;
+        byte[] rawBytes = new byte[len];
         int amount = 0;
-        int len = 20;
         int offset = 0;
         while ((amount = in.read(rawBytes, offset, len - offset)) != 0) {
             if (amount < 0)
@@ -213,4 +185,5 @@ public final class BinaryPackedObjects {
             return null;
         }
     };
+
 }
