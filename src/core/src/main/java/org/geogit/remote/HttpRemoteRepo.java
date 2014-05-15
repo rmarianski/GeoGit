@@ -31,6 +31,7 @@ import org.geogit.storage.DeduplicationService;
 import org.geogit.storage.Deduplicator;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -252,7 +253,8 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
                 OutputStream out = connection.getOutputStream();
                 BinaryPackedObjects.Callback callback = new BinaryPackedObjects.Callback() {
                     @Override
-                    public void callback(RevObject object) {
+                    public void callback(Supplier<RevObject> supplier) {
+                        RevObject object = supplier.get();
                         if (object instanceof RevCommit) {
                             RevCommit commit = (RevCommit) object;
                             toSend.remove(commit.getId());
@@ -339,7 +341,8 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
         BinaryPackedObjects unpacker = new BinaryPackedObjects(localRepository.objectDatabase());
         BinaryPackedObjects.Callback callback = new BinaryPackedObjects.Callback() {
             @Override
-            public void callback(RevObject object) {
+            public void callback(Supplier<RevObject> supplier) {
+                RevObject object = supplier.get();
                 if (object instanceof RevCommit) {
                     RevCommit commit = (RevCommit) object;
                     want.remove(commit.getId());

@@ -29,6 +29,8 @@ import org.geogit.storage.ObjectSerializingFactory;
 import org.geogit.storage.datastream.DataStreamSerializationFactory;
 
 import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
@@ -78,7 +80,7 @@ public final class BinaryPackedObjects {
 
             out.write(object.getId().getRawValue());
             factory.createObjectWriter(object.getType()).write(object, out);
-            callback.callback(object);
+            callback.callback(Suppliers.ofInstance(object));
         }
     }
 
@@ -136,8 +138,13 @@ public final class BinaryPackedObjects {
 
         BulkOpListener listener = new BulkOpListener() {
             @Override
-            public void inserted(ObjectId objectId, @Nullable Integer storageSizeBytes) {
-                callback.callback(database.get(objectId));
+            public void inserted(final ObjectId objectId, @Nullable Integer storageSizeBytes) {
+                callback.callback(new Supplier<RevObject>() {
+                    @Override
+                    public RevObject get() {
+                        return database.get(objectId);
+                    }
+                });
             }
         };
         
@@ -180,12 +187,12 @@ public final class BinaryPackedObjects {
     }
 
     public static interface Callback {
-        public abstract void callback(RevObject object);
+        public abstract void callback(Supplier<RevObject> object);
     }
 
     private static final Callback DEFAULT_CALLBACK = new Callback() {
         @Override
-        public void callback(RevObject object) {
+        public void callback(Supplier<RevObject> object) {
             // empty body
         }
     };
