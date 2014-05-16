@@ -11,6 +11,7 @@ import org.geogit.web.api.commands.AddWebOp;
 import org.geogit.web.api.commands.BeginTransaction;
 import org.geogit.web.api.commands.BlameWebOp;
 import org.geogit.web.api.commands.BranchWebOp;
+import org.geogit.web.api.commands.CatWebOp;
 import org.geogit.web.api.commands.CheckoutWebOp;
 import org.geogit.web.api.commands.Commit;
 import org.geogit.web.api.commands.Diff;
@@ -103,6 +104,8 @@ public class CommandBuilder {
             command = buildBlame(options);
         } else if ("version".equalsIgnoreCase(commandName)) {
             command = buildVersion(options);
+        } else if ("cat".equalsIgnoreCase(commandName)) {
+            command = buildCat(options);
         } else {
             throw new CommandSpecException("'" + commandName + "' is not a geogit command");
         }
@@ -489,4 +492,12 @@ public class CommandBuilder {
         return command;
     }
 
+    static CatWebOp buildCat(ParameterSet options) {
+        CatWebOp command = new CatWebOp();
+        String objectId = options.getFirstValue("objectid", null);
+        if (objectId != null) {
+            command.setObjectId(ObjectId.valueOf(objectId));
+        }
+        return command;
+    }
 }
