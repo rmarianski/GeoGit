@@ -5,6 +5,11 @@
 
 package org.geogit.osm.cli.commands;
 
+import static org.geogit.osm.internal.OSMUtils.NODE_TYPE_NAME;
+import static org.geogit.osm.internal.OSMUtils.WAY_TYPE_NAME;
+import static org.geogit.osm.internal.OSMUtils.nodeType;
+import static org.geogit.osm.internal.OSMUtils.wayType;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -58,13 +63,10 @@ import org.geogit.osm.internal.history.Way;
 import org.geogit.repository.Repository;
 import org.geogit.repository.StagingArea;
 import org.geogit.repository.WorkingTree;
-import org.geotools.data.DataUtilities;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
@@ -90,15 +92,6 @@ import com.vividsolutions.jts.geom.Point;
  */
 @Parameters(commandNames = "import-history", commandDescription = "Import OpenStreetmap history")
 public class OSMHistoryImport extends AbstractCommand implements CLICommand {
-
-    /** FeatureType namespace */
-    private static final String NAMESPACE = "www.openstreetmap.org";
-
-    /** NODE */
-    private static final String NODE_TYPE_NAME = "node";
-
-    /** WAY */
-    private static final String WAY_TYPE_NAME = "way";
 
     private static final GeometryFactory GEOMF = new GeometryFactory();
 
@@ -463,44 +456,6 @@ public class OSMHistoryImport extends AbstractCommand implements CLICommand {
         return NodeRef.appendChild(WAY_TYPE_NAME, fid);
     }
 
-    private static SimpleFeatureType NodeType;
-
-    private static SimpleFeatureType WayType;
-
-    // private static SimpleFeatureType RelationType;
-
-    private synchronized static SimpleFeatureType nodeType() {
-        if (NodeType == null) {
-            String typeSpec = "visible:Boolean,version:Integer,timestamp:java.lang.Long,tags:String,location:Point:srid=4326";
-            try {
-                SimpleFeatureType type = DataUtilities.createType(NAMESPACE, NODE_TYPE_NAME,
-                        typeSpec);
-                boolean longitudeFirst = true;
-                CoordinateReferenceSystem forceLonLat = CRS.decode("EPSG:4326", longitudeFirst);
-                NodeType = DataUtilities.createSubType(type, null, forceLonLat);
-            } catch (Exception e) {
-                throw Throwables.propagate(e);
-            }
-        }
-        return NodeType;
-    }
-
-    private synchronized static SimpleFeatureType wayType() {
-        if (WayType == null) {
-            String typeSpec = "visible:Boolean,version:Integer,timestamp:java.lang.Long,tags:String,way:LineString:srid=4326";
-            try {
-                SimpleFeatureType type = DataUtilities.createType(NAMESPACE, NODE_TYPE_NAME,
-                        typeSpec);
-                boolean longitudeFirst = true;
-                CoordinateReferenceSystem forceLonLat = CRS.decode("EPSG:4326", longitudeFirst);
-                WayType = DataUtilities.createSubType(type, null, forceLonLat);
-            } catch (Exception e) {
-                throw Throwables.propagate(e);
-            }
-        }
-        return WayType;
-    }
-
     private static final RevFeatureType NODE_REV_TYPE = RevFeatureType.build(nodeType());
 
     private static final RevFeatureType WAY_REV_TYPE = RevFeatureType.build(wayType());
@@ -514,13 +469,20 @@ public class OSMHistoryImport extends AbstractCommand implements CLICommand {
         builder.set("visible", Boolean.valueOf(feature.isVisible()));
         builder.set("version", Integer.valueOf(feature.getVersion()));
         builder.set("timestamp", Long.valueOf(feature.getTimestamp()));
+        builder.set("changeset", Long.valueOf(feature.getChangesetId()));
 
         String tags = buildTagsString(feature.getTags());
         builder.set("tags", tags);
+
+        String user = feature.getUserName() + ":" + feature.getUserId();
+        builder.set("user", user);
+
         if (feature instanceof Node) {
             builder.set("location", geom);
         } else if (feature instanceof Way) {
             builder.set("way", geom);
+            String nodes = buildNodesString(((Way) feature).getNodes());
+            builder.set("nodes", nodes);
         } else {
             throw new IllegalArgumentException();
         }
@@ -553,5 +515,18 @@ public class OSMHistoryImport extends AbstractCommand implements CLICommand {
             }
         }
         return sb.toString();
+    }
+
+    private static String buildNodesString(List<Long> nodeIds) {
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<Long> it = nodeIds.iterator(); it.hasNext();) {
+            Long node = it.next();
+            sb.append(node);
+            if (it.hasNext()) {
+                sb.append(";");
+            }
+        }
+        return sb.toString();
+
     }
 }
