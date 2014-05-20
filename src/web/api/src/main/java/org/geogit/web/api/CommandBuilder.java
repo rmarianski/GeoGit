@@ -30,6 +30,7 @@ import org.geogit.web.api.commands.RemoteWebOp;
 import org.geogit.web.api.commands.RemoveWebOp;
 import org.geogit.web.api.commands.ResolveConflict;
 import org.geogit.web.api.commands.RevertFeatureWebOp;
+import org.geogit.web.api.commands.StatisticsWebOp;
 import org.geogit.web.api.commands.Status;
 import org.geogit.web.api.commands.TagWebOp;
 import org.geogit.web.api.commands.UpdateRefWeb;
@@ -106,6 +107,8 @@ public class CommandBuilder {
             command = buildVersion(options);
         } else if ("cat".equalsIgnoreCase(commandName)) {
             command = buildCat(options);
+        } else if ("statistics".equalsIgnoreCase(commandName)) {
+            command = buildStatistics(options);
         } else {
             throw new CommandSpecException("'" + commandName + "' is not a geogit command");
         }
@@ -498,6 +501,14 @@ public class CommandBuilder {
         if (objectId != null) {
             command.setObjectId(ObjectId.valueOf(objectId));
         }
+        return command;
+    }
+
+    static StatisticsWebOp buildStatistics(ParameterSet options) {
+        StatisticsWebOp command = new StatisticsWebOp();
+        command.setPath(options.getFirstValue("path", null));
+        command.setSince(options.getFirstValue("since", null));
+        command.setUntil(options.getFirstValue("branch", null));
         return command;
     }
 }

@@ -61,6 +61,7 @@ import org.geogit.web.api.commands.Log.CommitWithChangeCounts;
 import org.geogit.web.api.commands.LsTree;
 import org.geogit.web.api.commands.RefParseWeb;
 import org.geogit.web.api.commands.RemoteWebOp;
+import org.geogit.web.api.commands.StatisticsWebOp;
 import org.geogit.web.api.commands.TagWebOp;
 import org.geogit.web.api.commands.UpdateRefWeb;
 import org.geotools.metadata.iso.citation.Citations;
@@ -793,8 +794,8 @@ public class ResponseWriter {
      * @param diff - a DiffEntry iterator to build the response from
      * @throws XMLStreamException
      */
-    public void writeGeometryChanges(final Context geogit, Iterator<DiffEntry> diff,
-            int page, int elementsPerPage) throws XMLStreamException {
+    public void writeGeometryChanges(final Context geogit, Iterator<DiffEntry> diff, int page,
+            int elementsPerPage) throws XMLStreamException {
 
         Iterators.advance(diff, page * elementsPerPage);
         int counter = 0;
@@ -1145,6 +1146,67 @@ public class ResponseWriter {
             out.writeEndElement();
         }
         out.writeEndElement();
+    }
+
+    public void writeStatistics(List<StatisticsWebOp.featureTypeStats> stats,
+            RevCommit firstCommit, RevCommit lastCommit, int totalCommits, List<RevPerson> authors,
+            int totalAdded, int totalModified, int totalRemoved) throws XMLStreamException {
+        out.writeStartElement("Statistics");
+        int numFeatureTypes = 0;
+        int totalNumFeatures = 0;
+        if (!stats.isEmpty()) {
+            out.writeStartElement("FeatureTypes");
+            for (StatisticsWebOp.featureTypeStats stat : stats) {
+                numFeatureTypes++;
+                out.writeStartElement("FeatureType");
+                writeElement("name", stat.getName());
+                writeElement("numFeatures", Long.toString(stat.getNumFeatures()));
+                totalNumFeatures += stat.getNumFeatures();
+                out.writeEndElement();
+            }
+            if (numFeatureTypes > 1) {
+                writeElement("totalFeatureTypes", Integer.toString(numFeatureTypes));
+                writeElement("totalFeatures", Integer.toString(totalNumFeatures));
+            }
+            out.writeEndElement();
+        }
+        if (lastCommit != null) {
+            writeCommit(lastCommit, "latestCommit", null, null, null);
+        }
+        if (firstCommit != null) {
+            writeCommit(firstCommit, "firstCommit", null, null, null);
+        }
+        if (totalCommits > 0) {
+            writeElement("totalCommits", Integer.toString(totalCommits));
+        }
+        if (totalAdded > 0) {
+            writeElement("totalAdded", Integer.toString(totalAdded));
+        }
+        if (totalRemoved > 0) {
+            writeElement("totalRemoved", Integer.toString(totalRemoved));
+        }
+        if (totalModified > 0) {
+            writeElement("totalModified", Integer.toString(totalModified));
+        }
+        if (!authors.isEmpty()) {
+            out.writeStartElement("Authors");
+
+            for (RevPerson author : authors) {
+                out.writeStartElement("Author");
+                if (author.getName().isPresent()) {
+                    writeElement("name", author.getName().get());
+                }
+                if (author.getEmail().isPresent()) {
+                    writeElement("email", author.getEmail().get());
+                }
+                out.writeEndElement();
+            }
+
+            writeElement("totalAuthors", Integer.toString(authors.size()));
+            out.writeEndElement();
+        }
+        out.writeEndElement();
+
     }
 
     private class GeometryChange {
