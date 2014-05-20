@@ -61,7 +61,7 @@ public class StatisticsWebOp extends AbstractWebAPICommand {
     @Override
     public void run(CommandContext context) {
         final Context geogit = this.getCommandLocator(context);
-        final List<featureTypeStats> stats = Lists.newArrayList();
+        final List<FeatureTypeStats> stats = Lists.newArrayList();
         LogOp logOp = geogit.command(LogOp.class).setFirstParentOnly(true);
         final Iterator<RevCommit> log;
         if (since != null && !since.trim().isEmpty()) {
@@ -86,7 +86,7 @@ public class StatisticsWebOp extends AbstractWebAPICommand {
 
         while (treeIter.hasNext()) {
             NodeRef node = treeIter.next();
-            stats.add(new featureTypeStats(node.path(), context.getGeoGIT().getRepository()
+            stats.add(new FeatureTypeStats(node.path(), context.getGeoGIT().getRepository()
                     .getTree(node.objectId()).size()));
         }
         log = logOp.call();
@@ -151,12 +151,12 @@ public class StatisticsWebOp extends AbstractWebAPICommand {
         });
     }
 
-    public class featureTypeStats {
+    public class FeatureTypeStats {
         long numFeatures;
 
         String featureTypeName;
 
-        public featureTypeStats(String name, long numFeatures) {
+        public FeatureTypeStats(String name, long numFeatures) {
             this.numFeatures = numFeatures;
             this.featureTypeName = name;
         }

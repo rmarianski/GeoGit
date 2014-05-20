@@ -1148,7 +1148,7 @@ public class ResponseWriter {
         out.writeEndElement();
     }
 
-    public void writeStatistics(List<StatisticsWebOp.featureTypeStats> stats,
+    public void writeStatistics(List<StatisticsWebOp.FeatureTypeStats> stats,
             RevCommit firstCommit, RevCommit lastCommit, int totalCommits, List<RevPerson> authors,
             int totalAdded, int totalModified, int totalRemoved) throws XMLStreamException {
         out.writeStartElement("Statistics");
@@ -1156,7 +1156,7 @@ public class ResponseWriter {
         int totalNumFeatures = 0;
         if (!stats.isEmpty()) {
             out.writeStartElement("FeatureTypes");
-            for (StatisticsWebOp.featureTypeStats stat : stats) {
+            for (StatisticsWebOp.FeatureTypeStats stat : stats) {
                 numFeatureTypes++;
                 out.writeStartElement("FeatureType");
                 writeElement("name", stat.getName());
