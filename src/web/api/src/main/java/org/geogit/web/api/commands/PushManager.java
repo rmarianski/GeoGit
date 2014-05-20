@@ -24,12 +24,10 @@ import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 
 /**
- * Provides a safety net for remote pushes. This class keeps track of all objects that are being
- * pushed from a remote repository. As objects are being pushed to the server, they will be stored
- * in the Index database. If every object is successfully transfered, a message will be sent to the
- * PushManager to transfer all of those objects to the repository database. This prevents the
- * repository from getting corrupted if a push fails halfway through.
- * 
+ * Provides a safety net for remote pushes. This class keeps track of the IP addresses of remotes
+ * that have pushed contents to this repository. If every object is successfully transfered, a
+ * message will be sent to the PushManager to update the local references as indicated by the
+ * remote.
  */
 public class PushManager {
 
@@ -65,8 +63,9 @@ public class PushManager {
 
     /**
      * This is called when the machine at the specified ip address is finished pushing objects to
-     * the server. This causes all of those objects to be moved from the index database to the
-     * object database.
+     * the server. This causes the ref given by {@code refSpec} to be updated to point to the given
+     * {@code newCommit} object id, as well as the {@link Ref#WORK_HEAD WORK_HEAD} and
+     * {@link Ref#STAGE_HEAD STAGE_HEAD} refs if {@code refSpec} is the current branch.
      * 
      * @param geogit the geogit of the local repository
      * @param ipAddress the remote machine that is pushing objects
