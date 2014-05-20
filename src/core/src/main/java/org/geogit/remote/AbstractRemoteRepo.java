@@ -6,6 +6,7 @@ package org.geogit.remote;
 
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
+import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.FindCommonAncestor;
 import org.geogit.api.porcelain.SynchronizationException;
 import org.geogit.api.porcelain.SynchronizationException.StatusCode;
@@ -240,6 +241,9 @@ abstract class AbstractRemoteRepo implements IRemoteRepo {
      */
     protected void checkPush(Ref ref, Optional<Ref> remoteRef) throws SynchronizationException {
         if (remoteRef.isPresent()) {
+            if (remoteRef.get() instanceof SymRef) {
+                throw new SynchronizationException(StatusCode.CANNOT_PUSH_TO_SYMBOLIC_REF);
+            }
             if (remoteRef.get().getObjectId().equals(ref.getObjectId())) {
                 // The branches are equal, no need to push.
                 throw new SynchronizationException(StatusCode.NOTHING_TO_PUSH);

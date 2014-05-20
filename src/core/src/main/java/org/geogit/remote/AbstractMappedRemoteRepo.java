@@ -26,6 +26,7 @@ import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject;
 import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.RevTree;
+import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.FindCommonAncestor;
 import org.geogit.api.plumbing.ResolveGeogitDir;
 import org.geogit.api.plumbing.ResolveTreeish;
@@ -393,6 +394,9 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
      */
     protected void checkPush(Ref ref, Optional<Ref> remoteRef) throws SynchronizationException {
         if (remoteRef.isPresent()) {
+            if (remoteRef.get() instanceof SymRef) {
+                throw new SynchronizationException(StatusCode.CANNOT_PUSH_TO_SYMBOLIC_REF);
+            }
             ObjectId mappedId = localRepository.graphDatabase().getMapping(
                     remoteRef.get().getObjectId());
             if (mappedId.equals(ref.getObjectId())) {
