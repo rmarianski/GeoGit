@@ -551,9 +551,9 @@ public class LogOp extends AbstractGeoGitOp<Iterator<RevCommit>> {
                     int parentIndex = 0;
                     do {
                         ObjectId parentId = commit.parentN(parentIndex++).or(ObjectId.NULL);
-                        if (parentId.equals(ObjectId.NULL) || !repository.commitExists(parentId)) {
+                        if (parentId.isNull() || !repository.commitExists(parentId)) {
                             // we have reached the bottom of a shallow clone or the end of history.
-                            if (!currentValue.equals(ObjectId.NULL)) {
+                            if (!currentValue.isNull()) {
                                 applies = true;
                                 break;
                             }
