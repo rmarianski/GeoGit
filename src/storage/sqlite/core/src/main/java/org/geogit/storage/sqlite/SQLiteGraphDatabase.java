@@ -268,7 +268,7 @@ public abstract class SQLiteGraphDatabase<T> implements GraphDatabase {
         }
 
         @Override
-        public List<GraphEdge> getEdges(Direction direction) {
+        public Iterator<GraphEdge> getEdges(final Direction direction) {
             List<GraphEdge> edges = new LinkedList<GraphEdge>();
             if (direction == Direction.IN || direction == Direction.BOTH) {
                 Iterator<String> nodeEdges = incoming(id.toString(), cx).iterator();
@@ -284,7 +284,7 @@ public abstract class SQLiteGraphDatabase<T> implements GraphDatabase {
                     edges.add(new GraphEdge(this, new SQLiteGraphNode(ObjectId.valueOf(otherNode))));
                 }
             }
-            return edges;
+            return edges.iterator();
         }
 
         @Override

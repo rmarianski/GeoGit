@@ -70,7 +70,7 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
         }
 
         @Override
-        public List<GraphEdge> getEdges(Direction direction) {
+        public Iterator<GraphEdge> getEdges(final Direction direction) {
             Iterator<Edge> nodeEdges;
             switch (direction) {
             case OUT:
@@ -88,7 +88,7 @@ public abstract class BlueprintsGraphDatabase<DB extends KeyIndexableGraph> impl
                 edges.add(new GraphEdge(new BlueprintsGraphNode(nodeEdge.getVertex(OUT)),
                         new BlueprintsGraphNode(nodeEdge.getVertex(IN))));
             }
-            return edges;
+            return edges.iterator();
         }
 
         @Override

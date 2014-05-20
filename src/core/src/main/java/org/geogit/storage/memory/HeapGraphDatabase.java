@@ -242,7 +242,7 @@ public class HeapGraphDatabase implements GraphDatabase {
         }
 
         @Override
-        public List<GraphEdge> getEdges(Direction direction) {
+        public Iterator<GraphEdge> getEdges(final Direction direction) {
             Iterator<Edge> nodeEdges;
             switch (direction) {
             case OUT:
@@ -260,7 +260,7 @@ public class HeapGraphDatabase implements GraphDatabase {
                 edges.add(new GraphEdge(new HeapGraphNode(nodeEdge.src), new HeapGraphNode(
                         nodeEdge.dst)));
             }
-            return edges;
+            return edges.iterator();
         }
 
         @Override

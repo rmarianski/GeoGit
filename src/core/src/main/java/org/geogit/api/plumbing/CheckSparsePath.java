@@ -5,7 +5,7 @@
 
 package org.geogit.api.plumbing;
 
-import java.util.List;
+import java.util.Iterator;
 
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.ObjectId;
@@ -62,7 +62,7 @@ public class CheckSparsePath extends AbstractGeoGitOp<Boolean> {
      * @return true if there are any sparse commits between start and end
      */
     @Override
-    protected  Boolean _call() {
+    protected Boolean _call() {
         Preconditions.checkState(start != null, "start commit has not been set.");
         Preconditions.checkState(end != null, "end commit has not been set.");
 
@@ -78,11 +78,12 @@ public class CheckSparsePath extends AbstractGeoGitOp<Boolean> {
         if (node.getIdentifier().equals(end)) {
             return sparse;
         }
-        List<GraphEdge> outgoing = node.getEdges(Direction.OUT);
-        if (outgoing.size() > 0) {
+        Iterator<GraphEdge> outgoing = node.getEdges(Direction.OUT);
+        if (outgoing.hasNext()) {
             boolean node_sparse = node.isSparse();
             boolean combined_sparse = false;
-            for (GraphEdge parent : outgoing) {
+            while (outgoing.hasNext()) {
+                GraphEdge parent = outgoing.next();
                 GraphNode parentNode = parent.getToNode();
                 combined_sparse = combined_sparse
                         || isSparsePath(parentNode, end, sparse || node_sparse);
