@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.geogit.api.GeoGIT;
 import org.geogit.api.Ref;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.RefParse;
+import org.geogit.api.plumbing.ResolveGeogitDir;
 import org.geogit.repository.Hints;
 
 import com.beust.jcommander.JCommander;
@@ -91,6 +93,7 @@ public class GeogitConsole {
     }
 
     private void run(final InputStream in, final OutputStream out) throws IOException {
+
         final Terminal terminal;
         if (interactive) {
             terminal = null;/* let jline select an appropriate one */
@@ -126,7 +129,7 @@ public class GeogitConsole {
                 cli.close();
             } finally {
                 try {
-                    if (interactive) {
+                    if (terminal != null) {
                         terminal.restore();
                     }
                     consoleReader.shutdown();
@@ -185,22 +188,25 @@ public class GeogitConsole {
             geogit = null;
         }
         if (geogit != null) {
-            try {
-                Optional<Ref> ref = geogit.command(RefParse.class).setName(Ref.HEAD).call();
-                if (ref.isPresent()) {
-                    if (ref.get() instanceof SymRef) {
-                        currentHead = ((SymRef) ref.get()).getTarget();
-                        int idx = currentHead.lastIndexOf("/");
-                        if (idx != -1) {
-                            currentHead = currentHead.substring(idx + 1);
+            Optional<URL> dir = geogit.command(ResolveGeogitDir.class).call();
+            if (dir.isPresent()) {
+                try {
+                    Optional<Ref> ref = geogit.command(RefParse.class).setName(Ref.HEAD).call();
+                    if (ref.isPresent()) {
+                        if (ref.get() instanceof SymRef) {
+                            currentHead = ((SymRef) ref.get()).getTarget();
+                            int idx = currentHead.lastIndexOf("/");
+                            if (idx != -1) {
+                                currentHead = currentHead.substring(idx + 1);
+                            }
+                        } else {
+                            currentHead = ref.get().getObjectId().toString().substring(0, 7);
                         }
-                    } else {
-                        currentHead = ref.get().getObjectId().toString().substring(0, 7);
+                        currentHead = " (" + currentHead + ")";
                     }
-                    currentHead = " (" + currentHead + ")";
+                } finally {
+                    geogit.close();
                 }
-            } finally {
-                geogit.close();
             }
         }
         String prompt = "(geogit):" + currentDir + currentHead + " $ ";
