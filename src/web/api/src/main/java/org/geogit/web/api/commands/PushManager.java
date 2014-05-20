@@ -4,21 +4,24 @@
  */
 package org.geogit.web.api.commands;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import static com.google.common.base.Preconditions.checkState;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.geogit.api.GeoGIT;
+import org.geogit.api.GeogitTransaction;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
-import org.geogit.api.RevCommit;
-import org.geogit.api.RevObject;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.RefParse;
+import org.geogit.api.plumbing.ResolveTreeish;
+import org.geogit.api.plumbing.TransactionBegin;
 import org.geogit.api.plumbing.UpdateRef;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
 
 /**
  * Provides a safety net for remote pushes. This class keeps track of all objects that are being
@@ -30,12 +33,12 @@ import com.google.common.base.Optional;
  */
 public class PushManager {
 
-    private Map<String, List<ObjectId>> incomingData;
+    private Set<String> incomingIPs;
 
     private static PushManager instance = new PushManager();
 
     private PushManager() {
-        incomingData = new HashMap<String, List<ObjectId>>();
+        incomingIPs = Collections.synchronizedSet(new HashSet<String>());
     }
 
     /**
@@ -51,14 +54,13 @@ public class PushManager {
      * @param ipAddress the remote machine that is pushing objects
      */
     public void connectionBegin(String ipAddress) {
-        if (incomingData.containsKey(ipAddress)) {
-            incomingData.remove(ipAddress);
+        if (incomingIPs.contains(ipAddress)) {
+            incomingIPs.remove(ipAddress);
         }
-        if (incomingData.size() > 0) {
+        if (incomingIPs.size() > 0) {
             // Fail?
         }
-        List<ObjectId> newList = new LinkedList<ObjectId>();
-        incomingData.put(ipAddress, newList);
+        incomingIPs.add(ipAddress);
     }
 
     /**
@@ -69,17 +71,18 @@ public class PushManager {
      * @param geogit the geogit of the local repository
      * @param ipAddress the remote machine that is pushing objects
      */
-    public void connectionSucceeded(GeoGIT geogit, String ipAddress, String refspec,
-            ObjectId newCommit) {
-        // Add objects to the repository
-        if (incomingData.containsKey(ipAddress)) {
-            List<ObjectId> objectsToMove = incomingData.remove(ipAddress);
-            for (ObjectId oid : objectsToMove) {
-                RevObject toAdd = geogit.getRepository().stagingDatabase().get(oid);
-                geogit.getRepository().objectDatabase().put(toAdd);
-            }
-            Optional<Ref> oldRef = geogit.command(RefParse.class).setName(refspec).call();
-            Optional<Ref> headRef = geogit.command(RefParse.class).setName(Ref.HEAD).call();
+    public void connectionSucceeded(final GeoGIT geogit, final String ipAddress,
+            final String refspec, final ObjectId newCommit) {
+
+        if (!incomingIPs.remove(ipAddress)) {// remove and check for existence in one shot
+            throw new RuntimeException("Tried to end a connection that didn't exist.");
+        }
+
+        // Do not use the geogit instance after this, but the tx one!
+        GeogitTransaction tx = geogit.command(TransactionBegin.class).call();
+        try {
+            Optional<Ref> oldRef = tx.command(RefParse.class).setName(refspec).call();
+            Optional<Ref> headRef = tx.command(RefParse.class).setName(Ref.HEAD).call();
             String refName = refspec;
             if (oldRef.isPresent()) {
                 if (oldRef.get().getObjectId().equals(newCommit)) {
@@ -89,48 +92,22 @@ public class PushManager {
             }
             if (headRef.isPresent() && headRef.get() instanceof SymRef) {
                 if (((SymRef) headRef.get()).getTarget().equals(refName)) {
-                    RevCommit commit = geogit.getRepository().getCommit(newCommit);
-                    geogit.command(UpdateRef.class).setName(Ref.WORK_HEAD)
-                            .setNewValue(commit.getTreeId()).call();
-                    geogit.command(UpdateRef.class).setName(Ref.STAGE_HEAD)
-                            .setNewValue(commit.getTreeId()).call();
+                    Optional<ObjectId> commitTreeId = tx.command(ResolveTreeish.class)
+                            .setTreeish(newCommit).call();
+                    checkState(commitTreeId.isPresent(), "Commit %s not found", newCommit);
+
+                    tx.command(UpdateRef.class).setName(Ref.WORK_HEAD)
+                            .setNewValue(commitTreeId.get()).call();
+                    tx.command(UpdateRef.class).setName(Ref.STAGE_HEAD)
+                            .setNewValue(commitTreeId.get()).call();
                 }
             }
+            tx.command(UpdateRef.class).setName(refName).setNewValue(newCommit).call();
 
-            geogit.command(UpdateRef.class).setName(refName).setNewValue(newCommit).call();
-        } else {
-            throw new RuntimeException("Tried to end a connection that didn't exist.");
-        }
-    }
-
-    /**
-     * Determines if a given object has already been pushed.
-     * 
-     * @param ipAddress the remote machine that is pushing objects
-     * @param oid the id of the object
-     * @return {@code true} if the object has already been pushed and is being tracked by the
-     *         {@code PushManager}
-     */
-    public boolean alreadyPushed(String ipAddress, ObjectId oid) {
-        if (incomingData.containsKey(ipAddress)) {
-            return incomingData.get(ipAddress).contains(oid);
-        }
-        return false;
-    }
-
-    /**
-     * Tells the {@code PushManager} that an object has been added to the index database and should
-     * be tracked for the given connection.
-     * 
-     * @param ipAddress the remote machine that is pushing objects
-     * @param oid the id of the object
-     */
-    public void addObject(String ipAddress, ObjectId oid) {
-        if (incomingData.containsKey(ipAddress)) {
-            incomingData.get(ipAddress).add(oid);
-        } else {
-            throw new RuntimeException(
-                    "Tried to push an object without first opening a connection.");
+            tx.commit();
+        } catch (Exception e) {
+            tx.abort();
+            throw Throwables.propagate(e);
         }
     }
 }

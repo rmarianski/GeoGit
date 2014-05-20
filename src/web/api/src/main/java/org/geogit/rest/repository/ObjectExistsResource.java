@@ -14,9 +14,7 @@ import java.util.List;
 import org.geogit.api.GeoGIT;
 import org.geogit.api.ObjectId;
 import org.geogit.repository.Repository;
-import org.geogit.web.api.commands.PushManager;
 import org.restlet.Context;
-import org.restlet.data.ClientInfo;
 import org.restlet.data.Form;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -58,15 +56,7 @@ public class ObjectExistsResource extends Resource {
             Repository repository = geogit.getRepository();
             boolean blobExists = repository.blobExists(oid);
 
-            ClientInfo info = getRequest().getClientInfo();
-            // make a combined ip address to handle requests from multiple machines in the same
-            // external network.
-            // e.g.: ext.ern.al.IP.int.ern.al.IP
-            String ipAddress = info.getAddress() + "." + options.getFirstValue("internalIp", "");
-            PushManager pushManager = PushManager.get();
-            boolean alreadyPushed = pushManager.alreadyPushed(ipAddress, oid);
-
-            if (blobExists || alreadyPushed) {
+            if (blobExists) {
                 w.write("1");
             } else {
                 w.write("0");
