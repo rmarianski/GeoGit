@@ -271,9 +271,13 @@ public class OSMUnmapOp extends AbstractGeoGitOp<RevTree> {
                 }
 
                 if (!DefaultField.isDefaultField(tagName)) {
-                    if (tagsMap.containsKey(tagName) && !modified) {
-                        String oldValue = tagsMap.get(tagName);
-                        modified = !value.equals(oldValue);
+                    if (tagsMap.containsKey(tagName)) {
+                        if (!modified) {
+                            String oldValue = tagsMap.get(tagName);
+                            modified = !value.equals(oldValue);
+                        }
+                    } else {
+                        modified = true;
                     }
                     tagsMap.put(tagName, value.toString());
                 }
@@ -438,9 +442,13 @@ public class OSMUnmapOp extends AbstractGeoGitOp<RevTree> {
                 }
 
                 if (!DefaultField.isDefaultField(tagName)) {
-                    if (tagsMap.containsKey(tagName) && !modified) {
-                        String oldValue = tagsMap.get(tagName);
-                        modified = !value.equals(oldValue);
+                    if (tagsMap.containsKey(tagName)) {
+                        if (!modified) {
+                            String oldValue = tagsMap.get(tagName);
+                            modified = !value.equals(oldValue);
+                        }
+                    } else {
+                        modified = true;
                     }
                     tagsMap.put(tagName, value.toString());
                 }
@@ -484,5 +492,4 @@ public class OSMUnmapOp extends AbstractGeoGitOp<RevTree> {
         }
 
     }
-
 }
