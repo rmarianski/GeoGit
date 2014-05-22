@@ -15,16 +15,10 @@ import java.io.OutputStream;
 import java.util.Iterator;
 
 import org.geogit.api.ObjectId;
-import org.geogit.api.RevFeature;
-import org.geogit.api.RevFeatureType;
 import org.geogit.api.RevObject;
 import org.geogit.api.RevObject.TYPE;
-import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.repository.Repository;
-import org.geogit.storage.ObjectReader;
-import org.geogit.storage.ObjectSerializingFactory;
-import org.geogit.storage.ObjectWriter;
 import org.geogit.storage.datastream.DataStreamSerializationFactory;
 import org.geogit.storage.datastream.FormatCommon;
 
@@ -36,13 +30,7 @@ import com.google.common.base.Throwables;
  */
 public final class BinaryPackedChanges {
 
-    private final ObjectWriter<RevTree> treeWriter;
-
-    private final ObjectWriter<RevFeatureType> featureTypeWriter;
-
-    private final ObjectWriter<RevFeature> featureWriter;
-
-    private final ObjectReader<RevObject> objectReader;
+    private static final DataStreamSerializationFactory serializer = DataStreamSerializationFactory.INSTANCE;
 
     private final int CAP = 100;
 
@@ -88,11 +76,6 @@ public final class BinaryPackedChanges {
      */
     public BinaryPackedChanges(Repository repository) {
         this.repository = repository;
-        final ObjectSerializingFactory factory = new DataStreamSerializationFactory();
-        this.treeWriter = factory.createObjectWriter(RevObject.TYPE.TREE);
-        this.featureTypeWriter = factory.createObjectWriter(RevObject.TYPE.FEATURETYPE);
-        this.featureWriter = factory.createObjectWriter(RevObject.TYPE.FEATURE);
-        this.objectReader = factory.createObjectReader();
         filtered = false;
     }
 
@@ -136,14 +119,7 @@ public final class BinaryPackedChanges {
                     out.write(CHUNK_TYPE.METADATA_OBJECT_AND_DIFF_ENTRY.value());
                     metadata = repository.objectDatabase().get(diff.getNewObject().getMetadataId());
                     out.write(metadata.getId().getRawValue());
-                    if (metadata instanceof RevTree) {
-                        treeWriter.write((RevTree) metadata, out);
-                    } else if (metadata instanceof RevFeature) {
-                        featureWriter.write((RevFeature) metadata, out);
-                    } else if (metadata instanceof RevFeatureType) {
-                        featureTypeWriter.write((RevFeatureType) metadata, out);
-                    }
-
+                    serializer.createObjectWriter(metadata.getType()).write(metadata, out);
                 } else {
                     out.write(CHUNK_TYPE.OBJECT_AND_DIFF_ENTRY.value());
                 }
@@ -151,14 +127,7 @@ public final class BinaryPackedChanges {
                         diff.getNewObject().getNode().getObjectId());
 
                 out.write(object.getId().getRawValue());
-                if (object instanceof RevTree) {
-                    treeWriter.write((RevTree) object, out);
-                } else if (object instanceof RevFeature) {
-                    featureWriter.write((RevFeature) object, out);
-                } else if (object instanceof RevFeatureType) {
-                    featureTypeWriter.write((RevFeatureType) object, out);
-                }
-
+                serializer.createObjectWriter(object.getType()).write(object, out);
             } else {
                 out.write(CHUNK_TYPE.DIFF_ENTRY.value());
             }
@@ -232,7 +201,7 @@ public final class BinaryPackedChanges {
         }
         if (chunkType == CHUNK_TYPE.METADATA_OBJECT_AND_DIFF_ENTRY.value()) {
             ObjectId id = readObjectId(in);
-            RevObject revObj = objectReader.read(id, in);
+            RevObject revObj = serializer.createObjectReader().read(id, in);
 
             if (!repository.objectDatabase().exists(id)) {
                 repository.objectDatabase().put(revObj);
@@ -240,7 +209,7 @@ public final class BinaryPackedChanges {
         }
         if (chunkType != CHUNK_TYPE.DIFF_ENTRY.value()) {
             ObjectId id = readObjectId(in);
-            RevObject revObj = objectReader.read(id, in);
+            RevObject revObj = serializer.createObjectReader().read(id, in);
 
             if (!repository.objectDatabase().exists(id)) {
                 repository.objectDatabase().put(revObj);
