@@ -28,11 +28,10 @@ public class HttpFilteredDiffIterator extends FilteredDiffIterator {
     public HttpFilteredDiffIterator(InputStream in, BinaryPackedChanges changes) {
         super(null, null, null);
         objects = new LinkedList<DiffEntry>();
-        BinaryPackedChanges.Callback<Void> callback = new BinaryPackedChanges.Callback<Void>() {
+        BinaryPackedChanges.Callback callback = new BinaryPackedChanges.Callback() {
             @Override
-            public Void callback(DiffEntry object, Void state) {
+            public void callback(DiffEntry object) {
                 objects.add(object);
-                return null;
             }
         };
         changes.ingest(in, callback);

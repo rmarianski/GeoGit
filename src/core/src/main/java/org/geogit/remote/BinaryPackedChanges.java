@@ -104,9 +104,8 @@ public final class BinaryPackedChanges {
      * @return the state of the operation at the conclusion of writing
      * @throws IOException
      */
-    public <T> T write(OutputStream out, Iterator<DiffEntry> changes, Callback<T> callback)
+    public void write(OutputStream out, Iterator<DiffEntry> changes, Callback callback)
             throws IOException {
-        T state = null;
         int changesSent = 0;
 
         while (changes.hasNext() && changesSent < CAP) {
@@ -133,7 +132,7 @@ public final class BinaryPackedChanges {
             }
             DataOutput dataOut = new DataOutputStream(out);
             FormatCommon.writeDiff(diff, dataOut);
-            state = callback.callback(diff, state);
+            callback.callback(diff);
 
         }
         // signal the end of changes
@@ -144,8 +143,6 @@ public final class BinaryPackedChanges {
         } else {
             out.write(0);
         }
-
-        return state;
     }
 
     /**
@@ -166,18 +163,16 @@ public final class BinaryPackedChanges {
      * @param in the stream to read from
      * @param callback the callback to call for each item
      */
-    public <T> T ingest(final InputStream in, Callback<T> callback) {
-        T state = null;
+    public void ingest(final InputStream in, Callback callback) {
         while (true) {
             try {
-                state = ingestOne(in, callback, state);
+                ingestOne(in, callback);
             } catch (EOFException e) {
                 break;
             } catch (IOException e) {
                 Throwables.propagate(e);
             }
         }
-        return state;
     }
 
     /**
@@ -185,13 +180,10 @@ public final class BinaryPackedChanges {
      * 
      * @param in the stream to read from
      * @param callback the callback to call on the resulting item
-     * @param state the current state of the operation
-     * @return the new state of the operation
      * @throws IOException
      */
-    private <T> T ingestOne(final InputStream in, Callback<T> callback, T state) throws IOException {
+    private void ingestOne(final InputStream in, Callback callback) throws IOException {
         int chunkType = in.read();
-        final T result;
         if (chunkType == CHUNK_TYPE.FILTER_FLAG.value()) {
             int changesFiltered = in.read();
             if (changesFiltered != 0) {
@@ -217,8 +209,7 @@ public final class BinaryPackedChanges {
         }
         DataInput dataIn = new DataInputStream(in);
         DiffEntry diff = FormatCommon.readDiff(dataIn);
-        result = callback.callback(diff, state);
-        return result;
+        callback.callback(diff);
     }
 
     /**
@@ -245,18 +236,16 @@ public final class BinaryPackedChanges {
     }
 
     /**
-     * Inteface for callback methods to be used by the read and write operations.
-     * 
-     * @param <T> the type of the state parameter
+     * Interface for callback methods to be used by the read and write operations.
      */
-    public static interface Callback<T> {
-        public abstract T callback(DiffEntry diff, T state);
+    public static interface Callback {
+        public abstract void callback(DiffEntry diff);
     }
 
-    private static final Callback<Void> DEFAULT_CALLBACK = new Callback<Void>() {
+    private static final Callback DEFAULT_CALLBACK = new Callback() {
         @Override
-        public Void callback(DiffEntry diff, Void state) {
-            return null;
+        public void callback(DiffEntry diff) {
+            // do nothing
         }
     };
 }
