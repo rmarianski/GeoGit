@@ -6,6 +6,8 @@
 package org.geogit.geotools.plumbing;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -23,10 +25,10 @@ import org.geogit.api.RevTree;
 import org.geogit.api.data.ForwardingFeatureCollection;
 import org.geogit.api.data.ForwardingFeatureIterator;
 import org.geogit.api.data.ForwardingFeatureSource;
+import org.geogit.api.hooks.Hookable;
 import org.geogit.api.plumbing.LsTreeOp;
 import org.geogit.api.plumbing.LsTreeOp.Strategy;
 import org.geogit.api.plumbing.RevObjectParse;
-import org.geogit.api.hooks.Hookable;
 import org.geogit.geotools.plumbing.GeoToolsOpException.StatusCode;
 import org.geogit.repository.WorkingTree;
 import org.geotools.data.DataStore;
@@ -48,6 +50,7 @@ import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.identity.FeatureId;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -108,10 +111,18 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
      * @return RevTree the new working tree
      */
     @Override
-    protected  RevTree _call() {
+    protected RevTree _call() {
 
         // check preconditions and get the actual list of type names to import
         final String[] typeNames = checkPreconditions();
+
+        for (int i = 0; i < typeNames.length; i++) {
+            try {
+                typeNames[i] = URLDecoder.decode(typeNames[i], Charsets.UTF_8.displayName());
+            } catch (UnsupportedEncodingException e) {
+                // shouldn't reach here.
+            }
+        }
 
         ProgressListener progressListener = getProgressListener();
         progressListener.started();
