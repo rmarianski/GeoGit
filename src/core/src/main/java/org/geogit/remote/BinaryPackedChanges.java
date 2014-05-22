@@ -19,7 +19,6 @@ import java.util.Set;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevObject;
-import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.repository.Repository;
 import org.geogit.storage.ObjectDatabase;
@@ -68,6 +67,10 @@ public final class BinaryPackedChanges {
 
         public abstract int value();
 
+        public static CHUNK_TYPE valueOf(int value) {
+            // abusing the fact that value() coincides with ordinal()
+            return CHUNK_TYPE.values()[value];
+        }
     };
 
     /**
@@ -137,8 +140,8 @@ public final class BinaryPackedChanges {
                 }
 
                 ObjectId objectId = newObject.objectId();
-                RevObject object = objectDatabase.get(objectId);
                 writeObjectId(objectId, out, oidbuffer);
+                RevObject object = objectDatabase.get(objectId);
                 serializer.createObjectWriter(object.getType()).write(object, out);
             }
             DataOutput dataOut = new DataOutputStream(out);
@@ -148,12 +151,9 @@ public final class BinaryPackedChanges {
         }
         // signal the end of changes
         out.write(CHUNK_TYPE.FILTER_FLAG.value());
-        if (changes instanceof FilteredDiffIterator
-                && ((FilteredDiffIterator) changes).wasFiltered()) {
-            out.write(1);
-        } else {
-            out.write(0);
-        }
+        final boolean filtersApplied = changes instanceof FilteredDiffIterator
+                && ((FilteredDiffIterator) changes).wasFiltered();
+        out.write(filtersApplied ? 1 : 0);
     }
 
     private void writeObjectId(ObjectId objectId, OutputStream out, byte[] oidbuffer)
@@ -200,32 +200,42 @@ public final class BinaryPackedChanges {
      * @throws IOException
      */
     private void ingestOne(final InputStream in, Callback callback) throws IOException {
-        int chunkType = in.read();
-        if (chunkType == CHUNK_TYPE.FILTER_FLAG.value()) {
+        ObjectDatabase objectDatabase = repository.objectDatabase();
+        DataInput data = new DataInputStream(in);
+
+        final CHUNK_TYPE chunkType = CHUNK_TYPE.valueOf((int) (data.readByte() & 0xFF));
+
+        switch (chunkType) {
+        case DIFF_ENTRY: {
+            ObjectId id = readObjectId(in);
+            RevObject revObj = serializer.createObjectReader().read(id, in);
+            objectDatabase.put(revObj);
+        }
+            break;
+        case METADATA_OBJECT_AND_DIFF_ENTRY: {
+            ObjectId mdid = readObjectId(in);
+            RevObject md = serializer.createObjectReader().read(mdid, in);
+            objectDatabase.put(md);
+
+            ObjectId id = readObjectId(in);
+            RevObject revObj = serializer.createObjectReader().read(id, in);
+            objectDatabase.put(revObj);
+        }
+            break;
+        case OBJECT_AND_DIFF_ENTRY:
+            break;
+        case FILTER_FLAG: {
             int changesFiltered = in.read();
             if (changesFiltered != 0) {
                 filtered = true;
             }
             throw new EOFException();
         }
-        if (chunkType == CHUNK_TYPE.METADATA_OBJECT_AND_DIFF_ENTRY.value()) {
-            ObjectId id = readObjectId(in);
-            RevObject revObj = serializer.createObjectReader().read(id, in);
-
-            if (!repository.objectDatabase().exists(id)) {
-                repository.objectDatabase().put(revObj);
-            }
+        default:
+            throw new IllegalStateException("Unknown chunk type: " + chunkType);
         }
-        if (chunkType != CHUNK_TYPE.DIFF_ENTRY.value()) {
-            ObjectId id = readObjectId(in);
-            RevObject revObj = serializer.createObjectReader().read(id, in);
 
-            if (!repository.objectDatabase().exists(id)) {
-                repository.objectDatabase().put(revObj);
-            }
-        }
-        DataInput dataIn = new DataInputStream(in);
-        DiffEntry diff = FormatCommon.readDiff(dataIn);
+        DiffEntry diff = FormatCommon.readDiff(data);
         callback.callback(diff);
     }
 
