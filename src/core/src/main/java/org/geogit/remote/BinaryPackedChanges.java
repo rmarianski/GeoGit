@@ -12,13 +12,17 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
+import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevObject;
 import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.repository.Repository;
+import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.datastream.DataStreamSerializationFactory;
 import org.geogit.storage.datastream.FormatCommon;
 
@@ -31,12 +35,6 @@ import com.google.common.base.Throwables;
 public final class BinaryPackedChanges {
 
     private static final DataStreamSerializationFactory serializer = DataStreamSerializationFactory.INSTANCE;
-
-    /*
-     * I think the receiving end will continue to make requests until it has all of the data. If I
-     * (JD) remember correctly it was to avoid timeouts, but I'm not sure
-     */
-    private final int CAP = 100;
 
     private final Repository repository;
 
@@ -110,29 +108,38 @@ public final class BinaryPackedChanges {
      */
     public void write(OutputStream out, Iterator<DiffEntry> changes, Callback callback)
             throws IOException {
-        int changesSent = 0;
 
-        while (changes.hasNext() && changesSent < CAP) {
+        final ObjectDatabase objectDatabase = repository.objectDatabase();
+
+        // avoids sending the same metadata object multiple times
+        Set<ObjectId> writtenMetadataIds = new HashSet<ObjectId>();
+
+        // buffer to avoid ObjectId cloning its internal state for each object
+        byte[] oidbuffer = new byte[ObjectId.NUM_BYTES];
+
+        while (changes.hasNext()) {
             DiffEntry diff = changes.next();
 
-            RevObject object = null;
-            RevObject metadata = null;
-            if (diff.getNewObject() != null) {
-                if (diff.getNewObject().getType() != TYPE.FEATURE) {
-                    out.write(CHUNK_TYPE.METADATA_OBJECT_AND_DIFF_ENTRY.value());
-                    metadata = repository.objectDatabase().get(diff.getNewObject().getMetadataId());
-                    out.write(metadata.getId().getRawValue());
-                    serializer.createObjectWriter(metadata.getType()).write(metadata, out);
-                } else {
-                    out.write(CHUNK_TYPE.OBJECT_AND_DIFF_ENTRY.value());
-                }
-                object = repository.objectDatabase().get(
-                        diff.getNewObject().getNode().getObjectId());
-
-                out.write(object.getId().getRawValue());
-                serializer.createObjectWriter(object.getType()).write(object, out);
-            } else {
+            if (diff.isDelete()) {
                 out.write(CHUNK_TYPE.DIFF_ENTRY.value());
+            } else {
+                // its a change or an addition, new object is guaranteed to be present
+                NodeRef newObject = diff.getNewObject();
+                ObjectId metadataId = newObject.getMetadataId();
+                if (writtenMetadataIds.contains(metadataId)) {
+                    out.write(CHUNK_TYPE.OBJECT_AND_DIFF_ENTRY.value());
+                } else {
+                    out.write(CHUNK_TYPE.METADATA_OBJECT_AND_DIFF_ENTRY.value());
+                    RevObject metadata = objectDatabase.get(metadataId);
+                    writeObjectId(metadataId, out, oidbuffer);
+                    serializer.createObjectWriter(metadata.getType()).write(metadata, out);
+                    writtenMetadataIds.add(metadataId);
+                }
+
+                ObjectId objectId = newObject.objectId();
+                RevObject object = objectDatabase.get(objectId);
+                writeObjectId(objectId, out, oidbuffer);
+                serializer.createObjectWriter(object.getType()).write(object, out);
             }
             DataOutput dataOut = new DataOutputStream(out);
             FormatCommon.writeDiff(diff, dataOut);
@@ -147,6 +154,12 @@ public final class BinaryPackedChanges {
         } else {
             out.write(0);
         }
+    }
+
+    private void writeObjectId(ObjectId objectId, OutputStream out, byte[] oidbuffer)
+            throws IOException {
+        objectId.getRawValue(oidbuffer);
+        out.write(oidbuffer);
     }
 
     /**
