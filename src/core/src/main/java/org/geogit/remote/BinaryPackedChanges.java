@@ -5,17 +5,19 @@
 package org.geogit.remote;
 
 import static org.geogit.storage.datastream.FormatCommon.readObjectId;
+
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -26,7 +28,9 @@ import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.datastream.DataStreamSerializationFactory;
 import org.geogit.storage.datastream.FormatCommon;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.AbstractIterator;
 
 /**
  * Provides a method of packing a set of changes and the affected objects to and from a binary
@@ -148,7 +152,6 @@ public final class BinaryPackedChanges {
             DataOutput dataOut = new DataOutputStream(out);
             FormatCommon.writeDiff(diff, dataOut);
             callback.callback(diff);
-
         }
         // signal the end of changes
         out.write(CHUNK_TYPE.FILTER_FLAG.value());
@@ -182,62 +185,135 @@ public final class BinaryPackedChanges {
      * @param callback the callback to call for each item
      */
     public void ingest(final InputStream in, Callback callback) {
-        while (true) {
-            try {
-                ingestOne(in, callback);
-            } catch (EOFException e) {
-                break;
-            } catch (IOException e) {
-                Throwables.propagate(e);
-            }
-        }
+        PacketReadingIterator readingIterator = new PacketReadingIterator(in);
+
+        Iterator<RevObject> asObjects = asObjects(readingIterator, callback);
+
+        ObjectDatabase objectDatabase = repository.objectDatabase();
+        objectDatabase.putAll(asObjects);
+
+        this.filtered = readingIterator.isFiltered();
     }
 
     /**
-     * Reads in a single change from the provided input stream.
-     * 
-     * @param in the stream to read from
-     * @param callback the callback to call on the resulting item
-     * @throws IOException
+     * Returns an iterator that calls the {@code callback} for each {@link DiffPacket}'s
+     * {@link DiffEntry} once, and returns either zero, one, or two {@link RevObject}s, depending on
+     * which information the diff packet carried over.
      */
-    private void ingestOne(final InputStream in, Callback callback) throws IOException {
-        ObjectDatabase objectDatabase = repository.objectDatabase();
-        DataInput data = new DataInputStream(in);
+    private Iterator<RevObject> asObjects(final PacketReadingIterator readingIterator,
+            final Callback callback) {
+        return new AbstractIterator<RevObject>() {
 
-        final CHUNK_TYPE chunkType = CHUNK_TYPE.valueOf((int) (data.readByte() & 0xFF));
+            private DiffPacket current;
 
-        switch (chunkType) {
-        case DIFF_ENTRY: {
-            ObjectId id = readObjectId(data);
-            RevObject revObj = serializer.createObjectReader().read(id, in);
-            objectDatabase.put(revObj);
-        }
-            break;
-        case METADATA_OBJECT_AND_DIFF_ENTRY: {
-            ObjectId mdid = readObjectId(data);
-            RevObject md = serializer.createObjectReader().read(mdid, in);
-            objectDatabase.put(md);
-
-            ObjectId id = readObjectId(data);
-            RevObject revObj = serializer.createObjectReader().read(id, in);
-            objectDatabase.put(revObj);
-        }
-            break;
-        case OBJECT_AND_DIFF_ENTRY:
-            break;
-        case FILTER_FLAG: {
-            int changesFiltered = in.read();
-            if (changesFiltered != 0) {
-                filtered = true;
+            @Override
+            protected RevObject computeNext() {
+                if (current != null) {
+                    Preconditions.checkState(current.metadataObject != null);
+                    RevObject ret = current.metadataObject;
+                    current = null;
+                    return ret;
+                }
+                while (readingIterator.hasNext()) {
+                    DiffPacket diffPacket = readingIterator.next();
+                    callback.callback(diffPacket.entry);
+                    RevObject obj = diffPacket.newObject;
+                    RevObject md = diffPacket.metadataObject;
+                    Preconditions.checkState(obj != null || (obj == null && md == null));
+                    if (obj != null) {
+                        if (md != null) {
+                            current = diffPacket;
+                        }
+                        return obj;
+                    }
+                }
+                return endOfData();
             }
-            throw new EOFException();
+        };
+    }
+
+    private static class DiffPacket {
+
+        public final DiffEntry entry;
+
+        @Nullable
+        public final RevObject newObject;
+
+        @Nullable
+        public final RevObject metadataObject;
+
+        public DiffPacket(DiffEntry entry, @Nullable RevObject newObject,
+                @Nullable RevObject metadata) {
+            this.entry = entry;
+            this.newObject = newObject;
+            this.metadataObject = metadata;
         }
-        default:
-            throw new IllegalStateException("Unknown chunk type: " + chunkType);
+    }
+
+    private static class PacketReadingIterator extends AbstractIterator<DiffPacket> {
+
+        private InputStream in;
+
+        private DataInput data;
+
+        private boolean filtered;
+
+        public PacketReadingIterator(InputStream in) {
+            this.in = in;
+            this.data = new DataInputStream(in);
         }
 
-        DiffEntry diff = FormatCommon.readDiff(data);
-        callback.callback(diff);
+        /**
+         * @return {@code true} if the stream finished with a non zero "filter applied" marker
+         */
+        public boolean isFiltered() {
+            return filtered;
+        }
+
+        @Override
+        protected DiffPacket computeNext() {
+            try {
+                return readNext();
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+
+        private DiffPacket readNext() throws IOException {
+            final CHUNK_TYPE chunkType = CHUNK_TYPE.valueOf((int) (data.readByte() & 0xFF));
+
+            RevObject revObj = null;
+            RevObject metadata = null;
+
+            switch (chunkType) {
+            case DIFF_ENTRY:
+                break;
+            case OBJECT_AND_DIFF_ENTRY: {
+                ObjectId id = readObjectId(data);
+                revObj = serializer.createObjectReader().read(id, in);
+            }
+                break;
+            case METADATA_OBJECT_AND_DIFF_ENTRY: {
+                ObjectId mdid = readObjectId(data);
+                metadata = serializer.createObjectReader().read(mdid, in);
+                ObjectId id = readObjectId(data);
+                revObj = serializer.createObjectReader().read(id, in);
+            }
+                break;
+            case FILTER_FLAG: {
+                int changesFiltered = in.read();
+                if (changesFiltered != 0) {
+                    filtered = true;
+                }
+                return endOfData();
+            }
+            default:
+                throw new IllegalStateException("Unknown chunk type: " + chunkType);
+            }
+
+            DiffEntry diff = FormatCommon.readDiff(data);
+            return new DiffPacket(diff, revObj, metadata);
+        }
     }
 
     /**
