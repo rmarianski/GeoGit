@@ -58,7 +58,42 @@ public class TestHelper {
         builder4.add("number", Double.class);
         builder4.setName("table4");
 
+        // A table with a shp-like structure
+        SimpleFeatureTypeBuilder builderShp = new SimpleFeatureTypeBuilder();
+        builderShp.setCRS(CRS.decode("EPSG:4326"));
+        builderShp.add("the_geom", Point.class);
+        builderShp.add("number", Double.class);
+        builderShp.add("number2", Double.class);
+        builderShp.setName("shpLikeTable");
+
+        SimpleFeatureTypeBuilder builderShp2 = new SimpleFeatureTypeBuilder();
+        builderShp2.setCRS(CRS.decode("EPSG:4326"));
+        builderShp2.add("the_geom", Point.class);
+        builderShp2.add("number", Double.class);
+        builderShp2.add("number2", Integer.class);
+        builderShp2.setName("shpLikeTable2");
+
+        // A table with a geojson-like structure
+        SimpleFeatureTypeBuilder builderGeoJson = new SimpleFeatureTypeBuilder();
+        builderGeoJson.setCRS(CRS.decode("EPSG:4326"));
+        builderGeoJson.add("number", Double.class);
+        builderGeoJson.add("number2", Double.class);
+        builderGeoJson.add("geom", Point.class);
+        builderGeoJson.setName("GeoJsonLikeTable");
+
+        SimpleFeatureTypeBuilder builderGeoJson2 = new SimpleFeatureTypeBuilder();
+        builderGeoJson2.setCRS(CRS.decode("EPSG:23030"));
+        builderGeoJson2.add("number", Double.class);
+        builderGeoJson2.add("number2", Double.class);
+        builderGeoJson2.add("geom", Point.class);
+        builderGeoJson2.setName("GeoJsonLikeTable2");
+
         SimpleFeatureType type3 = builder3.buildFeatureType();
+
+        SimpleFeatureType typeShp = builderShp.buildFeatureType();
+        SimpleFeatureType typeShp2 = builderShp2.buildFeatureType();
+        SimpleFeatureType typeGeoJson = builderGeoJson.buildFeatureType();
+        SimpleFeatureType typeGeoJson2 = builderGeoJson2.buildFeatureType();
 
         GeometryFactory gf = new GeometryFactory();
         SimpleFeature f1 = SimpleFeatureBuilder.build(type,
@@ -73,12 +108,24 @@ public class TestHelper {
         SimpleFeature f4 = SimpleFeatureBuilder.build(type3,
                 new Object[] { gf.createPoint(new Coordinate(0, 5)), "feature4", 1000 },
                 "table2.feature4");
+        SimpleFeature f5 = SimpleFeatureBuilder.build(typeShp,
+                new Object[] { gf.createPoint(new Coordinate(0, 6)), 2.2, 1000 }, "feature1");
+        SimpleFeature f6 = SimpleFeatureBuilder.build(typeShp2,
+                new Object[] { gf.createPoint(new Coordinate(0, 7)), 3.2, 1100.0 }, "feature1");
+        SimpleFeature f7 = SimpleFeatureBuilder.build(typeGeoJson,
+                new Object[] { 4.2, 1200, gf.createPoint(new Coordinate(0, 8)) }, "feature1");
+        SimpleFeature f8 = SimpleFeatureBuilder.build(typeGeoJson2,
+                new Object[] { 4.2, 1200, gf.createPoint(new Coordinate(0, 9)) }, "feature1");
 
         MemoryDataStore testDataStore = new MemoryDataStore();
         testDataStore.addFeature(f1);
         testDataStore.addFeature(f2);
         testDataStore.addFeature(f3);
         testDataStore.addFeature(f4);
+        testDataStore.addFeature(f5);
+        testDataStore.addFeature(f6);
+        testDataStore.addFeature(f7);
+        testDataStore.addFeature(f8);
         testDataStore.createSchema(builder4.buildFeatureType());
 
         final AbstractDataStoreFactory factory = mock(AbstractDataStoreFactory.class);

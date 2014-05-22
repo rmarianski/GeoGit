@@ -23,6 +23,7 @@ import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.FindTreeChild;
 import org.geogit.api.plumbing.LsTreeOp;
 import org.geogit.api.plumbing.LsTreeOp.Strategy;
+import org.geogit.api.plumbing.ResolveFeatureType;
 import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.api.porcelain.AddOp;
 import org.geogit.geotools.cli.porcelain.TestHelper;
@@ -194,6 +195,7 @@ public class ImportOpTest extends RepositoryTestCase {
         importOp.setDataStore(TestHelper.createTestFactory().createDataStore(null));
         importOp.setAll(true);
         importOp.setDestinationPath("dest");
+        importOp.setAdaptToDefaultFeatureType(false);
         importOp.call();
         Iterator<NodeRef> features = geogit.command(LsTreeOp.class)
                 .setStrategy(Strategy.DEPTHFIRST_ONLY_FEATURES).call();
@@ -203,7 +205,7 @@ public class ImportOpTest extends RepositoryTestCase {
         for (NodeRef node : list) {
             set.add(node.getMetadataId());
         }
-        assertEquals(3, set.size());
+        assertEquals(4, set.size());
         for (ObjectId metadataId : set) {
             Optional<RevFeatureType> ft = geogit.command(RevObjectParse.class)
                     .setObjectId(metadataId).call(RevFeatureType.class);
@@ -223,11 +225,13 @@ public class ImportOpTest extends RepositoryTestCase {
         GeometryFactory gf = new GeometryFactory();
         SimpleFeature feature = SimpleFeatureBuilder.build(type,
                 new Object[] { gf.createPoint(new Coordinate(0, 0)), "feature0" }, "feature");
-        geogit.getRepository().workingTree().insert("table1", feature);
+        geogit.getRepository().workingTree().insert("dest", feature);
         ImportOp importOp = geogit.command(ImportOp.class);
         importOp.setDataStore(TestHelper.createTestFactory().createDataStore(null));
         importOp.setAll(true);
+        importOp.setOverwrite(false);
         importOp.setDestinationPath("dest");
+        importOp.setAdaptToDefaultFeatureType(false);
         importOp.call();
         Iterator<NodeRef> features = geogit.command(LsTreeOp.class)
                 .setStrategy(Strategy.DEPTHFIRST_ONLY_FEATURES).call();
@@ -242,16 +246,17 @@ public class ImportOpTest extends RepositoryTestCase {
             ftlist.add(ft.get());
             set.add(node.getMetadataId());
         }
-        assertEquals(3, set.size());
+        assertEquals(4, set.size());
     }
 
     @Test
-    public void testAdd() throws Exception {
+    public void testAddUsingOriginalFeatureType() throws Exception {
         ImportOp importOp = geogit.command(ImportOp.class);
         importOp.setDataStore(TestHelper.createTestFactory().createDataStore(null));
         importOp.setTable("table1");
         importOp.call();
         importOp.setTable("table2");
+        importOp.setAdaptToDefaultFeatureType(false);
         importOp.setDestinationPath("table1");
         importOp.setOverwrite(false);
         importOp.call();
@@ -357,6 +362,64 @@ public class ImportOpTest extends RepositoryTestCase {
         importOp.setAll(true);
         exception.expect(GeoToolsOpException.class);
         importOp.call();
+    }
+
+    @Test
+    public void testAdaptFeatureType() throws Exception {
+        ImportOp importOp = geogit.command(ImportOp.class);
+        importOp.setDataStore(TestHelper.createTestFactory().createDataStore(null));
+        importOp.setTable("shpLikeTable");
+        importOp.setDestinationPath("table");
+        importOp.call();
+        Optional<RevFeature> feature = geogit.command(RevObjectParse.class)
+                .setRefSpec("WORK_HEAD:table/feature1").call(RevFeature.class);
+        assertTrue(feature.isPresent());
+        RevFeatureType originalFeatureType = geogit.command(ResolveFeatureType.class)
+                .setRefSpec("WORK_HEAD:table/feature1").call().get();
+        importOp.setTable("shpLikeTable2");
+        importOp.call();
+        feature = geogit.command(RevObjectParse.class).setRefSpec("WORK_HEAD:table/feature1")
+                .call(RevFeature.class);
+        assertTrue(feature.isPresent());
+        RevFeatureType featureType = geogit.command(ResolveFeatureType.class)
+                .setRefSpec("WORK_HEAD:table/feature1").call().get();
+        assertEquals(originalFeatureType.getId(), featureType.getId());
+        GeometryFactory gf = new GeometryFactory();
+        ImmutableList<Optional<Object>> values = feature.get().getValues();
+        assertEquals(values.get(0).get(), gf.createPoint(new Coordinate(0, 7)));
+        assertEquals(values.get(1).get(), 3.2);
+        assertEquals(values.get(2).get(), 1100.0);
+        importOp.setTable("GeoJsonLikeTable");
+        importOp.call();
+        feature = geogit.command(RevObjectParse.class).setRefSpec("WORK_HEAD:table/feature1")
+                .call(RevFeature.class);
+        assertTrue(feature.isPresent());
+        featureType = geogit.command(ResolveFeatureType.class)
+                .setRefSpec("WORK_HEAD:table/feature1").call().get();
+        assertEquals(originalFeatureType.getId(), featureType.getId());
+        values = feature.get().getValues();
+        assertEquals(values.get(0).get(), gf.createPoint(new Coordinate(0, 8)));
+        assertEquals(values.get(1).get(), 4.2);
+        assertEquals(values.get(2).get(), 1200.0);
+    }
+
+    @Test
+    public void testCannotAdaptFeatureTypeIfCRSChanges() throws Exception {
+        ImportOp importOp = geogit.command(ImportOp.class);
+        importOp.setDataStore(TestHelper.createTestFactory().createDataStore(null));
+        importOp.setTable("GeoJsonLikeTable");
+        importOp.setDestinationPath("table");
+        importOp.call();
+        Optional<RevFeature> feature = geogit.command(RevObjectParse.class)
+                .setRefSpec("WORK_HEAD:table/feature1").call(RevFeature.class);
+        assertTrue(feature.isPresent());
+        importOp.setTable("GeoJsonLikeTable2");
+        try {
+            importOp.call();
+            fail();
+        } catch (GeoToolsOpException e) {
+            assertEquals(GeoToolsOpException.StatusCode.INCOMPATIBLE_FEATURE_TYPE, e.statusCode);
+        }
     }
 
     @Override

@@ -28,6 +28,7 @@ import org.geogit.api.data.ForwardingFeatureSource;
 import org.geogit.api.hooks.Hookable;
 import org.geogit.api.plumbing.LsTreeOp;
 import org.geogit.api.plumbing.LsTreeOp.Strategy;
+import org.geogit.api.plumbing.ResolveFeatureType;
 import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.geotools.plumbing.GeoToolsOpException.StatusCode;
 import org.geogit.repository.WorkingTree;
@@ -101,6 +102,13 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
      */
     private boolean alter;
 
+    /**
+     * If false, features will be added as they are, with their original feature type. If true, the
+     * import operation will try to adapt them to the current default feature type, and if that is
+     * not possible it will throw an exception
+     */
+    private boolean adaptToDefaultFeatureType = true;
+
     private boolean usePaging = true;
 
     /**
@@ -135,17 +143,22 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
 
         final WorkingTree workTree = workingTree();
 
+        RevFeatureType destPathFeatureType = null;
         final boolean destPathProvided = destPath != null;
-        if (destPathProvided && overwrite) {
+        if (destPathProvided) {
+            destPathFeatureType = this.command(ResolveFeatureType.class).setRefSpec(destPath)
+                    .call().orNull();
             // we delete the previous tree to honor the overwrite setting, but then turn it
             // to false. Otherwise, each table imported will overwrite the previous ones and
             // only the last one will be imported.
-            try {
-                workTree.delete(destPath);
-            } catch (Exception e) {
-                throw new GeoToolsOpException(e, StatusCode.UNABLE_TO_INSERT);
+            if (overwrite) {
+                try {
+                    workTree.delete(destPath);
+                } catch (Exception e) {
+                    throw new GeoToolsOpException(e, StatusCode.UNABLE_TO_INSERT);
+                }
+                overwrite = false;
             }
-            overwrite = false;
         }
 
         int tableCount = 0;
@@ -172,7 +185,7 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
             } else {
                 NodeRef.checkValidPath(destPath);
                 path = destPath;
-                featureType = createForceFeatureType(featureType, path);
+                featureType = forceFeatureTypeName(featureType, path);
             }
 
             featureType = overrideGeometryName(featureType);
@@ -181,6 +194,11 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
                     featureType, fidPrefix);
             if (!usePaging) {
                 ((ForceTypeAndFidFeatureSource) featureSource).setForbidSorting(true);
+            }
+
+            if (destPathFeatureType != null && adaptToDefaultFeatureType && !alter) {
+                featureSource = new FeatureTypeAdapterFeatureSource<FeatureType, Feature>(
+                        featureSource, destPathFeatureType.type());
             }
 
             ProgressListener taskProgress = subProgress(100.f / typeNames.length);
@@ -207,6 +225,8 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
 
             try {
                 insert(workTree, path, featureSource, taskProgress);
+            } catch (GeoToolsOpException e) {
+                throw e;
             } catch (Exception e) {
                 throw new GeoToolsOpException(e, StatusCode.UNABLE_TO_INSERT);
             }
@@ -252,7 +272,7 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
 
     }
 
-    private SimpleFeatureType createForceFeatureType(SimpleFeatureType featureType, String path) {
+    private SimpleFeatureType forceFeatureTypeName(SimpleFeatureType featureType, String path) {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         builder.setAttributes(featureType.getAttributeDescriptors());
         builder.setName(new NameImpl(featureType.getName().getNamespaceURI(), path));
@@ -585,6 +605,23 @@ public class ImportOp extends AbstractGeoGitOp<RevTree> {
 
     public ImportOp setUsePaging(boolean usePaging) {
         this.usePaging = usePaging;
+        return this;
+    }
+
+    /**
+     * Sets whether features will be added as they are, with their original feature type, or adapted
+     * to the preexisting feature type of the destination tree. If true, the import operation will
+     * try to adapt them to the current default feature type, and if that is not possible it will
+     * throw an exception. Setting this parameter to true prevents the destination tree to have
+     * mixed feature types. If importing onto a tree that doesn't exist, this has no effect at all,
+     * since there is not previous feature type for that tree with which the features to import can
+     * be compared
+     * 
+     * @param forceFeatureType
+     * @return {@code this}
+     */
+    public ImportOp setAdaptToDefaultFeatureType(boolean adaptToDefaultFeatureType) {
+        this.adaptToDefaultFeatureType = adaptToDefaultFeatureType;
         return this;
     }
 }

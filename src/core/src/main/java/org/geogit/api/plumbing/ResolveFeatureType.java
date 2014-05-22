@@ -54,10 +54,13 @@ public class ResolveFeatureType extends AbstractGeoGitOp<Optional<RevFeatureType
         final String path = fullRefspec.substring(fullRefspec.indexOf(':') + 1);
 
         ObjectId parentId = command(ResolveTreeish.class).setTreeish(ref).call().get();
-        RevTree parent = command(RevObjectParse.class).setObjectId(parentId).call(RevTree.class)
-                .get();
-        Optional<NodeRef> node = command(FindTreeChild.class).setParent(parent).setChildPath(path)
-                .setIndex(true).call();
+        Optional<RevTree> parent = command(RevObjectParse.class).setObjectId(parentId).call(
+                RevTree.class);
+        if (!parent.isPresent()) {
+            return Optional.absent();
+        }
+        Optional<NodeRef> node = command(FindTreeChild.class).setParent(parent.get())
+                .setChildPath(path).setIndex(true).call();
         if (!node.isPresent()) {
             return Optional.absent();
         }
