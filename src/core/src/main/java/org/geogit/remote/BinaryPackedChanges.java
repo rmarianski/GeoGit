@@ -76,9 +76,8 @@ public final class BinaryPackedChanges {
             }
         };
 
-        public int value() {
-            return -1;
-        }
+        public abstract int value();
+
     };
 
     /**
