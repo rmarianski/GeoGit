@@ -4,6 +4,7 @@
  */
 package org.geogit.remote;
 
+import static org.geogit.storage.datastream.FormatCommon.readObjectId;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
@@ -207,17 +208,17 @@ public final class BinaryPackedChanges {
 
         switch (chunkType) {
         case DIFF_ENTRY: {
-            ObjectId id = readObjectId(in);
+            ObjectId id = readObjectId(data);
             RevObject revObj = serializer.createObjectReader().read(id, in);
             objectDatabase.put(revObj);
         }
             break;
         case METADATA_OBJECT_AND_DIFF_ENTRY: {
-            ObjectId mdid = readObjectId(in);
+            ObjectId mdid = readObjectId(data);
             RevObject md = serializer.createObjectReader().read(mdid, in);
             objectDatabase.put(md);
 
-            ObjectId id = readObjectId(in);
+            ObjectId id = readObjectId(data);
             RevObject revObj = serializer.createObjectReader().read(id, in);
             objectDatabase.put(revObj);
         }
@@ -237,29 +238,6 @@ public final class BinaryPackedChanges {
 
         DiffEntry diff = FormatCommon.readDiff(data);
         callback.callback(diff);
-    }
-
-    /**
-     * Reads an {@link ObjectId} from the provided input stream.
-     * 
-     * @param in the stream to read from
-     * @return the {@code ObjectId} that was read
-     * @throws IOException
-     */
-    private ObjectId readObjectId(final InputStream in) throws IOException {
-        byte[] rawBytes = new byte[20];
-        int amount = 0;
-        int len = 20;
-        int offset = 0;
-        while ((amount = in.read(rawBytes, offset, len - offset)) != 0) {
-            if (amount < 0)
-                throw new EOFException("Came to end of input");
-            offset += amount;
-            if (offset == len)
-                break;
-        }
-        ObjectId id = ObjectId.createNoClone(rawBytes);
-        return id;
     }
 
     /**
