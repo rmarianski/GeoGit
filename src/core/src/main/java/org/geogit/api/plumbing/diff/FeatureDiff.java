@@ -100,7 +100,7 @@ public class FeatureDiff {
                 .nextSetBit(i + 1)) {
             if (Geometry.class.isAssignableFrom(newAttributes.get(i).getType().getBinding())) {
                 diffs.put(
-                        oldAttributes.get(i),
+                        newAttributes.get(i),
                         new GeometryAttributeDiff(Optional.fromNullable((Geometry) null), Optional
                                 .fromNullable((Geometry) newValues.get(i).orNull())));
             } else {
