@@ -159,7 +159,8 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
                 continue;
             }
             RevTreeBuilder parentTree = resolveTargetTree(oldRootTree, parentPath,
-                    repositoryChangedTrees, changedTreesMetadataId, ObjectId.NULL, repositoryDatabase);
+                    repositoryChangedTrees, changedTreesMetadataId, ObjectId.NULL,
+                    repositoryDatabase);
             if (type == TYPE.TREE && !isDelete) {
                 // cache the tree
                 resolveTargetTree(oldRootTree, ref.name(), repositoryChangedTrees,
@@ -180,12 +181,11 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
                 if (ref.getType().equals(TYPE.TREE)) {
                     RevTree tree = stagingDatabase().getTree(ref.objectId());
                     if (ref.getMetadataId() != null && !ref.getMetadataId().equals(ObjectId.NULL)) {
-                        repositoryDatabase.put(stagingDatabase().getFeatureType(
-                                ref.getMetadataId()));
+                        repositoryDatabase.put(stagingDatabase()
+                                .getFeatureType(ref.getMetadataId()));
                     }
                     if (tree.isEmpty()) {
                         repositoryDatabase.put(tree);
-
                     } else {
                         continue;
                     }
@@ -239,8 +239,12 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
 
         if (indexTreeRef == null) {
             RevTree stageHead = index().getTree();
-            Optional<NodeRef> treeRef = command(FindTreeChild.class).setIndex(true)
-                    .setParent(stageHead).setChildPath(parentPath).call();
+            Optional<NodeRef> treeRef = Optional.absent();
+            if (!stageHead.isEmpty()) {// slight optimization, may save a lot of processing on
+                                       // large first commits
+                treeRef = command(FindTreeChild.class).setIndex(true).setParent(stageHead)
+                        .setChildPath(parentPath).call();
+            }
             if (treeRef.isPresent()) {// may not be in case of a delete
                 indexTreeRef = treeRef.get();
                 indexChangedTrees.put(parentPath, indexTreeRef);
@@ -255,7 +259,7 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
      * @param treePath
      * @param treeCache
      * @param metadataCache
-     * @param repositoryDatabase 
+     * @param repositoryDatabase
      * @return
      */
     private RevTreeBuilder resolveTargetTree(final RevTree root, String treePath,

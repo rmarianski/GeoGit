@@ -19,8 +19,8 @@ import java.util.concurrent.Future;
 
 import javax.annotation.Nullable;
 
-import org.geogit.api.FeatureBuilder;
 import org.geogit.api.Context;
+import org.geogit.api.FeatureBuilder;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
@@ -134,23 +134,22 @@ public class WorkingTree {
     public synchronized RevTree getTree() {
         Optional<ObjectId> workTreeId = context.command(ResolveTreeish.class)
                 .setTreeish(Ref.WORK_HEAD).call();
-        final RevTree workTree;
-        if (!workTreeId.isPresent() || workTreeId.get().isNull()) {
+
+        RevTree workTree = RevTree.EMPTY;
+
+        if (workTreeId.isPresent()) {
+            if (!workTreeId.get().isNull()) {
+                workTree = context.stagingDatabase().getTree(workTreeId.get());
+            }
+        } else {
             // Work tree was not resolved, update it to the head.
             Optional<ObjectId> headTreeId = context.command(ResolveTreeish.class)
                     .setTreeish(Ref.HEAD).call();
-            final RevTree headTree;
-            if (!headTreeId.isPresent() || headTreeId.get().isNull()) {
-                headTree = RevTree.EMPTY;
-            } else {
-                headTree = context.command(RevObjectParse.class).setObjectId(headTreeId.get())
-                        .call(RevTree.class).get();
+
+            if (headTreeId.isPresent() && !headTreeId.get().isNull()) {
+                workTree = context.objectDatabase().getTree(headTreeId.get());
+                updateWorkHead(workTree.getId());
             }
-            updateWorkHead(headTree.getId());
-            workTree = headTree;
-        } else {
-            workTree = context.command(RevObjectParse.class).setObjectId(workTreeId.get())
-                    .call(RevTree.class).or(RevTree.EMPTY);
         }
         Preconditions.checkState(workTree != null);
         return workTree;
@@ -435,8 +434,8 @@ public class WorkingTree {
         return featureRef.get().getNode();
     }
 
-    @SuppressWarnings({ "rawtypes", "deprecation" })
-    public void insert(final String treePath, final FeatureSource source, final Query query,
+    public void insert(final String treePath,
+            @SuppressWarnings("rawtypes") final FeatureSource source, final Query query,
             ProgressListener listener) {
 
         final NodeRef treeRef = findOrCreateTypeTree(treePath, source);

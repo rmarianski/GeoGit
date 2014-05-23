@@ -15,6 +15,7 @@ import org.geogit.api.Context;
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
+import org.geogit.api.ProgressListener;
 import org.geogit.api.Ref;
 import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.RevTree;
@@ -24,7 +25,6 @@ import org.geogit.api.plumbing.DiffIndex;
 import org.geogit.api.plumbing.FindOrCreateSubtree;
 import org.geogit.api.plumbing.FindTreeChild;
 import org.geogit.api.plumbing.ResolveTreeish;
-import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.api.plumbing.UpdateRef;
 import org.geogit.api.plumbing.WriteBack;
 import org.geogit.api.plumbing.diff.DiffEntry;
@@ -32,7 +32,6 @@ import org.geogit.api.plumbing.diff.DiffObjectCount;
 import org.geogit.api.plumbing.merge.Conflict;
 import org.geogit.di.Singleton;
 import org.geogit.storage.StagingDatabase;
-import org.geogit.api.ProgressListener;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -63,12 +62,12 @@ import com.google.inject.Inject;
 @Singleton
 public class Index implements StagingArea {
 
-    private Context injector;
+    private Context context;
 
     @Inject
-    public Index(final Context injector) {
-        Preconditions.checkNotNull(injector);
-        this.injector = injector;
+    public Index(final Context context) {
+        Preconditions.checkNotNull(context);
+        this.context = context;
     }
 
     /**
@@ -76,7 +75,7 @@ public class Index implements StagingArea {
      */
     @Override
     public StagingDatabase getDatabase() {
-        return injector.stagingDatabase();
+        return context.stagingDatabase();
     }
 
     /**
@@ -86,7 +85,7 @@ public class Index implements StagingArea {
      */
     @Override
     public void updateStageHead(ObjectId newTree) {
-        injector.command(UpdateRef.class).setName(Ref.STAGE_HEAD).setNewValue(newTree).call();
+        context.command(UpdateRef.class).setName(Ref.STAGE_HEAD).setNewValue(newTree).call();
         getDatabase().removeConflicts(null);
     }
 
@@ -96,26 +95,24 @@ public class Index implements StagingArea {
      */
     @Override
     public RevTree getTree() {
-        Optional<ObjectId> stageTreeId = injector.command(ResolveTreeish.class)
+        Optional<ObjectId> stageTreeId = context.command(ResolveTreeish.class)
                 .setTreeish(Ref.STAGE_HEAD).call();
-        final RevTree stageTree;
-        if (!stageTreeId.isPresent() || stageTreeId.get().isNull()) {
-            // Work tree was not resolved, update it to the head.
-            Optional<ObjectId> headTreeId = injector.command(ResolveTreeish.class)
-                    .setTreeish(Ref.HEAD).call();
-            final RevTree headTree;
-            if (!headTreeId.isPresent() || headTreeId.get().isNull()) {
-                headTree = RevTree.EMPTY;
-            } else {
-                headTree = injector.command(RevObjectParse.class).setObjectId(headTreeId.get())
-                        .call(RevTree.class).get();
-            }
-            updateStageHead(headTree.getId());
-            stageTree = headTree;
 
+        RevTree stageTree = RevTree.EMPTY;
+
+        if (stageTreeId.isPresent()) {
+            if (!stageTreeId.get().isNull()) {
+                stageTree = context.stagingDatabase().getTree(stageTreeId.get());
+            }
         } else {
-            stageTree = injector.command(RevObjectParse.class).setObjectId(stageTreeId.get())
-                    .call(RevTree.class).or(RevTree.EMPTY);
+            // Stage tree was not resolved, update it to the head.
+            Optional<ObjectId> headTreeId = context.command(ResolveTreeish.class)
+                    .setTreeish(Ref.HEAD).call();
+
+            if (headTreeId.isPresent() && !headTreeId.get().isNull()) {
+                stageTree = context.objectDatabase().getTree(headTreeId.get());
+                updateStageHead(stageTree.getId());
+            }
         }
         return stageTree;
     }
@@ -140,7 +137,7 @@ public class Index implements StagingArea {
      */
     @Override
     public Optional<Node> findStaged(final String path) {
-        Optional<NodeRef> entry = injector.command(FindTreeChild.class).setIndex(true)
+        Optional<NodeRef> entry = context.command(FindTreeChild.class).setIndex(true)
                 .setParent(getTree()).setChildPath(path).call();
         if (entry.isPresent()) {
             return Optional.of(entry.get().getNode());
@@ -153,7 +150,7 @@ public class Index implements StagingArea {
      * Returns true if there are no unstaged changes, false otherwise
      */
     public boolean isClean() {
-        Optional<ObjectId> resolved = injector.command(ResolveTreeish.class).setTreeish(Ref.HEAD)
+        Optional<ObjectId> resolved = context.command(ResolveTreeish.class).setTreeish(Ref.HEAD)
                 .call();
         ObjectId indexTreeId = resolved.get();
         return getTree().getId().equals(indexTreeId);
@@ -239,7 +236,7 @@ public class Index implements StagingArea {
             } else {
                 // parentMetadataId = parentMetadataId == null ?
                 Supplier<RevTreeBuilder> rootTreeSupplier = getTreeSupplier();
-                newRootTree = injector.command(WriteBack.class).setAncestor(rootTreeSupplier)
+                newRootTree = context.command(WriteBack.class).setAncestor(rootTreeSupplier)
                         .setChildPath(changedTreePath).setMetadataId(parentMetadataId)
                         .setToIndex(true).setTree(changedTree).call();
             }
@@ -265,14 +262,14 @@ public class Index implements StagingArea {
             if (NodeRef.ROOT.equals(parentPath)) {
                 parentBuilder = currentIndexHead.builder(getDatabase());
             } else {
-                Optional<NodeRef> parentRef = injector.command(FindTreeChild.class).setIndex(true)
+                Optional<NodeRef> parentRef = context.command(FindTreeChild.class).setIndex(true)
                         .setParent(currentIndexHead).setChildPath(parentPath).call();
 
                 if (parentRef.isPresent()) {
                     parentMetadataId = parentRef.get().getMetadataId();
                 }
 
-                parentBuilder = injector.command(FindOrCreateSubtree.class)
+                parentBuilder = context.command(FindOrCreateSubtree.class)
                         .setParent(Suppliers.ofInstance(Optional.of(getTree()))).setIndex(true)
                         .setChildPath(parentPath).call().builder(getDatabase());
             }
@@ -291,7 +288,7 @@ public class Index implements StagingArea {
      */
     @Override
     public Iterator<DiffEntry> getStaged(final @Nullable List<String> pathFilters) {
-        Iterator<DiffEntry> unstaged = injector.command(DiffIndex.class).setFilter(pathFilters)
+        Iterator<DiffEntry> unstaged = context.command(DiffIndex.class).setFilter(pathFilters)
                 .setReportTrees(true).call();
         return unstaged;
     }
@@ -302,7 +299,7 @@ public class Index implements StagingArea {
      */
     @Override
     public DiffObjectCount countStaged(final @Nullable List<String> pathFilters) {
-        DiffObjectCount count = injector.command(DiffCount.class).setOldVersion(Ref.HEAD)
+        DiffObjectCount count = context.command(DiffCount.class).setOldVersion(Ref.HEAD)
                 .setNewVersion(Ref.STAGE_HEAD).setReportTrees(true).setFilter(pathFilters).call();
 
         return count;
