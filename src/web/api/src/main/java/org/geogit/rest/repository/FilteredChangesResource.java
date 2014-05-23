@@ -13,8 +13,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.geogit.api.GeoGIT;
 import org.geogit.api.ObjectId;
@@ -33,6 +35,8 @@ import org.restlet.data.Response;
 import org.restlet.resource.OutputRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.google.gson.JsonArray;
@@ -44,6 +48,8 @@ import com.google.gson.JsonParser;
  * Gets a set of changes that match a provided filter from a particular commit.
  */
 public class FilteredChangesResource extends Finder {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FilteredChangesResource.class);
 
     @Override
     public Resource findTarget(Request request, Response response) {
@@ -78,7 +84,7 @@ public class FilteredChangesResource extends Finder {
                 final JsonParser parser = new JsonParser();
                 final JsonElement messageJson = parser.parse(body);
 
-                final List<ObjectId> tracked = new ArrayList<ObjectId>();
+                final Set<ObjectId> tracked = new HashSet<ObjectId>();
 
                 RepositoryFilter filter = new RepositoryFilter();
 
@@ -183,6 +189,7 @@ public class FilteredChangesResource extends Finder {
 
             @Override
             public void write(OutputStream out) throws IOException {
+                LOGGER.debug("Writing objects to remote...");
                 packer.write(out, changes);
                 // signal the end of changes
                 out.write(2);
