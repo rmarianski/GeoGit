@@ -40,6 +40,7 @@ public class SendObjectResource extends Resource {
             unpacker.ingest(input);
 
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RestletException(e.getMessage(), Status.SERVER_ERROR_INTERNAL, e);
         } finally {
             if (input != null)

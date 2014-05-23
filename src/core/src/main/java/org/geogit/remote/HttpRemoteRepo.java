@@ -29,8 +29,11 @@ import org.geogit.api.porcelain.SynchronizationException;
 import org.geogit.repository.Repository;
 import org.geogit.storage.DeduplicationService;
 import org.geogit.storage.Deduplicator;
+import org.geogit.storage.ObjectDatabase;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -48,8 +51,6 @@ import com.google.gson.JsonPrimitive;
 class HttpRemoteRepo extends AbstractRemoteRepo {
 
     private URL repositoryURL;
-
-    private List<ObjectId> fetchedIds;
 
     final private DeduplicationService deduplicationService;
 
@@ -186,7 +187,6 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
      */
     @Override
     public void fetchNewData(Ref ref, Optional<Integer> fetchLimit) {
-        fetchedIds = new LinkedList<ObjectId>();
 
         CommitTraverser traverser = getFetchTraverser(fetchLimit);
 
@@ -201,13 +201,7 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
                 fetchMoreData(want, have);
             }
         } catch (Exception e) {
-            for (ObjectId oid : fetchedIds) {
-                localRepository.objectDatabase().delete(oid);
-            }
             Throwables.propagate(e);
-        } finally {
-            fetchedIds.clear();
-            fetchedIds = null;
         }
     }
 
@@ -252,38 +246,62 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
         Set<ObjectId> sent = new HashSet<ObjectId>();
         while (!toSend.isEmpty()) {
             try {
-                String expanded = repositoryURL.toString() + "/repo/sendobject";
-                HttpURLConnection connection = (HttpURLConnection) new URL(expanded)
-                        .openConnection();
-                connection.setDoOutput(true);
-                connection.setChunkedStreamingMode(4096);
-
-                OutputStream out = connection.getOutputStream();
-                BinaryPackedObjects.Callback<Void> callback = new BinaryPackedObjects.Callback<Void>() {
+                BinaryPackedObjects.Callback callback = new BinaryPackedObjects.Callback() {
                     @Override
-                    public Void callback(RevObject object, Void state) {
+                    public void callback(Supplier<RevObject> supplier) {
+                        RevObject object = supplier.get();
                         if (object instanceof RevCommit) {
                             RevCommit commit = (RevCommit) object;
                             toSend.remove(commit.getId());
                             roots.removeAll(commit.getParentIds());
                             roots.add(commit.getId());
                         }
-                        return null;
                     }
                 };
-                BinaryPackedObjects packer = new BinaryPackedObjects(
-                        localRepository.objectDatabase());
-                packer.write(out, toSend, ImmutableList.copyOf(roots), sent, callback, false,
+                ObjectDatabase database = localRepository.objectDatabase();
+                BinaryPackedObjects packer = new BinaryPackedObjects(database);
+
+                ImmutableList<ObjectId> have = ImmutableList.copyOf(roots);
+                final boolean traverseCommits = false;
+                
+                Supplier<OutputStream> outputSupplier = getMemoizedOutputSupplier();
+                packer.write(outputSupplier, toSend, have, sent, callback, traverseCommits,
                         deduplicator);
+                OutputStream out = outputSupplier.get();
                 out.flush();
                 out.close();
-
-                InputStream in = connection.getInputStream();
-                HttpUtils.consumeAndCloseStream(in);
             } catch (IOException e) {
                 Throwables.propagate(e);
             }
         }
+    }
+
+    private Supplier<OutputStream> getMemoizedOutputSupplier() {
+        Supplier<OutputStream> outputSupplier = Suppliers.memoize(new Supplier<OutputStream>() {
+
+            @Override
+            public OutputStream get() {
+                String expanded = repositoryURL.toString() + "/repo/sendobject";
+                System.err.println("connecting to " + expanded);
+                try {
+                    HttpURLConnection connection = (HttpURLConnection) new URL(expanded)
+                            .openConnection();
+                    connection.setDoOutput(true);
+                    connection.setDoInput(false);
+                    connection.setUseCaches(false);
+                    connection.setRequestMethod("POST");
+                    connection.setChunkedStreamingMode(4096);
+                    connection.setRequestProperty("content-length", "-1");
+
+                    OutputStream out = connection.getOutputStream();
+                    System.err.println("connected.");
+                    return out;
+                } catch (Exception e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        });
+        return outputSupplier;
     }
 
     /**
@@ -347,9 +365,10 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
         }
 
         BinaryPackedObjects unpacker = new BinaryPackedObjects(localRepository.objectDatabase());
-        BinaryPackedObjects.Callback<Void> callback = new BinaryPackedObjects.Callback<Void>() {
+        BinaryPackedObjects.Callback callback = new BinaryPackedObjects.Callback() {
             @Override
-            public Void callback(RevObject object, Void state) {
+            public void callback(Supplier<RevObject> supplier) {
+                RevObject object = supplier.get();
                 if (object instanceof RevCommit) {
                     RevCommit commit = (RevCommit) object;
                     want.remove(commit.getId());
@@ -361,7 +380,6 @@ class HttpRemoteRepo extends AbstractRemoteRepo {
                     have.remove(tag.getCommitId());
                     have.add(tag.getId());
                 }
-                return null;
             }
         };
         unpacker.ingest(in, callback);

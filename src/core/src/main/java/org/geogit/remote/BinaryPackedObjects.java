@@ -19,35 +19,31 @@ import javax.annotation.Nullable;
 
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
-import org.geogit.api.RevFeature;
-import org.geogit.api.RevFeatureType;
 import org.geogit.api.RevObject;
-import org.geogit.api.RevTag;
-import org.geogit.api.RevTree;
 import org.geogit.repository.PostOrderIterator;
+import org.geogit.storage.BulkOpListener;
 import org.geogit.storage.Deduplicator;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.ObjectReader;
 import org.geogit.storage.ObjectSerializingFactory;
-import org.geogit.storage.ObjectWriter;
 import org.geogit.storage.datastream.DataStreamSerializationFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.base.Throwables;
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 
 public final class BinaryPackedObjects {
-    private final ObjectWriter<RevTag> tagWriter;
 
-    private final ObjectWriter<RevCommit> commitWriter;
-
-    private final ObjectWriter<RevTree> treeWriter;
-
-    private final ObjectWriter<RevFeatureType> featureTypeWriter;
-
-    private final ObjectWriter<RevFeature> featureWriter;
+    private static final Logger LOGGER = LoggerFactory.getLogger(BinaryPackedObjects.class);
+    
+    private final ObjectSerializingFactory factory;
 
     private final ObjectReader<RevObject> objectReader;
 
@@ -57,28 +53,25 @@ public final class BinaryPackedObjects {
 
     public BinaryPackedObjects(ObjectDatabase database) {
         this.database = database;
-        final ObjectSerializingFactory factory = new DataStreamSerializationFactory();
-        this.tagWriter = factory.createObjectWriter(RevObject.TYPE.TAG);
-        this.commitWriter = factory.createObjectWriter(RevObject.TYPE.COMMIT);
-        this.treeWriter = factory.createObjectWriter(RevObject.TYPE.TREE);
-        this.featureTypeWriter = factory.createObjectWriter(RevObject.TYPE.FEATURETYPE);
-        this.featureWriter = factory.createObjectWriter(RevObject.TYPE.FEATURE);
+        this.factory = new DataStreamSerializationFactory();
         this.objectReader = factory.createObjectReader();
     }
 
     public void write(OutputStream out, List<ObjectId> want, List<ObjectId> have,
             boolean traverseCommits, Deduplicator deduplicator) throws IOException {
-        write(out, want, have, new HashSet<ObjectId>(), DEFAULT_CALLBACK, traverseCommits, deduplicator);
+        write(Suppliers.ofInstance(out), want, have, new HashSet<ObjectId>(), DEFAULT_CALLBACK, traverseCommits, deduplicator);
     }
 
-    public <T> T write(OutputStream out, List<ObjectId> want, List<ObjectId> have,
-            Set<ObjectId> sent, Callback<T> callback, boolean traverseCommits, Deduplicator deduplicator) throws IOException {
-        T state = null;
+    public void write(Supplier<OutputStream> outputSupplier, List<ObjectId> want, List<ObjectId> have,
+            Set<ObjectId> sent, Callback callback, boolean traverseCommits, Deduplicator deduplicator) throws IOException {
+        LOGGER.info("checking the {} wanted ids exist...", want.size());
         for (ObjectId i : want) {
             if (!database.exists(i)) {
                 throw new NoSuchElementException("Wanted id: " + i + " is not known");
             }
         }
+
+        LOGGER.info("scanning for previsit list...");
 
         ImmutableList<ObjectId> needsPrevisit = traverseCommits ? scanForPrevisitList(want, have, deduplicator)
                 : ImmutableList.copyOf(have);
@@ -86,29 +79,31 @@ public final class BinaryPackedObjects {
         ImmutableList<ObjectId> previsitResults = reachableContentIds(needsPrevisit, deduplicator);
         deduplicator.reset();
 
+        LOGGER.info("obtaining post order iterator on range...");
+
         int commitsSent = 0;
         Iterator<RevObject> objects = PostOrderIterator.range(want, new ArrayList<ObjectId>(
                 previsitResults), database, traverseCommits, deduplicator);
-        while (objects.hasNext() && commitsSent < CAP) {
-            RevObject object = objects.next();
+        int count = 0;
+        
+        
+        try{
+            OutputStream out = outputSupplier.get();
+            LOGGER.info("writing objects to remote...");
+            while (objects.hasNext() && commitsSent < CAP) {
+                RevObject object = objects.next();
 
-            out.write(object.getId().getRawValue());
-            if (object instanceof RevTag) {
-                tagWriter.write((RevTag) object, out);
-            } else if (object instanceof RevCommit) {
-                commitWriter.write((RevCommit) object, out);
-                commitsSent++;
-            } else if (object instanceof RevTree) {
-                treeWriter.write((RevTree) object, out);
-            } else if (object instanceof RevFeature) {
-                featureWriter.write((RevFeature) object, out);
-            } else if (object instanceof RevFeatureType) {
-                featureTypeWriter.write((RevFeatureType) object, out);
+                out.write(object.getId().getRawValue());
+                count++;
+                factory.createObjectWriter(object.getType()).write(object, out);
+                out.flush();
+                callback.callback(Suppliers.ofInstance(object));
             }
-            state = callback.callback(object, state);
+        }catch(IOException e){
+            LOGGER.warn(String.format("writing of objects failed after %,d objects", count));
+            throw e;
         }
-
-        return state;
+        LOGGER.info(String.format("WRITTEN %,d objects", count));
     }
 
     /**
@@ -160,37 +155,47 @@ public final class BinaryPackedObjects {
         ingest(in, DEFAULT_CALLBACK);
     }
 
-    public <T> T ingest(final InputStream in, Callback<T> callback) {
-        T state = null;
-        while (true) {
-            try {
-                state = ingestOne(in, callback, state);
-            } catch (EOFException e) {
-                break;
-            } catch (IOException e) {
-                Throwables.propagate(e);
+    public void ingest(final InputStream in, final Callback callback) {
+        Iterator<RevObject> objects = streamToObjects(in);
+
+        BulkOpListener listener = new BulkOpListener() {
+            @Override
+            public void inserted(final ObjectId objectId, @Nullable Integer storageSizeBytes) {
+                callback.callback(new Supplier<RevObject>() {
+                    @Override
+                    public RevObject get() {
+                        return database.get(objectId);
+                    }
+                });
             }
-        }
-        return state;
+        };
+        
+        database.putAll(objects, listener);
     }
 
-    private <T> T ingestOne(final InputStream in, Callback<T> callback, T state) throws IOException {
-        ObjectId id = readObjectId(in);
-        RevObject revObj = objectReader.read(id, in);
-        final T result;
-        if (!database.exists(id)) {
-            result = callback.callback(revObj, state);
-            database.put(revObj);
-        } else {
-            result = state;
-        }
-        return result;
+    
+    private Iterator<RevObject> streamToObjects(final InputStream in) {
+        return new AbstractIterator<RevObject>() {
+            @Override
+            protected RevObject computeNext() {
+                try {
+                    ObjectId id = readObjectId(in);
+                    RevObject revObj = objectReader.read(id, in);
+                    return revObj;
+                } catch (EOFException eof) {
+                    return endOfData();
+                } catch (IOException e) {
+                    Throwables.propagate(e);
+                }
+                throw new IllegalStateException("stream should have been fully consumed");
+            }
+        };
     }
 
     private ObjectId readObjectId(final InputStream in) throws IOException {
-        byte[] rawBytes = new byte[20];
+        final int len = ObjectId.NUM_BYTES;
+        byte[] rawBytes = new byte[len];
         int amount = 0;
-        int len = 20;
         int offset = 0;
         while ((amount = in.read(rawBytes, offset, len - offset)) != 0) {
             if (amount < 0)
@@ -203,14 +208,15 @@ public final class BinaryPackedObjects {
         return id;
     }
 
-    public static interface Callback<T> {
-        public abstract T callback(RevObject object, T state);
+    public static interface Callback {
+        public abstract void callback(Supplier<RevObject> object);
     }
 
-    private static final Callback<Void> DEFAULT_CALLBACK = new Callback<Void>() {
+    private static final Callback DEFAULT_CALLBACK = new Callback() {
         @Override
-        public Void callback(RevObject object, Void state) {
-            return null;
+        public void callback(Supplier<RevObject> object) {
+            // empty body
         }
     };
+
 }
