@@ -24,19 +24,26 @@ import org.geogit.api.ObjectId;
 import org.geogit.api.RevObject;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.repository.Repository;
+import org.geogit.storage.BulkOpListener;
+import org.geogit.storage.BulkOpListener.CountingListener;
 import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.datastream.DataStreamSerializationFactory;
 import org.geogit.storage.datastream.FormatCommon;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;
+import com.google.common.io.CountingOutputStream;
 
 /**
  * Provides a method of packing a set of changes and the affected objects to and from a binary
  * stream.
  */
 public final class BinaryPackedChanges {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BinaryPackedChanges.class);
 
     private static final DataStreamSerializationFactory serializer = DataStreamSerializationFactory.INSTANCE;
 
@@ -72,9 +79,11 @@ public final class BinaryPackedChanges {
 
         public abstract int value();
 
+        private static final CHUNK_TYPE[] values = CHUNK_TYPE.values();
+
         public static CHUNK_TYPE valueOf(int value) {
             // abusing the fact that value() coincides with ordinal()
-            return CHUNK_TYPE.values()[value];
+            return values[value];
         }
     };
 
@@ -99,31 +108,19 @@ public final class BinaryPackedChanges {
      * @param out the stream to write to
      * @param changes the changes to write
      * @throws IOException
+     * @return the number of objects written
      */
-    public void write(OutputStream out, Iterator<DiffEntry> changes) throws IOException {
-        write(out, changes, DEFAULT_CALLBACK);
-    }
-
-    /**
-     * Writes the set of changes to the provided output stream, calling the provided callback for
-     * each item.
-     * 
-     * @param out the stream to write to
-     * @param changes the changes to write
-     * @param callback the callback function to call for each element written
-     * @return the state of the operation at the conclusion of writing
-     * @throws IOException
-     */
-    public void write(OutputStream out, Iterator<DiffEntry> changes, Callback callback)
-            throws IOException {
-
+    public long write(OutputStream out, Iterator<DiffEntry> changes) throws IOException {
         final ObjectDatabase objectDatabase = repository.objectDatabase();
+        out = new CountingOutputStream(out);
 
         // avoids sending the same metadata object multiple times
         Set<ObjectId> writtenMetadataIds = new HashSet<ObjectId>();
 
         // buffer to avoid ObjectId cloning its internal state for each object
         byte[] oidbuffer = new byte[ObjectId.NUM_BYTES];
+
+        long objectCount = 0;
 
         while (changes.hasNext()) {
             DiffEntry diff = changes.next();
@@ -142,38 +139,33 @@ public final class BinaryPackedChanges {
                     writeObjectId(metadataId, out, oidbuffer);
                     serializer.createObjectWriter(metadata.getType()).write(metadata, out);
                     writtenMetadataIds.add(metadataId);
+                    objectCount++;
                 }
 
                 ObjectId objectId = newObject.objectId();
                 writeObjectId(objectId, out, oidbuffer);
                 RevObject object = objectDatabase.get(objectId);
                 serializer.createObjectWriter(object.getType()).write(object, out);
+                objectCount++;
             }
             DataOutput dataOut = new DataOutputStream(out);
             FormatCommon.writeDiff(diff, dataOut);
-            callback.callback(diff);
         }
         // signal the end of changes
         out.write(CHUNK_TYPE.FILTER_FLAG.value());
         final boolean filtersApplied = changes instanceof FilteredDiffIterator
                 && ((FilteredDiffIterator) changes).wasFiltered();
         out.write(filtersApplied ? 1 : 0);
+
+        LOGGER.info(String.format("Written %,d bytes to remote accounting for %,d objects.",
+                ((CountingOutputStream) out).getCount(), objectCount));
+        return objectCount;
     }
 
     private void writeObjectId(ObjectId objectId, OutputStream out, byte[] oidbuffer)
             throws IOException {
         objectId.getRawValue(oidbuffer);
         out.write(oidbuffer);
-    }
-
-    /**
-     * Read in the changes from the provided input stream. The input stream represents the output of
-     * another {@code BinaryPackedChanges} instance.
-     * 
-     * @param in the stream to read from
-     */
-    public void ingest(final InputStream in) {
-        ingest(in, DEFAULT_CALLBACK);
     }
 
     /**
@@ -190,8 +182,10 @@ public final class BinaryPackedChanges {
         Iterator<RevObject> asObjects = asObjects(readingIterator, callback);
 
         ObjectDatabase objectDatabase = repository.objectDatabase();
-        objectDatabase.putAll(asObjects);
-
+        CountingListener listener = BulkOpListener.newCountingListener();
+        objectDatabase.putAll(asObjects, listener);
+        LOGGER.info("Ingested %,d objects. Inserted: %,d. Already existing: %,d\n",
+                listener.inserted() + listener.found(), listener.inserted(), listener.found());
         this.filtered = readingIterator.isFiltered();
     }
 
