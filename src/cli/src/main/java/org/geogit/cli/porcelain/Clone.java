@@ -46,7 +46,6 @@ import com.beust.jcommander.Parameters;
  * 
  * @see CloneOp
  */
-@StagingDatabaseReadOnly
 @RemotesReadOnly
 @RequiresRepository(false)
 @Parameters(commandNames = "clone", commandDescription = "Clone a repository into a new directory")
