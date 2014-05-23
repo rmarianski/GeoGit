@@ -12,10 +12,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import org.geogit.api.GeoGIT;
@@ -160,6 +158,11 @@ public class FilteredChangesResource extends Finder {
                     @Override
                     protected boolean trackingObject(ObjectId objectId) {
                         return tracked.contains(objectId);
+                    }
+
+                    @Override
+                    public boolean isAutoIngesting() {
+                        return false;
                     }
                 };
 

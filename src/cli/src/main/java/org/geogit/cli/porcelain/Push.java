@@ -31,7 +31,6 @@ import com.beust.jcommander.Parameters;
  * 
  * @see PushOp
  */
-@ReadOnly
 @Parameters(commandNames = "push", commandDescription = "Update remote refs along with associated objects")
 public class Push extends AbstractCommand implements CLICommand {
 

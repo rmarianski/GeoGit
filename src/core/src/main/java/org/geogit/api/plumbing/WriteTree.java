@@ -62,6 +62,12 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
     private Supplier<Iterator<DiffEntry>> diffSupplier = null;
 
     /**
+     * Flag indicating whether or not to move objects from the staging to the objects database.
+     * Defaults to true. See {@link #dontMoveObjects()}
+     */
+    private boolean moveObjects = true;
+
+    /**
      * @param oldRoot a supplier for the old root tree
      * @return {@code this}
      */
@@ -129,8 +135,10 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
         Map<String, NodeRef> indexChangedTrees = Maps.newHashMap();
         Map<String, ObjectId> changedTreesMetadataId = Maps.newHashMap();
         Set<String> deletedTrees = Sets.newHashSet();
+        final boolean moveObjects = this.moveObjects;
         NodeRef ref;
         int i = 0;
+        RevTree stageHead = index().getTree();
         while (diffs.hasNext()) {
             if (numChanges != 0) {
                 progress.setProgress((float) (++i * 100) / numChanges);
@@ -167,7 +175,7 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
                         changedTreesMetadataId, ref.getMetadataId(), repositoryDatabase);
             }
 
-            resolveSourceTreeRef(parentPath, indexChangedTrees, changedTreesMetadataId);
+            resolveSourceTreeRef(parentPath, indexChangedTrees, changedTreesMetadataId, stageHead);
 
             Preconditions.checkState(parentTree != null);
 
@@ -178,9 +186,9 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
                     deletedTrees.add(ref.path());
                 }
             } else {
-                if (ref.getType().equals(TYPE.TREE)) {
+                if (moveObjects && ref.getType().equals(TYPE.TREE)) {
                     RevTree tree = stagingDatabase().getTree(ref.objectId());
-                    if (ref.getMetadataId() != null && !ref.getMetadataId().equals(ObjectId.NULL)) {
+                    if (!ref.getMetadataId().isNull()) {
                         repositoryDatabase.put(stagingDatabase()
                                 .getFeatureType(ref.getMetadataId()));
                     }
@@ -189,7 +197,7 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
                     } else {
                         continue;
                     }
-                } else {
+                } else if (moveObjects) {
                     deepMove(ref.getNode());
                 }
                 parentTree.put(ref.getNode());
@@ -223,14 +231,8 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
         return newTargetRootId;
     }
 
-    /**
-     * @param parentPath2
-     * @param indexChangedTrees
-     * @param metadataCache
-     * @return
-     */
     private void resolveSourceTreeRef(String parentPath, Map<String, NodeRef> indexChangedTrees,
-            Map<String, ObjectId> metadataCache) {
+            Map<String, ObjectId> metadataCache, RevTree stageHead) {
 
         if (NodeRef.ROOT.equals(parentPath)) {
             return;
@@ -238,7 +240,6 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
         NodeRef indexTreeRef = indexChangedTrees.get(parentPath);
 
         if (indexTreeRef == null) {
-            RevTree stageHead = index().getTree();
             Optional<NodeRef> treeRef = Optional.absent();
             if (!stageHead.isEmpty()) {// slight optimization, may save a lot of processing on
                                        // large first commits
@@ -255,13 +256,6 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
         }
     }
 
-    /**
-     * @param treePath
-     * @param treeCache
-     * @param metadataCache
-     * @param repositoryDatabase
-     * @return
-     */
     private RevTreeBuilder resolveTargetTree(final RevTree root, String treePath,
             Map<String, RevTreeBuilder> treeCache, Map<String, ObjectId> metadataCache,
             ObjectId fallbackMetadataId, ObjectDatabase repositoryDatabase) {
@@ -296,10 +290,8 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
     }
 
     private void deepMove(Node ref) {
-
         Supplier<Node> objectRef = Suppliers.ofInstance(ref);
         command(DeepMove.class).setObjectRef(objectRef).setToIndex(false).call();
-
     }
 
     /**
@@ -333,6 +325,17 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
 
         return command(WriteBack.class).setAncestor(root).setAncestorPath("").setTree(tree)
                 .setChildPath(pathToTree).setToIndex(false).setMetadataId(metadataId).call();
+    }
+
+    /**
+     * Indicates that the WriteTree operation shall not attempt to move the objects from the staging
+     * to the objects database, since they're known to already be present in the objects database.
+     * Used usually when {@link #setDiffSupplier(Supplier)} is also set and the calling code takes
+     * care of storing the features, types, and trees in the objectdatabase.
+     */
+    public WriteTree dontMoveObjects() {
+        this.moveObjects = false;
+        return this;
     }
 
 }
