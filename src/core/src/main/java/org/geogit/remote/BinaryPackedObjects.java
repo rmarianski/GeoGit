@@ -47,6 +47,10 @@ public final class BinaryPackedObjects {
 
     private final ObjectReader<RevObject> objectReader;
 
+    /*
+     * I think the receiving end will continue to make requests until it has all of the data. If I
+     * (JD) remember correctly it was to avoid timeouts, but I'm not sure
+     */
     private final int CAP = 100;
 
     private final ObjectDatabase database;

@@ -4,31 +4,38 @@
  */
 package org.geogit.remote;
 
+import static org.geogit.storage.datastream.FormatCommon.readObjectId;
+
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
+import javax.annotation.Nullable;
+
+import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
-import org.geogit.api.RevFeature;
-import org.geogit.api.RevFeatureType;
 import org.geogit.api.RevObject;
-import org.geogit.api.RevObject.TYPE;
-import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.repository.Repository;
-import org.geogit.storage.ObjectReader;
-import org.geogit.storage.ObjectSerializingFactory;
-import org.geogit.storage.ObjectWriter;
+import org.geogit.storage.BulkOpListener;
+import org.geogit.storage.BulkOpListener.CountingListener;
+import org.geogit.storage.ObjectDatabase;
 import org.geogit.storage.datastream.DataStreamSerializationFactory;
 import org.geogit.storage.datastream.FormatCommon;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.AbstractIterator;
+import com.google.common.io.CountingOutputStream;
 
 /**
  * Provides a method of packing a set of changes and the affected objects to and from a binary
@@ -36,15 +43,9 @@ import com.google.common.base.Throwables;
  */
 public final class BinaryPackedChanges {
 
-    private final ObjectWriter<RevTree> treeWriter;
+    private static final Logger LOGGER = LoggerFactory.getLogger(BinaryPackedChanges.class);
 
-    private final ObjectWriter<RevFeatureType> featureTypeWriter;
-
-    private final ObjectWriter<RevFeature> featureWriter;
-
-    private final ObjectReader<RevObject> objectReader;
-
-    private final int CAP = 100;
+    private static final DataStreamSerializationFactory serializer = DataStreamSerializationFactory.INSTANCE;
 
     private final Repository repository;
 
@@ -76,8 +77,13 @@ public final class BinaryPackedChanges {
             }
         };
 
-        public int value() {
-            return -1;
+        public abstract int value();
+
+        private static final CHUNK_TYPE[] values = CHUNK_TYPE.values();
+
+        public static CHUNK_TYPE valueOf(int value) {
+            // abusing the fact that value() coincides with ordinal()
+            return values[value];
         }
     };
 
@@ -89,11 +95,6 @@ public final class BinaryPackedChanges {
      */
     public BinaryPackedChanges(Repository repository) {
         this.repository = repository;
-        final ObjectSerializingFactory factory = new DataStreamSerializationFactory();
-        this.treeWriter = factory.createObjectWriter(RevObject.TYPE.TREE);
-        this.featureTypeWriter = factory.createObjectWriter(RevObject.TYPE.FEATURETYPE);
-        this.featureWriter = factory.createObjectWriter(RevObject.TYPE.FEATURE);
-        this.objectReader = factory.createObjectReader();
         filtered = false;
     }
 
@@ -107,87 +108,64 @@ public final class BinaryPackedChanges {
      * @param out the stream to write to
      * @param changes the changes to write
      * @throws IOException
+     * @return the number of objects written
      */
-    public void write(OutputStream out, Iterator<DiffEntry> changes) throws IOException {
-        write(out, changes, DEFAULT_CALLBACK);
-    }
+    public long write(OutputStream out, Iterator<DiffEntry> changes) throws IOException {
+        final ObjectDatabase objectDatabase = repository.objectDatabase();
+        out = new CountingOutputStream(out);
 
-    /**
-     * Writes the set of changes to the provided output stream, calling the provided callback for
-     * each item.
-     * 
-     * @param out the stream to write to
-     * @param changes the changes to write
-     * @param callback the callback function to call for each element written
-     * @return the state of the operation at the conclusion of writing
-     * @throws IOException
-     */
-    public <T> T write(OutputStream out, Iterator<DiffEntry> changes, Callback<T> callback)
-            throws IOException {
-        T state = null;
-        int changesSent = 0;
+        // avoids sending the same metadata object multiple times
+        Set<ObjectId> writtenMetadataIds = new HashSet<ObjectId>();
 
-        while (changes.hasNext() && changesSent < CAP) {
+        // buffer to avoid ObjectId cloning its internal state for each object
+        byte[] oidbuffer = new byte[ObjectId.NUM_BYTES];
+
+        long objectCount = 0;
+
+        while (changes.hasNext()) {
             DiffEntry diff = changes.next();
 
-            RevObject object = null;
-            RevObject metadata = null;
-            if (diff.getNewObject() != null) {
-                if (diff.getNewObject().getType() != TYPE.FEATURE) {
-                    out.write(CHUNK_TYPE.METADATA_OBJECT_AND_DIFF_ENTRY.value());
-                    metadata = repository.objectDatabase().get(diff.getNewObject().getMetadataId());
-                    out.write(metadata.getId().getRawValue());
-                    if (metadata instanceof RevTree) {
-                        treeWriter.write((RevTree) metadata, out);
-                    } else if (metadata instanceof RevFeature) {
-                        featureWriter.write((RevFeature) metadata, out);
-                    } else if (metadata instanceof RevFeatureType) {
-                        featureTypeWriter.write((RevFeatureType) metadata, out);
-                    }
-
-                } else {
-                    out.write(CHUNK_TYPE.OBJECT_AND_DIFF_ENTRY.value());
-                }
-                object = repository.objectDatabase().get(
-                        diff.getNewObject().getNode().getObjectId());
-
-                out.write(object.getId().getRawValue());
-                if (object instanceof RevTree) {
-                    treeWriter.write((RevTree) object, out);
-                } else if (object instanceof RevFeature) {
-                    featureWriter.write((RevFeature) object, out);
-                } else if (object instanceof RevFeatureType) {
-                    featureTypeWriter.write((RevFeatureType) object, out);
-                }
-
-            } else {
+            if (diff.isDelete()) {
                 out.write(CHUNK_TYPE.DIFF_ENTRY.value());
+            } else {
+                // its a change or an addition, new object is guaranteed to be present
+                NodeRef newObject = diff.getNewObject();
+                ObjectId metadataId = newObject.getMetadataId();
+                if (writtenMetadataIds.contains(metadataId)) {
+                    out.write(CHUNK_TYPE.OBJECT_AND_DIFF_ENTRY.value());
+                } else {
+                    out.write(CHUNK_TYPE.METADATA_OBJECT_AND_DIFF_ENTRY.value());
+                    RevObject metadata = objectDatabase.get(metadataId);
+                    writeObjectId(metadataId, out, oidbuffer);
+                    serializer.createObjectWriter(metadata.getType()).write(metadata, out);
+                    writtenMetadataIds.add(metadataId);
+                    objectCount++;
+                }
+
+                ObjectId objectId = newObject.objectId();
+                writeObjectId(objectId, out, oidbuffer);
+                RevObject object = objectDatabase.get(objectId);
+                serializer.createObjectWriter(object.getType()).write(object, out);
+                objectCount++;
             }
             DataOutput dataOut = new DataOutputStream(out);
             FormatCommon.writeDiff(diff, dataOut);
-            state = callback.callback(diff, state);
-
         }
         // signal the end of changes
         out.write(CHUNK_TYPE.FILTER_FLAG.value());
-        if (changes instanceof FilteredDiffIterator
-                && ((FilteredDiffIterator) changes).wasFiltered()) {
-            out.write(1);
-        } else {
-            out.write(0);
-        }
+        final boolean filtersApplied = changes instanceof FilteredDiffIterator
+                && ((FilteredDiffIterator) changes).wasFiltered();
+        out.write(filtersApplied ? 1 : 0);
 
-        return state;
+        LOGGER.info(String.format("Written %,d bytes to remote accounting for %,d objects.",
+                ((CountingOutputStream) out).getCount(), objectCount));
+        return objectCount;
     }
 
-    /**
-     * Read in the changes from the provided input stream. The input stream represents the output of
-     * another {@code BinaryPackedChanges} instance.
-     * 
-     * @param in the stream to read from
-     */
-    public void ingest(final InputStream in) {
-        ingest(in, DEFAULT_CALLBACK);
+    private void writeObjectId(ObjectId objectId, OutputStream out, byte[] oidbuffer)
+            throws IOException {
+        objectId.getRawValue(oidbuffer);
+        out.write(oidbuffer);
     }
 
     /**
@@ -198,97 +176,151 @@ public final class BinaryPackedChanges {
      * @param in the stream to read from
      * @param callback the callback to call for each item
      */
-    public <T> T ingest(final InputStream in, Callback<T> callback) {
-        T state = null;
-        while (true) {
-            try {
-                state = ingestOne(in, callback, state);
-            } catch (EOFException e) {
-                break;
-            } catch (IOException e) {
-                Throwables.propagate(e);
-            }
-        }
-        return state;
+    public void ingest(final InputStream in, Callback callback) {
+        PacketReadingIterator readingIterator = new PacketReadingIterator(in);
+
+        Iterator<RevObject> asObjects = asObjects(readingIterator, callback);
+
+        ObjectDatabase objectDatabase = repository.objectDatabase();
+        CountingListener listener = BulkOpListener.newCountingListener();
+        objectDatabase.putAll(asObjects, listener);
+        LOGGER.info("Ingested %,d objects. Inserted: %,d. Already existing: %,d\n",
+                listener.inserted() + listener.found(), listener.inserted(), listener.found());
+        this.filtered = readingIterator.isFiltered();
     }
 
     /**
-     * Reads in a single change from the provided input stream.
-     * 
-     * @param in the stream to read from
-     * @param callback the callback to call on the resulting item
-     * @param state the current state of the operation
-     * @return the new state of the operation
-     * @throws IOException
+     * Returns an iterator that calls the {@code callback} for each {@link DiffPacket}'s
+     * {@link DiffEntry} once, and returns either zero, one, or two {@link RevObject}s, depending on
+     * which information the diff packet carried over.
      */
-    private <T> T ingestOne(final InputStream in, Callback<T> callback, T state) throws IOException {
-        int chunkType = in.read();
-        final T result;
-        if (chunkType == CHUNK_TYPE.FILTER_FLAG.value()) {
-            int changesFiltered = in.read();
-            if (changesFiltered != 0) {
-                filtered = true;
-            }
-            throw new EOFException();
-        }
-        if (chunkType == CHUNK_TYPE.METADATA_OBJECT_AND_DIFF_ENTRY.value()) {
-            ObjectId id = readObjectId(in);
-            RevObject revObj = objectReader.read(id, in);
+    private Iterator<RevObject> asObjects(final PacketReadingIterator readingIterator,
+            final Callback callback) {
+        return new AbstractIterator<RevObject>() {
 
-            if (!repository.objectDatabase().exists(id)) {
-                repository.objectDatabase().put(revObj);
-            }
-        }
-        if (chunkType != CHUNK_TYPE.DIFF_ENTRY.value()) {
-            ObjectId id = readObjectId(in);
-            RevObject revObj = objectReader.read(id, in);
+            private DiffPacket current;
 
-            if (!repository.objectDatabase().exists(id)) {
-                repository.objectDatabase().put(revObj);
+            @Override
+            protected RevObject computeNext() {
+                if (current != null) {
+                    Preconditions.checkState(current.metadataObject != null);
+                    RevObject ret = current.metadataObject;
+                    current = null;
+                    return ret;
+                }
+                while (readingIterator.hasNext()) {
+                    DiffPacket diffPacket = readingIterator.next();
+                    callback.callback(diffPacket.entry);
+                    RevObject obj = diffPacket.newObject;
+                    RevObject md = diffPacket.metadataObject;
+                    Preconditions.checkState(obj != null || (obj == null && md == null));
+                    if (obj != null) {
+                        if (md != null) {
+                            current = diffPacket;
+                        }
+                        return obj;
+                    }
+                }
+                return endOfData();
             }
-        }
-        DataInput dataIn = new DataInputStream(in);
-        DiffEntry diff = FormatCommon.readDiff(dataIn);
-        result = callback.callback(diff, state);
-        return result;
+        };
     }
 
-    /**
-     * Reads an {@link ObjectId} from the provided input stream.
-     * 
-     * @param in the stream to read from
-     * @return the {@code ObjectId} that was read
-     * @throws IOException
-     */
-    private ObjectId readObjectId(final InputStream in) throws IOException {
-        byte[] rawBytes = new byte[20];
-        int amount = 0;
-        int len = 20;
-        int offset = 0;
-        while ((amount = in.read(rawBytes, offset, len - offset)) != 0) {
-            if (amount < 0)
-                throw new EOFException("Came to end of input");
-            offset += amount;
-            if (offset == len)
-                break;
+    private static class DiffPacket {
+
+        public final DiffEntry entry;
+
+        @Nullable
+        public final RevObject newObject;
+
+        @Nullable
+        public final RevObject metadataObject;
+
+        public DiffPacket(DiffEntry entry, @Nullable RevObject newObject,
+                @Nullable RevObject metadata) {
+            this.entry = entry;
+            this.newObject = newObject;
+            this.metadataObject = metadata;
         }
-        ObjectId id = ObjectId.createNoClone(rawBytes);
-        return id;
     }
 
-    /**
-     * Inteface for callback methods to be used by the read and write operations.
-     * 
-     * @param <T> the type of the state parameter
-     */
-    public static interface Callback<T> {
-        public abstract T callback(DiffEntry diff, T state);
-    }
+    private static class PacketReadingIterator extends AbstractIterator<DiffPacket> {
 
-    private static final Callback<Void> DEFAULT_CALLBACK = new Callback<Void>() {
+        private InputStream in;
+
+        private DataInput data;
+
+        private boolean filtered;
+
+        public PacketReadingIterator(InputStream in) {
+            this.in = in;
+            this.data = new DataInputStream(in);
+        }
+
+        /**
+         * @return {@code true} if the stream finished with a non zero "filter applied" marker
+         */
+        public boolean isFiltered() {
+            return filtered;
+        }
+
         @Override
-        public Void callback(DiffEntry diff, Void state) {
-            return null;
+        protected DiffPacket computeNext() {
+            try {
+                return readNext();
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+
+        private DiffPacket readNext() throws IOException {
+            final CHUNK_TYPE chunkType = CHUNK_TYPE.valueOf((int) (data.readByte() & 0xFF));
+
+            RevObject revObj = null;
+            RevObject metadata = null;
+
+            switch (chunkType) {
+            case DIFF_ENTRY:
+                break;
+            case OBJECT_AND_DIFF_ENTRY: {
+                ObjectId id = readObjectId(data);
+                revObj = serializer.createObjectReader().read(id, in);
+            }
+                break;
+            case METADATA_OBJECT_AND_DIFF_ENTRY: {
+                ObjectId mdid = readObjectId(data);
+                metadata = serializer.createObjectReader().read(mdid, in);
+                ObjectId id = readObjectId(data);
+                revObj = serializer.createObjectReader().read(id, in);
+            }
+                break;
+            case FILTER_FLAG: {
+                int changesFiltered = in.read();
+                if (changesFiltered != 0) {
+                    filtered = true;
+                }
+                return endOfData();
+            }
+            default:
+                throw new IllegalStateException("Unknown chunk type: " + chunkType);
+            }
+
+            DiffEntry diff = FormatCommon.readDiff(data);
+            return new DiffPacket(diff, revObj, metadata);
+        }
+    }
+
+    /**
+     * Interface for callback methods to be used by the read and write operations.
+     */
+    public static interface Callback {
+        public abstract void callback(DiffEntry diff);
+    }
+
+    private static final Callback DEFAULT_CALLBACK = new Callback() {
+        @Override
+        public void callback(DiffEntry diff) {
+            // do nothing
         }
     };
 }

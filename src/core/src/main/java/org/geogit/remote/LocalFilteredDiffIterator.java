@@ -58,4 +58,9 @@ class LocalFilteredDiffIterator extends FilteredDiffIterator {
         }
     }
 
+    @Override
+    public boolean isAutoIngesting() {
+        return false;
+    }
+
 }

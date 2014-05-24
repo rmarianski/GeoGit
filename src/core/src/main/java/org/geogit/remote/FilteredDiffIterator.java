@@ -22,7 +22,7 @@ import com.google.common.collect.AbstractIterator;
  * An implementation of a {@link DiffEntry} iterator that filters entries based on a provided
  * {@link RepositoryFilter}.
  */
-public class FilteredDiffIterator extends AbstractIterator<DiffEntry> {
+public abstract class FilteredDiffIterator extends AbstractIterator<DiffEntry> {
 
     protected boolean filtered = false;
 
@@ -36,6 +36,12 @@ public class FilteredDiffIterator extends AbstractIterator<DiffEntry> {
         return filtered;
     }
 
+    /**
+     * @return {@code true} if a side effect of consuming this iterator is that the objects it
+     *         refers to are automatically added to the local objects database
+     */
+    public abstract boolean isAutoIngesting();
+    
     /**
      * Constructs a new {@code FilteredDiffIterator}.
      * 
@@ -94,13 +100,11 @@ public class FilteredDiffIterator extends AbstractIterator<DiffEntry> {
             return null;
         }
 
-        RevObject object = sourceRepo.command(RevObjectParse.class)
-                .setObjectId(node.getNode().getObjectId()).call().get();
+        RevObject object = sourceRepo.objectDatabase().get(node.objectId());
 
         RevObject metadata = null;
-        if (node.getMetadataId() != ObjectId.NULL) {
-            metadata = sourceRepo.command(RevObjectParse.class).setObjectId(node.getMetadataId())
-                    .call().get();
+        if (!node.getMetadataId().isNull()) {
+            metadata = sourceRepo.objectDatabase().get(node.getMetadataId());
         }
         if (node.getType() == TYPE.FEATURE) {
             if (trackingObject(object.getId())) {

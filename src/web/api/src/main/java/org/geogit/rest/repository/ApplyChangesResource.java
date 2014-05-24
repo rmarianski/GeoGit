@@ -108,6 +108,7 @@ public class ApplyChangesResource extends Finder {
                 ObjectId newTreeId = repository.command(WriteTree.class)
                         .setOldRoot(Suppliers.ofInstance(rootTree))
                         .setDiffSupplier(Suppliers.ofInstance((Iterator<DiffEntry>) changes))
+                        .dontMoveObjects()// HttpFilteredDiffIterator is "auto ingesting"
                         .call();
 
                 CommitBuilder builder = new CommitBuilder(commit);
