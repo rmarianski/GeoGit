@@ -22,6 +22,7 @@ public class AnsiDecorator extends Ansi {
 
     public static Ansi newAnsi(boolean ansiSupported, StringBuilder sb) {
         Ansi ansi = new Ansi(sb);
+        ansiSupported &= null != System.console();
         if (ansiSupported) {
             return ansi;
         }
