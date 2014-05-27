@@ -283,10 +283,7 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
     }
 
     private RevTree getTree(ObjectId treeId) {
-        if (treeId.isNull()) {
-            return RevTree.EMPTY;
-        }
-        return command(RevObjectParse.class).setObjectId(treeId).call(RevTree.class).get();
+        return stagingDatabase().getTree(treeId);
     }
 
     private void deepMove(Node ref) {
@@ -314,10 +311,7 @@ public class WriteTree extends AbstractGeoGitOp<ObjectId> {
             return oldRoot.get();
         }
         final ObjectId targetTreeId = resolveRootTreeId();
-        if (targetTreeId.isNull()) {
-            return RevTree.EMPTY;
-        }
-        return command(RevObjectParse.class).setObjectId(targetTreeId).call(RevTree.class).get();
+        return stagingDatabase().getTree(targetTreeId);
     }
 
     private ObjectId writeBack(RevTreeBuilder root, final RevTree tree, final String pathToTree,

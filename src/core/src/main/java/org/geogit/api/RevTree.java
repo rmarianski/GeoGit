@@ -12,7 +12,6 @@ import org.geogit.storage.ObjectDatabase;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterators;
 
 /**
  * Provides an interface for accessing and managing GeoGit revision trees.
@@ -38,69 +37,9 @@ public interface RevTree extends RevObject {
      */
     public static final int NORMALIZED_SIZE_LIMIT = 512;
 
-    public static RevTree EMPTY = new RevTree() {
+    public static RevTree EMPTY = RevTreeBuilder.empty();
 
-        /**
-         * @return the {@code TREE} type
-         */
-        @Override
-        public TYPE getType() {
-            return TYPE.TREE;
-        }
-
-        /**
-         * @return a {@code NULL} {@link ObjectId}
-         */
-        @Override
-        public ObjectId getId() {
-            return ObjectId.NULL;
-        }
-
-        @Override
-        public RevTreeBuilder builder(ObjectDatabase target) {
-            return new RevTreeBuilder(target);
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
-
-        @Override
-        public Optional<ImmutableList<Node>> trees() {
-            return Optional.absent();
-        }
-
-        @Override
-        public Optional<ImmutableList<Node>> features() {
-            return Optional.absent();
-        }
-
-        @Override
-        public Optional<ImmutableSortedMap<Integer, Bucket>> buckets() {
-            return Optional.absent();
-        }
-
-        @Override
-        public long size() {
-            return 0L;
-        }
-
-        @Override
-        public int numTrees() {
-            return 0;
-        }
-
-        @Override
-        public Iterator<Node> children() {
-            return Iterators.emptyIterator();
-        }
-
-        @Override
-        public String toString() {
-            return "RevTree.EMTPY";
-        }
-    };
+    public static ObjectId EMPTY_TREE_ID = EMPTY.getId();
 
     /**
      * @return total number of features, including size nested trees

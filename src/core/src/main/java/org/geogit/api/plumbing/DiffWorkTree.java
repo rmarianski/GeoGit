@@ -63,7 +63,7 @@ public class DiffWorkTree extends AbstractGeoGitOp<Iterator<DiffEntry>> implemen
      * @see DiffEntry
      */
     @Override
-    protected  Iterator<DiffEntry> _call() {
+    protected Iterator<DiffEntry> _call() {
 
         final Optional<String> ref = Optional.fromNullable(refSpec);
 
@@ -88,12 +88,8 @@ public class DiffWorkTree extends AbstractGeoGitOp<Iterator<DiffEntry>> implemen
         Preconditions.checkArgument(headTreeId.isPresent(), "Refspec " + oldVersion
                 + " does not resolve to a tree");
         final RevTree headTree;
-        if (headTreeId.get().isNull()) {
-            headTree = RevTree.EMPTY;
-        } else {
-            headTree = command(RevObjectParse.class).setObjectId(headTreeId.get())
-                    .call(RevTree.class).get();
-        }
+        headTree = command(RevObjectParse.class).setObjectId(headTreeId.get()).call(RevTree.class)
+                .get();
 
         return headTree;
     }

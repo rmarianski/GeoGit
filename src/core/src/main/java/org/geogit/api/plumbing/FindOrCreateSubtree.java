@@ -88,7 +88,7 @@ public class FindOrCreateSubtree extends AbstractGeoGitOp<RevTree> {
      * @return the subtree if it was found, or a new one if it wasn't
      */
     @Override
-    protected  RevTree _call() {
+    protected RevTree _call() {
         checkNotNull(parentSupplier, "parent");
         checkNotNull(childPath, "childPath");
 
@@ -109,12 +109,12 @@ public class FindOrCreateSubtree extends AbstractGeoGitOp<RevTree> {
                 }
                 subtreeId = treeRef.objectId();
             } else {
-                subtreeId = ObjectId.NULL;
+                subtreeId = RevTree.EMPTY_TREE_ID;
             }
         } else {
-            subtreeId = ObjectId.NULL;
+            subtreeId = RevTree.EMPTY_TREE_ID;
         }
-        if (subtreeId.isNull()) {
+        if (RevTree.EMPTY_TREE_ID.equals(subtreeId)) {
             return RevTree.EMPTY;
         }
         ObjectDatabase target = indexDb ? stagingDatabase() : objectDatabase();

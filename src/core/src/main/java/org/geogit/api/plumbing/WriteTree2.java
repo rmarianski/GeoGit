@@ -294,8 +294,10 @@ public class WriteTree2 extends AbstractGeoGitOp<ObjectId> {
                 this.pathFilters, treePath);
 
         // find the diffs that apply to the path filters
-        final ObjectId leftTreeId = leftTreeRef == null ? ObjectId.NULL : leftTreeRef.objectId();
-        final ObjectId rightTreeId = rightTreeRef == null ? ObjectId.NULL : rightTreeRef.objectId();
+        final ObjectId leftTreeId = leftTreeRef == null ? RevTree.EMPTY_TREE_ID : leftTreeRef
+                .objectId();
+        final ObjectId rightTreeId = rightTreeRef == null ? RevTree.EMPTY_TREE_ID : rightTreeRef
+                .objectId();
 
         Supplier<Iterator<DiffEntry>> diffs = command(DiffTree.class).setRecursive(false)
                 .setReportTrees(false).setOldTree(leftTreeId).setNewTree(rightTreeId)
@@ -308,8 +310,7 @@ public class WriteTree2 extends AbstractGeoGitOp<ObjectId> {
 
         final StagingDatabase stagingDatabase = stagingDatabase();
 
-        final RevTree currentLeftTree = leftTreeId.isNull() ? RevTree.EMPTY : stagingDatabase
-                .getTree(leftTreeId);
+        final RevTree currentLeftTree = stagingDatabase.getTree(leftTreeId);
 
         final RevTreeBuilder builder = currentLeftTree.builder(repositoryDatabase);
 

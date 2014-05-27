@@ -216,7 +216,7 @@ public abstract class AbstractMappedRemoteRepo implements IRemoteRepo {
                 graphDatabase.map(commit.getId(), mappedCommit);
                 Optional<ObjectId> treeId = localRepository.command(ResolveTreeish.class)
                         .setTreeish(mappedCommit).call();
-                if (treeId.isPresent() && !treeId.get().equals(ObjectId.NULL)) {
+                if (treeId.isPresent()) {
                     rootTree = localRepository.getTree(treeId.get());
                 }
 

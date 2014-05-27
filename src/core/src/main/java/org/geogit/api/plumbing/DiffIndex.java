@@ -71,19 +71,17 @@ public class DiffIndex extends AbstractGeoGitOp<Iterator<DiffEntry>> implements
      * @see DiffEntry
      */
     @Override
-    protected  Iterator<DiffEntry> _call() {
+    protected Iterator<DiffEntry> _call() {
         final String oldVersion = Optional.fromNullable(refSpec).or(Ref.HEAD);
         final Optional<ObjectId> rootTreeId;
         rootTreeId = command(ResolveTreeish.class).setTreeish(oldVersion).call();
-        Preconditions.checkArgument(rootTreeId.isPresent(), "refSpec %s did not resolve to a tree", oldVersion);
+        Preconditions.checkArgument(rootTreeId.isPresent(), "refSpec %s did not resolve to a tree",
+                oldVersion);
 
         final RevTree rootTree;
-        if (rootTreeId.get().isNull()) {
-            rootTree = RevTree.EMPTY;
-        } else {
-            rootTree = command(RevObjectParse.class).setObjectId(rootTreeId.get())
-                    .call(RevTree.class).get();
-        }
+
+        rootTree = command(RevObjectParse.class).setObjectId(rootTreeId.get()).call(RevTree.class)
+                .get();
 
         final RevTree newTree = index().getTree();
 
