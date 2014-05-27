@@ -41,8 +41,8 @@ public class DiffCountConsumer implements DiffTreeVisitor.Consumer {
 
     @Override
     public boolean tree(Node left, Node right) {
+        Node node = left == null ? right : left;
         if (left == null || right == null) {
-            Node node = left == null ? right : left;
             if (NodeRef.ROOT.equals(node.getName())) {
                 // ignore the call on the root tree and follow the traversal
                 return true;
@@ -50,6 +50,10 @@ public class DiffCountConsumer implements DiffTreeVisitor.Consumer {
             count.addTrees(1L);
             addTreeFeatures(node.getObjectId());
             return false;
+        }
+
+        if (!NodeRef.ROOT.equals(node.getName())) {// ignore the root node
+            count.addTrees(1L);// the tree changed, or this method wouldn't have been called
         }
         return true;
     }

@@ -55,7 +55,7 @@ Feature: "status" command
      Then the response should contain "Changes to be committed"
       And the response should contain "8 total."
       And the response should contain "Changes not staged for commit"
-      And the response should contain "1 total."
+      And the response should contain "2 total."
       And the response should contain 20 lines
       
   Scenario: Try to get the status of a repository with unstaged changes specifying all
@@ -99,7 +99,7 @@ Feature: "status" command
      Then the response should contain "Changes to be committed"
       And the response should contain "8 total."
       And the response should contain "Changes not staged for commit"
-      And the response should contain "1 total."
+      And the response should contain "2 total."
       And the response should contain 20 lines
       
    Scenario: Try to get the status of a repository with unstaged changes using a limit
@@ -141,7 +141,7 @@ Feature: "status" command
      Then the response should contain "Changes to be committed"
       And the response should contain "8 total."
       And the response should contain "Changes not staged for commit"
-      And the response should contain "1 total."
+      And the response should contain "2 total."
       And the response should contain 11 lines
       
    Scenario: Try to get the status of a repository with a negative limit

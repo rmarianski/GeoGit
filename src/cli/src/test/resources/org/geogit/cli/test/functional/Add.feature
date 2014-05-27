@@ -8,7 +8,7 @@ Feature: "add" command
       And I have conflicting branches
       And I run the command "merge branch1"
      When I run the command "add Points/Points.1"
-     Then the response should contain "1 features and 0 trees staged for commit"
+     Then the response should contain "1 features and 1 trees staged for commit"
       And it should exit with zero exit code
      When I run the command "conflicts"
      Then the response should contain "No elements need merging"  
