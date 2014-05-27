@@ -17,12 +17,15 @@ import org.geogit.storage.FieldType;
 import org.geogit.storage.text.TextValueSerializer;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 
 import com.google.common.base.Optional;
@@ -184,7 +187,13 @@ public class MappingRule {
                 if (Geometry.class.isAssignableFrom(clazz)) {
                     Preconditions.checkArgument(geometryType == null,
                             "The mapping has more than one geometry attribute");
-                    fb.add(field.getName(), clazz, DefaultGeographicCRS.WGS84);
+                    CoordinateReferenceSystem epsg4326;
+                    try {
+                        epsg4326 = CRS.decode("EPSG:4326", true);
+                        fb.add(field.getName(), clazz, epsg4326);
+                    } catch (NoSuchAuthorityCodeException e) {
+                    } catch (FactoryException e) {
+                    }
                     geometryType = clazz;
                 } else {
                     fb.add(field.getName(), clazz);
