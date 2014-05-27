@@ -4,36 +4,50 @@
  */
 package org.geogit.api.plumbing;
 
-import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.geogit.api.Bounded;
-import org.geogit.api.Bucket;
-import org.geogit.api.Node;
-import org.geogit.api.ObjectId;
-import org.geogit.api.RevTree;
-import org.geogit.api.plumbing.diff.DiffTreeVisitor;
+import org.geogit.api.RevCommit;
 import org.geogit.api.porcelain.CommitOp;
-import org.geogit.storage.ObjectDatabase;
 import org.geogit.test.integration.RepositoryTestCase;
 import org.junit.Test;
+import org.opengis.feature.Feature;
+import org.opengis.geometry.BoundingBox;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Envelope;
 
 public class DiffBoundsTest extends RepositoryTestCase {
 
+    private Feature l1Modified;
+
+    private Feature l2Modified;
+
+    private RevCommit points1_modified_commit;
+
     @Override
     protected void setUpInternal() throws Exception {
-        populate(true, points1, points3, points1_modified);
+        // create one commit per feature
+        ArrayList<RevCommit> commits = Lists.newArrayList(populate(true, points1, points3,
+                points1_modified));
+        this.points1_modified_commit = commits.get(2);
 
-        points1_modified = feature(pointsType, idP1, "StringProp1_1a", new Integer(1001),
-                "POINT(10 20)");
-        insertAndAdd(points1_modified);
-        geogit.command(CommitOp.class).call();
+        Feature p1ModifiedAgain = feature(pointsType, idP1, "StringProp1_1a", new Integer(1001),
+                "POINT(10 20)");// used to be POINT(1 2)
+        insertAndAdd(p1ModifiedAgain);
+        commits.add(geogit.command(CommitOp.class).call());
 
         points1B_modified = feature(pointsType, idP1, "StringProp1B_1a", new Integer(2000),
                 "POINT(10 220)");
         insertAndAdd(points1B_modified);
-        geogit.command(CommitOp.class).call();
+        commits.add(geogit.command(CommitOp.class).call());
+
+        l1Modified = feature(linesType, idL1, "StringProp2_1", new Integer(1000),
+                "LINESTRING (1 1, -2 -2)");// used to be LINESTRING (1 1, 2 2)
+
+        l2Modified = feature(linesType, idL2, "StringProp2_2", new Integer(2000),
+                "LINESTRING (3 3, 4 4)");// used to be LINESTRING (3 3, 4 4)
     }
 
     @Test
@@ -48,26 +62,6 @@ public class DiffBoundsTest extends RepositoryTestCase {
         assertEquals(diffBounds.getMinY(), 1.0, 0.0);
         assertEquals(diffBounds.getMaxX(), 10.0, 0.0);
         assertEquals(diffBounds.getMaxY(), 220.0, 0.0);
-
-        testDiffTreeVisitor(oldRefSpec, newRefSpec, diffBounds);
-    }
-
-    private void testDiffTreeVisitor(String oldRefSpec, String newRefSpec, Envelope expected) {
-        ObjectId leftId = geogit.command(ResolveTreeish.class).setTreeish(oldRefSpec).call().get();
-        ObjectId rightId = geogit.command(ResolveTreeish.class).setTreeish(newRefSpec).call().get();
-        RevTree left = geogit.command(RevObjectParse.class).setObjectId(leftId).call(RevTree.class)
-                .get();
-        RevTree right = geogit.command(RevObjectParse.class).setObjectId(rightId)
-                .call(RevTree.class).get();
-
-        ObjectDatabase leftSource = getRepository().objectDatabase();
-        ObjectDatabase rightSource = getRepository().objectDatabase();
-
-        DiffTreeVisitor visitor = new DiffTreeVisitor(left, right, leftSource, rightSource);
-        BoundsWalk boundsCalc = new BoundsWalk();
-        visitor.walk(boundsCalc);
-        Envelope env = boundsCalc.result;
-        assertEquals(expected, env);
     }
 
     @Test
@@ -77,81 +71,43 @@ public class DiffBoundsTest extends RepositoryTestCase {
         Envelope diffBounds = geogit.command(DiffBounds.class).setOldVersion(oldRefSpec)
                 .setNewVersion(newRefSpec).call();
         assertTrue(diffBounds.isNull());
-
-        testDiffTreeVisitor(oldRefSpec, newRefSpec, diffBounds);
     }
 
-    private static class BoundsWalk implements DiffTreeVisitor.Consumer {
+    @Test
+    public void testPathFiltering() throws Exception {
+        insertAndAdd(l1Modified);
+        geogit.command(CommitOp.class).call();
+        insert(l2Modified);
 
-        Envelope result = new Envelope();
+        testPathFiltering("HEAD~3", "HEAD", l1Modified.getBounds(), linesName);
+        testPathFiltering("HEAD", "WORK_HEAD", l2Modified.getBounds(), linesName);
+        testPathFiltering("HEAD~3", "HEAD~2", new Envelope(), linesName);
+        testPathFiltering("HEAD~3", "HEAD~2", new Envelope(), linesName);
 
-        private Envelope leftEnv = new Envelope();
+        String head = points1_modified_commit.getId().toString();
 
-        private Envelope rightEnv = new Envelope();
+        Envelope expected = new Envelope((Envelope) points1.getBounds());
+        expected.expandToInclude((Envelope) points1_modified.getBounds());
+        testPathFiltering(head + "^", head, expected, pointsName);
+        testPathFiltering(head + "^", head, new Envelope(), linesName);
+        testPathFiltering("HEAD^", "HEAD", new Envelope(), pointsName);
+    }
 
-        @Override
-        public void feature(@Nullable Node left, @Nullable Node right) {
-            setEnv(left, leftEnv);
-            setEnv(right, rightEnv);
-            if (!leftEnv.equals(rightEnv)) {
-                result.expandToInclude(leftEnv);
-                result.expandToInclude(rightEnv);
-            }
-        }
+    private void testPathFiltering(String oldVersion, String newVersion,
+            BoundingBox expectedBounds, String... pathFilters) {
 
-        @Override
-        public boolean tree(@Nullable Node left, @Nullable Node right) {
-            setEnv(left, leftEnv);
-            setEnv(right, rightEnv);
-            if (leftEnv.isNull() && rightEnv.isNull()) {
-                return false;
-            }
+        Envelope expected = new Envelope((Envelope) expectedBounds);
+        testPathFiltering(oldVersion, newVersion, expected, pathFilters);
+    }
 
-            if (leftEnv.isNull()) {
-                result.expandToInclude(rightEnv);
-                return false;
-            } else if (rightEnv.isNull()) {
-                result.expandToInclude(leftEnv);
-                return false;
-            }
-            return true;
-        }
+    private void testPathFiltering(String oldVersion, String newVersion, Envelope expected,
+            String... pathFilters) {
 
-        @Override
-        public boolean bucket(final int bucketIndex, final int bucketDepth, @Nullable Bucket left,
-                @Nullable Bucket right) {
-            setEnv(left, leftEnv);
-            setEnv(right, rightEnv);
-            if (leftEnv.isNull() && rightEnv.isNull()) {
-                return false;
-            }
+        List<String> filter = ImmutableList.<String> copyOf(pathFilters);
 
-            if (leftEnv.isNull()) {
-                result.expandToInclude(rightEnv);
-                return false;
-            } else if (rightEnv.isNull()) {
-                result.expandToInclude(leftEnv);
-                return false;
-            }
-            return true;
-        }
+        Envelope actual = geogit.command(DiffBounds.class).setOldVersion(oldVersion)
+                .setNewVersion(newVersion).setPathFilters(filter).call();
 
-        private void setEnv(@Nullable Bounded bounded, Envelope env) {
-            env.setToNull();
-            if (bounded != null) {
-                bounded.expand(env);
-            }
-        }
-
-        @Override
-        public void endTree(Node left, Node right) {
-            // nothing to do
-        }
-
-        @Override
-        public void endBucket(int bucketIndex, int bucketDepth, Bucket left, Bucket right) {
-            // nothing to do
-        }
-
+        assertEquals(expected, actual);
     }
 }

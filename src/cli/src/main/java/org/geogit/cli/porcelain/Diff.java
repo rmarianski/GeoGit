@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import jline.console.ConsoleReader;
 
 import org.fusesource.jansi.Ansi;
@@ -90,6 +92,7 @@ public class Diff extends AbstractCommand implements CLICommand {
         if (bounds) {
             DiffBounds diff = geogit.command(DiffBounds.class).setOldVersion(oldVersion)
                     .setNewVersion(newVersion).setCompareIndex(cached);
+            diff.setPathFilters(paths);
             Envelope diffBounds = diff.call();
             BoundsDiffPrinter.print(geogit, cli.getConsole(), diffBounds);
             return;
@@ -146,10 +149,12 @@ public class Diff extends AbstractCommand implements CLICommand {
         }
     }
 
+    @Nullable
     private String resolveOldVersion() {
         return refSpec.size() > 0 ? refSpec.get(0) : null;
     }
 
+    @Nullable
     private String resolveNewVersion() {
         return refSpec.size() > 1 ? refSpec.get(1) : null;
     }

@@ -8,6 +8,8 @@ package org.geogit.api.plumbing;
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import org.geogit.api.AbstractGeoGitOp;
@@ -18,10 +20,12 @@ import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
 import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.diff.DiffTreeVisitor;
+import org.geogit.api.plumbing.diff.PathFilteringDiffConsumer;
 import org.geogit.storage.ObjectDatabase;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
@@ -37,8 +41,11 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
 
     private boolean cached;
 
+    private List<String> pathFilters;
+
     public DiffBounds setOldVersion(String oldVersion) {
         this.oldVersion = oldVersion;
+        this.pathFilters = ImmutableList.of();
         return this;
     }
 
@@ -49,6 +56,15 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
 
     public DiffBounds setCompareIndex(boolean cached) {
         this.cached = cached;
+        return this;
+    }
+
+    public DiffBounds setPathFilters(@Nullable final List<String> pathFilters) {
+        if (null == pathFilters) {
+            this.pathFilters = ImmutableList.of();
+        } else {
+            this.pathFilters = ImmutableList.copyOf(pathFilters);
+        }
         return this;
     }
 
@@ -72,7 +88,11 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
         ObjectDatabase rightSource = resolveSafeDb(rightRefSpec);
         DiffTreeVisitor visitor = new DiffTreeVisitor(left, right, leftSource, rightSource);
         BoundsWalk walk = new BoundsWalk();
-        visitor.walk(walk);
+        DiffTreeVisitor.Consumer consumer = walk;
+        if (!pathFilters.isEmpty()) {
+            consumer = new PathFilteringDiffConsumer(pathFilters, walk);
+        }
+        visitor.walk(consumer);
         Envelope diffBounds = walk.result;
         return diffBounds;
     }
@@ -83,7 +103,11 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
      */
     private ObjectDatabase resolveSafeDb(String refSpec) {
         Optional<Ref> ref = command(RefParse.class).setName(refSpec).call();
-        return ref.isPresent() ? objectDatabase() : stagingDatabase();
+        if (ref.isPresent()) {
+            ObjectId id = ref.get().getObjectId();
+            return objectDatabase().exists(id) ? objectDatabase() : stagingDatabase();
+        }
+        return stagingDatabase();
     }
 
     private RevTree resolveTree(String refSpec) {
