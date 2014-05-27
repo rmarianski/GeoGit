@@ -120,7 +120,7 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
 
         final RevTree headTree;
         Optional<ObjectId> resolved = command(ResolveTreeish.class).setTreeish(refSpec).call();
-        if (resolved.isPresent()) {
+        if (resolved.isPresent() && !resolved.get().isNull()) {
             ObjectId headTreeId = resolved.get();
             headTree = command(RevObjectParse.class).setObjectId(headTreeId).call(RevTree.class)
                     .get();
