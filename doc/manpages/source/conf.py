@@ -31,6 +31,7 @@ man_pages = [
     ('commit', 'geogit-commit', 'Commits staged changes to the repository', ['OpenGeo <http://opengeo.org>'], '1'),
     ('config', 'geogit-config', 'Get and set repository or global options', ['OpenGeo <http://opengeo.org>'], '1'),
     ('cherrypick', 'geogit-cherrypick', 'Apply the changes introduced by some existing commits', ['OpenGeo <http://opengeo.org>'], '1'),
+    ('diff', 'geogit-diff', 'Show changes between two tree-ish references.', ['OpenGeo <http://opengeo.org>'], '1'),
     ('log', 'geogit-log', 'Show commit logs', ['OpenGeo <http://opengeo.org>'], '1'),
     ('help', 'geogit-help', 'Get help for a command', ['OpenGeo <http://opengeo.org'], 1),
     ('status', 'geogit-status', 'Show the working tree and index status', ['OpenGeo <http://opengeo.org>'], '1'),

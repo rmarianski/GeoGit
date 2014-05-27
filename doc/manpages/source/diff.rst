@@ -8,7 +8,7 @@ geogit-diff documentation
 
 SYNOPSIS
 ********
-geogit diff [<commit> [<commit>]] [-- <path>...] [--cached] [--summary] [--nogeom]
+geogit diff [<commit> [<commit>]] [--cached] [--summary|--nogeom|--count] [-- <path>[ <path>]...] 
 
 
 DESCRIPTION
@@ -25,11 +25,13 @@ By default, a full detailed report of changes is shown. By using the ``--nogeom`
 OPTIONS
 *******
 
--cached				Use index instead of working tree for comparison. If no commit is specified, it compares index and HEAD commit
+--cached	Use index instead of working tree for comparison. If no commit is specified, it compares index and HEAD commit
 
---nogeom			Do not show detailed changes in coordinates, but just a summary of altered points in each modified geometry
+--nogeom	Do not show detailed changes in coordinates, but just a summary of altered points in each modified geometry
 
---summary			List only summary of changes. It will only show which features have changed, but not give details about the changes in each of them.
+--summary	List only summary of changes. It will only show which features have changed, but not give details about the changes in each of them.
+
+--count		Print the total number of trees and features affected by the diff instead.
 
 SEE ALSO
 ********
