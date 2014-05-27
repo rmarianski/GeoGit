@@ -216,7 +216,9 @@ public class FormatCommon {
 
         ImmutableList<Node> trees = treesBuilder.build();
         ImmutableList<Node> features = featuresBuilder.build();
-        if (trees.isEmpty() && features.isEmpty()) {
+        if (nTrees == 0 && nFeatures == 0 && nBuckets == 0) {
+            return RevTree.EMPTY;
+        } else if (trees.isEmpty() && features.isEmpty()) {
             return RevTreeImpl.createNodeTree(id, size, treeCount, buckets);
         } else if (buckets.isEmpty()) {
             return RevTreeImpl.createLeafTree(id, size, features, trees);
