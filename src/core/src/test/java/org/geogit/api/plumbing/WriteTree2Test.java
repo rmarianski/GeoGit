@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.opengis.feature.Feature;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableCollection;
@@ -49,6 +50,8 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.io.ParseException;
 
 public class WriteTree2Test extends RepositoryTestCase {
+
+    private static final String EMPTY_ID = RevTree.EMPTY_TREE_ID.toString();
 
     private WriteTree2 command;
 
@@ -84,7 +87,7 @@ public class WriteTree2Test extends RepositoryTestCase {
     public void testEmptyRepo() {
         ObjectId root = command.call();
         assertNotNull(root);
-        assertTrue(root.isNull());
+        assertEquals(RevTree.EMPTY_TREE_ID, root);
     }
 
     @Test
@@ -107,10 +110,10 @@ public class WriteTree2Test extends RepositoryTestCase {
     @Test
     public void testRename() {
         leftTree = createHeadTree(//
-        repoTree("roads", "a1", null, 0) //
+        repoTree("roads", EMPTY_ID, null, 0) //
         );
         rightTree = createStageHeadTree(//
-        indexTree("roadsRenamed", "a1", null, 0) //
+        indexTree("roadsRenamed", EMPTY_ID, null, 0) //
         );
 
         ObjectId newRepoRoot = command.call();
@@ -126,12 +129,12 @@ public class WriteTree2Test extends RepositoryTestCase {
     @Test
     public void testRenameNested() {
         leftTree = createHeadTree(//
-                repoTree("roads", "a1", null, 0), //
+                repoTree("roads", EMPTY_ID, null, 0), //
                 repoTree("roads/highways", "a2", "d1", 2),//
                 repoTree("roads/streets", "a3", "d2", 2) //
         );
         rightTree = createStageHeadTree(//
-                indexTree("roads", "a11", null, 0), //
+                indexTree("roads", EMPTY_ID, null, 0), //
                 indexTree("roads/highways", "a2", "d1", 2),//
                 indexTree("roads/streetsRenamed", "a3", "d2", 2) //
         );
@@ -151,13 +154,13 @@ public class WriteTree2Test extends RepositoryTestCase {
     @Test
     public void testNoChanges() {
         leftTree = createHeadTree(//
-                repoTree("buildings", "a4", null, 0),//
+                repoTree("buildings", EMPTY_ID, null, 0),//
                 repoTree("buildings/stores", "a5", "d3", 5),//
                 repoTree("buildings/unknown", "a6", "d4", 5),//
                 repoTree("buildings/towers", "a7", "d5", 5)//
         );
         rightTree = createStageHeadTree(//
-                repoTree("buildings", "a4", null, 0),//
+                repoTree("buildings", EMPTY_ID, null, 0),//
                 repoTree("buildings/stores", "a5", "d3", 5),//
                 repoTree("buildings/unknown", "a6", "d4", 5),//
                 repoTree("buildings/towers", "a7", "d5", 5)//
@@ -178,11 +181,11 @@ public class WriteTree2Test extends RepositoryTestCase {
     @Test
     public void testMetadataIdChangeOnly() {
         leftTree = createHeadTree(//
-                repoTree("buildings", "a4", null, 0),//
+                repoTree("buildings", EMPTY_ID, null, 0),//
                 repoTree("buildings/stores", "a5", "d3", 5)// old md id is d3
         );
         rightTree = createStageHeadTree(//
-                indexTree("buildings", "a41", null, 0),//
+                indexTree("buildings", EMPTY_ID, null, 0),//
                 indexTree("buildings/stores", "a5", "d31", 5)// new md id is d31
         );
 
@@ -198,10 +201,10 @@ public class WriteTree2Test extends RepositoryTestCase {
     @Test
     public void testDeleteAll() {
         leftTree = createHeadTree(//
-                repoTree("roads", "a1", null, 0), //
+                repoTree("roads", EMPTY_ID, null, 0), //
                 repoTree("roads/highways", "a2", "d1", 10),//
                 repoTree("roads/streets", "a3", "d2", 10), //
-                repoTree("buildings", "a4", null, 0),//
+                repoTree("buildings", EMPTY_ID, null, 0),//
                 repoTree("buildings/stores", "a5", "d3", 5),//
                 repoTree("buildings/unknown", "a6", "d4", 5),//
                 repoTree("buildings/towers", "a7", "d5", 5)//
@@ -218,18 +221,18 @@ public class WriteTree2Test extends RepositoryTestCase {
     @Test
     public void testDeletes() {
         leftTree = createHeadTree(//
-                repoTree("roads", "a1", null, 0), //
+                repoTree("roads", EMPTY_ID, null, 0), //
                 repoTree("roads/highways", "a2", "d1", 10),//
                 repoTree("roads/streets", "a3", "d2", 10), //
-                repoTree("buildings", "a4", null, 0),//
+                repoTree("buildings", EMPTY_ID, null, 0),//
                 repoTree("buildings/stores", "a5", "d3", 5),//
                 repoTree("buildings/unknown", "a6", "d4", 5),//
                 repoTree("buildings/towers", "a7", "d5", 5)//
         );
         rightTree = createStageHeadTree(//
-                indexTree("roads", "a11", null, 0), //
+                indexTree("roads", EMPTY_ID, null, 0), //
                 indexTree("roads/highways", "a2", "d1", 10),//
-                indexTree("buildings", "a41", null, 0),//
+                indexTree("buildings", EMPTY_ID, null, 0),//
                 indexTree("buildings/stores", "a5", "d31", 5)//
         );
 
@@ -248,7 +251,7 @@ public class WriteTree2Test extends RepositoryTestCase {
     public void testSimpleChanges() {
         leftTree = createHeadTree(//
                 repoTree("roads", "a1", "d1", 1), //
-                repoTree("buildings", "a4", null, 0)//
+                repoTree("buildings", EMPTY_ID, null, 0)//
         );
         rightTree = createStageHeadTree(//
                 repoTree("roads", "a11", "d1", 2), //
@@ -273,18 +276,18 @@ public class WriteTree2Test extends RepositoryTestCase {
     @Test
     public void testNestedChanges() {
         leftTree = createHeadTree(//
-                repoTree("roads", "a1", null, 0), //
-                repoTree("roads/highways", "a2", "d1", 0),//
+                repoTree("roads", EMPTY_ID, null, 0), //
+                repoTree("roads/highways", EMPTY_ID, "d1", 0),//
                 repoTree("roads/streets", "a3", "d2", 1), //
-                repoTree("buildings", "a4", null, 0),//
-                repoTree("buildings/stores", "a5", "d3", 0),//
+                repoTree("buildings", EMPTY_ID, null, 0),//
+                repoTree("buildings/stores", EMPTY_ID, "d3", 0),//
                 repoTree("buildings/unknown", "a6", "d4", 1)//
         );
         rightTree = createStageHeadTree(//
-                indexTree("roads", "a11", null, 0), //
+                indexTree("roads", EMPTY_ID, null, 0), //
                 indexTree("roads/highways", "a21", "d1", 1),// 1 added
-                indexTree("roads/streets", "a31", "d2", 0), // 1 removed
-                indexTree("buildings", "a41", null, 0),//
+                indexTree("roads/streets", EMPTY_ID, "d2", 0), // 1 removed
+                indexTree("buildings", EMPTY_ID, null, 0),//
                 indexTree("buildings/stores", "a51", "d3", 2),// 2 added
                 indexTree("buildings/unknown", "a6", "d4", 1)// not changed
         );
@@ -307,7 +310,7 @@ public class WriteTree2Test extends RepositoryTestCase {
     @Test
     public void testAllKindsOfChanges() {
         leftTree = createHeadTree(//
-                repoTree("roads", "a1", null, 0), //
+                repoTree("roads", EMPTY_ID, null, 0), //
                 repoTree("roads/highways", "a2", "d1", 1),//
                 repoTree("roads/streets", "a3", "d2", 1), //
                 repoTree("buildings", "a4", null, 2),// mixed tree, contains features and subtrees
@@ -316,7 +319,7 @@ public class WriteTree2Test extends RepositoryTestCase {
                 repoTree("buildings/towers", "a7", "d5", 5)//
         );
         rightTree = createStageHeadTree(//
-                indexTree("roads", "a11", null, 0), //
+                indexTree("roads", EMPTY_ID, null, 0), //
                 indexTree("roads/highways", "a21", "d1", 2),// 1 feature added
                 indexTree("roads/streetsRenamed", "a3", "d2", 1), // tree renamed
                 indexTree("buildings", "a41", null, 1),// 1 feature removed
@@ -326,7 +329,7 @@ public class WriteTree2Test extends RepositoryTestCase {
                 // buildings/towers removed completely
                 indexTree("admin", "c1", "d5", 2),// new mixed tree, contains features and subtrees
                 indexTree("admin/area", "c2", "d6", 1),//
-                indexTree("admin/line", "c3", "d7", 0)//
+                indexTree("admin/line", EMPTY_ID, "d7", 0)//
         );
 
         final ObjectId newRepoRoot = command.call();
@@ -613,6 +616,7 @@ public class WriteTree2Test extends RepositoryTestCase {
 
     private RevTree createHeadTree(NodeRef... treeRefs) {
         RevTree root = createFromRefs(objectDb, treeRefs);
+        objectDb.put(root);
         CommitBuilder cb = new CommitBuilder(geogit.getPlatform());
         ObjectId treeId = root.getId();
 
@@ -653,7 +657,7 @@ public class WriteTree2Test extends RepositoryTestCase {
     }
 
     private RevTree createFromRefs(ObjectDatabase targetDb, NodeRef... treeRefs) {
-        MutableTree mutableTree = MutableTree.createFromRefs(ObjectId.NULL, treeRefs);
+        MutableTree mutableTree = MutableTree.createFromRefs(RevTree.EMPTY_TREE_ID, treeRefs);
         RevTree tree = mutableTree.build(indexDb, targetDb);
         return tree;
     }
@@ -674,7 +678,8 @@ public class WriteTree2Test extends RepositoryTestCase {
      * features), in order for the {@link #createFromRefs} method to be able of saving the parent
      */
     private NodeRef tree(ObjectDatabase db, String path, String id, String mdId, int numFeatures) {
-
+        Preconditions.checkArgument(numFeatures != 0 || EMPTY_ID.equals(id),
+                "for zero features trees use RevTree.EMPTY_TREE_ID");
         final ObjectId treeId = id(id);
         final ObjectId metadataId = id(mdId);
         final String feturePrefix = NodeRef.nodeFromPath(path);

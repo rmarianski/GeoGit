@@ -24,6 +24,7 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.api.Ref;
+import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.RefParse;
 import org.geogit.api.plumbing.ResolveGeogitDir;
 import org.geogit.api.plumbing.UpdateRef;
@@ -34,6 +35,7 @@ import org.geogit.di.VersionedFormat;
 import org.geogit.repository.Repository;
 import org.geogit.repository.RepositoryConnectionException;
 import org.geogit.storage.ConfigDatabase;
+import org.geogit.storage.ObjectDatabase;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -108,7 +110,7 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
      *         {@link ResolveGeogitDir}
      */
     @Override
-    protected  Repository _call() {
+    protected Repository _call() {
         final Platform platform = platform();
         final File workingDirectory = platform.pwd();
         checkState(workingDirectory != null, "working directory is null");
@@ -222,6 +224,9 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
             }
             try {
                 repository.open();
+                // make sure the repo has the empty tree
+                ObjectDatabase objectDatabase = repository.objectDatabase();
+                objectDatabase.put(RevTree.EMPTY);
             } catch (RepositoryConnectionException e) {
                 throw new IllegalStateException("Error opening repository databases: "
                         + e.getMessage(), e);
@@ -303,13 +308,13 @@ public class InitOp extends AbstractGeoGitOp<Repository> {
         Optional<Ref> workhead = command(RefParse.class).setName(Ref.WORK_HEAD).call();
         Preconditions
                 .checkState(!workhead.isPresent(), Ref.WORK_HEAD + " was already initialized.");
-        command(UpdateRef.class).setName(Ref.WORK_HEAD).setNewValue(ObjectId.NULL)
+        command(UpdateRef.class).setName(Ref.WORK_HEAD).setNewValue(RevTree.EMPTY.getId())
                 .setReason("Repository initialization").call();
 
         Optional<Ref> stagehead = command(RefParse.class).setName(Ref.STAGE_HEAD).call();
         Preconditions.checkState(!stagehead.isPresent(), Ref.STAGE_HEAD
                 + " was already initialized.");
-        command(UpdateRef.class).setName(Ref.STAGE_HEAD).setNewValue(ObjectId.NULL)
+        command(UpdateRef.class).setName(Ref.STAGE_HEAD).setNewValue(RevTree.EMPTY.getId())
                 .setReason("Repository initialization").call();
 
     }

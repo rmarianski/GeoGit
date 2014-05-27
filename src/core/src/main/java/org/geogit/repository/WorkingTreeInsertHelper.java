@@ -117,7 +117,7 @@ class WorkingTreeInsertHelper {
 
         final NodeRef treeRef = findOrCreateTree(treePath, type);
         final ObjectId treeId = treeRef.objectId();
-        final RevTree origTree = treeId.isNull() ? RevTree.EMPTY : indexDatabase.getTree(treeId);
+        final RevTree origTree = indexDatabase.getTree(treeId);
 
         ObjectId defaultMetadataId = treeRef.getMetadataId();
 

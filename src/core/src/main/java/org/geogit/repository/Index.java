@@ -101,7 +101,7 @@ public class Index implements StagingArea {
         RevTree stageTree = RevTree.EMPTY;
 
         if (stageTreeId.isPresent()) {
-            if (!stageTreeId.get().isNull()) {
+            if (!stageTreeId.get().equals(RevTree.EMPTY_TREE_ID)) {
                 stageTree = context.stagingDatabase().getTree(stageTreeId.get());
             }
         } else {
@@ -109,7 +109,7 @@ public class Index implements StagingArea {
             Optional<ObjectId> headTreeId = context.command(ResolveTreeish.class)
                     .setTreeish(Ref.HEAD).call();
 
-            if (headTreeId.isPresent() && !headTreeId.get().isNull()) {
+            if (headTreeId.isPresent() && !headTreeId.get().equals(RevTree.EMPTY_TREE_ID)) {
                 stageTree = context.objectDatabase().getTree(headTreeId.get());
                 updateStageHead(stageTree.getId());
             }

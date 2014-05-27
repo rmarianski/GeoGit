@@ -315,8 +315,15 @@ public class RevParse extends AbstractGeoGitOp<Optional<ObjectId>> {
             boolean hexPatternMatches = HEX_PATTERN.matcher(refSpec).matches();
             if (hexPatternMatches) {
                 try {
-                    if (ObjectId.valueOf(refSpec).isNull()) {
+                    ObjectId parsed = ObjectId.valueOf(refSpec);
+                    if (parsed.isNull()) {
                         return Optional.of(ObjectId.NULL);
+                    }
+                    if (parsed.equals(RevTree.EMPTY_TREE_ID)) {
+                        return Optional.of(RevTree.EMPTY_TREE_ID);
+                    }
+                    if (stagingDatabase().exists(parsed)) {
+                        return Optional.of(parsed);
                     }
                 } catch (IllegalArgumentException ignore) {
                     // its a partial id
@@ -331,6 +338,8 @@ public class RevParse extends AbstractGeoGitOp<Optional<ObjectId>> {
                     resolvedTo = hashMatches.get(0);
                 } else if (ObjectId.NULL.toString().startsWith(refSpec)) {
                     resolvedTo = ObjectId.NULL;
+                } else if (RevTree.EMPTY_TREE_ID.toString().startsWith(refSpec)) {
+                    resolvedTo = RevTree.EMPTY.getId();
                 }
             }
         }

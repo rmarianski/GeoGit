@@ -138,7 +138,7 @@ public class WorkingTree {
         RevTree workTree = RevTree.EMPTY;
 
         if (workTreeId.isPresent()) {
-            if (!workTreeId.get().isNull()) {
+            if (!workTreeId.get().equals(RevTree.EMPTY_TREE_ID)) {
                 workTree = context.stagingDatabase().getTree(workTreeId.get());
             }
         } else {
@@ -146,7 +146,7 @@ public class WorkingTree {
             Optional<ObjectId> headTreeId = context.command(ResolveTreeish.class)
                     .setTreeish(Ref.HEAD).call();
 
-            if (headTreeId.isPresent() && !headTreeId.get().isNull()) {
+            if (headTreeId.isPresent() && !headTreeId.get().equals(RevTree.EMPTY_TREE_ID)) {
                 workTree = context.objectDatabase().getTree(headTreeId.get());
                 updateWorkHead(workTree.getId());
             }
@@ -472,8 +472,7 @@ public class WorkingTree {
 
         Stopwatch sw = new Stopwatch().start();
 
-        final RevTree origTree = treeRef.objectId().isNull() ? RevTree.EMPTY : indexDatabase
-                .getTree(treeRef.objectId());
+        final RevTree origTree = indexDatabase.getTree(treeRef.objectId());
         RevTreeBuilder2 builder = new RevTreeBuilder2(indexDatabase, origTree,
                 treeRef.getMetadataId(), executorService);
 

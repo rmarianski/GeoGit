@@ -65,7 +65,7 @@ public class MutableTree implements Cloneable {
             .reverse();
 
     private MutableTree(String name) {
-        this(Node.tree(name, ObjectId.NULL, ObjectId.NULL));
+        this(Node.tree(name, RevTree.EMPTY_TREE_ID, ObjectId.NULL));
     }
 
     private MutableTree(Node node) {
@@ -269,10 +269,9 @@ public class MutableTree implements Cloneable {
     }
 
     public RevTree build(ObjectDatabase origin, ObjectDatabase target) {
-        RevTree tree = RevTree.EMPTY;
-        if (!node.getObjectId().isNull()) {
-            tree = origin.getTree(node.getObjectId());
-        }
+        final ObjectId nodeId = node.getObjectId();
+        final RevTree tree = origin.getTree(nodeId);
+
         RevTreeBuilder builder = tree.builder(target).clearSubtrees();
 
         for (MutableTree childTree : this.childTrees.values()) {

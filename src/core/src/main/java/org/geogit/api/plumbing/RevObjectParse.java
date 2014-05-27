@@ -75,7 +75,6 @@ public class RevObjectParse extends AbstractGeoGitOp<Optional<RevObject>> {
         if (resolvedObjectId.isNull()) {
             return Optional.absent();
         }
-
         RevObject revObject = stagingDatabase().get(resolvedObjectId);
         Preconditions.checkArgument(clazz.isAssignableFrom(revObject.getClass()),
                 "Wrong return class for RevObjectParse operation");

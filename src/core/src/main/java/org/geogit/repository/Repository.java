@@ -253,7 +253,7 @@ public class Repository implements Context {
      */
     public RevTree getOrCreateHeadTree() {
         Optional<ObjectId> headTreeId = command(ResolveTreeish.class).setTreeish(Ref.HEAD).call();
-        if (!headTreeId.isPresent() || headTreeId.get().isNull()) {
+        if (!headTreeId.isPresent()) {
             return RevTree.EMPTY;
         }
         return getTree(headTreeId.get());

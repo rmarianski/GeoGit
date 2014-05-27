@@ -229,7 +229,7 @@ public class CommitOp extends AbstractGeoGitOp<RevCommit> {
      *         staging tree and the repository HEAD tree.
      */
     @Override
-    protected  RevCommit _call() throws RuntimeException {
+    protected RevCommit _call() throws RuntimeException {
         final String committer = resolveCommitter();
         final String committerEmail = resolveCommitterEmail();
         final String author = resolveAuthor();
@@ -309,7 +309,7 @@ public class CommitOp extends AbstractGeoGitOp<RevCommit> {
         }
 
         final ObjectId currentRootTreeId = command(ResolveTreeish.class)
-                .setTreeish(currHeadCommitId).call().or(ObjectId.NULL);
+                .setTreeish(currHeadCommitId).call().or(RevTree.EMPTY_TREE_ID);
         if (currentRootTreeId.equals(newTreeId)) {
             if (!allowEmpty) {
                 throw new NothingToCommitException("Nothing to commit after " + currHeadCommitId);

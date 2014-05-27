@@ -61,7 +61,7 @@ public class JEObjectDatabaseTest extends Assert {
     public void testReadOnlyHint() {
         hints.set(Hints.OBJECTS_READ_ONLY, Boolean.TRUE);
         db = createDb();
-        RevObject obj = RevTree.EMPTY.builder(db).build();
+        RevObject obj = RevTree.EMPTY;
         try {
             db.put(obj);
             fail("Expected UOE on read only hint");
@@ -74,7 +74,7 @@ public class JEObjectDatabaseTest extends Assert {
     public void testReadOnlyHintPreservedOnReopen() {
         hints.set(Hints.OBJECTS_READ_ONLY, Boolean.TRUE);
         db = createDb();
-        RevObject obj = RevTree.EMPTY.builder(db).build();
+        RevObject obj = RevTree.EMPTY;
         try {
             db.put(obj);
             fail("Expected UOE on read only hint");
@@ -96,7 +96,7 @@ public class JEObjectDatabaseTest extends Assert {
     public void testReadOnlyHint2() {
         hints.set(Hints.OBJECTS_READ_ONLY, Boolean.TRUE);
         db = createDb();
-        RevObject obj = RevTree.EMPTY.builder(db).build();
+        RevObject obj = RevTree.EMPTY;
         try {
             db.put(obj);
             fail("Expected UOE on read only hint");
@@ -115,7 +115,7 @@ public class JEObjectDatabaseTest extends Assert {
     public void testReadOnlyHint3() {
         hints.set(Hints.OBJECTS_READ_ONLY, Boolean.TRUE);
         db = createDb();
-        RevObject obj = RevTree.EMPTY.builder(db).build();
+        RevObject obj = RevTree.EMPTY;
         try {
             db.put(obj);
             fail("Expected UOE on read only hint");
@@ -135,7 +135,7 @@ public class JEObjectDatabaseTest extends Assert {
         ObjectDatabase db1 = createDb();
         ObjectDatabase db2 = createDb();
 
-        RevObject obj = RevTree.EMPTY.builder(db1).build();
+        RevObject obj = RevTree.EMPTY;
 
         assertTrue(db1.put(obj));
         db1.close();

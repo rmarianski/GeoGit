@@ -214,9 +214,6 @@ public class WriteBack extends AbstractGeoGitOp<ObjectId> {
     }
 
     private RevTree getTree(ObjectId treeId, ObjectDatabase targetDb) {
-        if (treeId.isNull()) {
-            return RevTree.EMPTY;
-        }
         RevTree revTree = targetDb.getTree(treeId);
         return revTree;
     }

@@ -31,6 +31,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -78,6 +79,18 @@ public class RevTreeBuilder {
      */
     public RevTreeBuilder(ObjectDatabase db) {
         this(db, null);
+    }
+
+    /**
+     * Only useful to {@link #build() build} the named {@link #empty() empty} tree
+     */
+    private RevTreeBuilder() {
+        db = null;
+        treeChanges = Maps.newTreeMap();
+        featureChanges = Maps.newTreeMap();
+        deletes = Sets.newTreeSet();
+        bucketTreesByBucket = Maps.newTreeMap();
+        pendingWritesCache = Maps.newTreeMap();
     }
 
     /**
@@ -388,8 +401,10 @@ public class RevTreeBuilder {
         }
         int accChildTreeCount = this.initialNumTrees + treesDelta;
 
-        return RevTreeImpl.createNodeTree(ObjectId.NULL, accSize, accChildTreeCount,
+        RevTreeImpl unnamedTree;
+        unnamedTree = RevTreeImpl.createNodeTree(ObjectId.NULL, accSize, accChildTreeCount,
                 this.bucketTreesByBucket);
+        return unnamedTree;
     }
 
     /**
@@ -510,5 +525,14 @@ public class RevTreeBuilder {
     public RevTreeBuilder clearSubtrees() {
         this.treeChanges.clear();
         return this;
+    }
+
+    /**
+     * @return a new instance of a properly "named" empty tree (as in with a proper object id after
+     *         applying {@link HashObject})
+     */
+    public static RevTree empty() {
+        RevTree theEmptyTree = new RevTreeBuilder().build();
+        return theEmptyTree;
     }
 }

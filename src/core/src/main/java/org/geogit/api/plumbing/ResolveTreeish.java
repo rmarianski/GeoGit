@@ -13,6 +13,7 @@ import org.geogit.api.ObjectId;
 import org.geogit.api.RevCommit;
 import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.RevTag;
+import org.geogit.api.RevTree;
 
 import com.google.common.base.Optional;
 
@@ -79,8 +80,8 @@ public class ResolveTreeish extends AbstractGeoGitOp<Optional<ObjectId>> {
         }
 
         ObjectId objectId = resolved.get();
-        if (objectId.isNull()) {
-            return resolved;
+        if (objectId.isNull()) {// might be an empty commit ref
+            return Optional.of(RevTree.EMPTY_TREE_ID);
         }
 
         final TYPE objectType = command(ResolveObjectType.class).setObjectId(objectId).call();

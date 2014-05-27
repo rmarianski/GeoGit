@@ -5,6 +5,7 @@
 
 package org.geogit.api.porcelain;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -26,17 +27,24 @@ import org.geogit.api.Context;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;
 import org.geogit.api.Ref;
+import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.RefParse;
 import org.geogit.api.plumbing.ResolveGeogitDir;
 import org.geogit.api.plumbing.UpdateRef;
 import org.geogit.api.plumbing.UpdateSymRef;
 import org.geogit.di.PluginDefaults;
 import org.geogit.repository.Repository;
+import org.geogit.repository.RepositoryConnectionException;
+import org.geogit.storage.ObjectDatabase;
+import org.geogit.storage.memory.HeapObjectDatabse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.google.common.base.Optional;
 
@@ -66,11 +74,13 @@ public class InitOpTest {
 
     private UpdateSymRef mockUpdateSymRef;
 
+    private ObjectDatabase objectDatabase;
+
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, RepositoryConnectionException {
         injector = mock(Context.class);
 
         mockRefParse = mock(RefParse.class);
@@ -101,6 +111,16 @@ public class InitOpTest {
         init.setContext(injector);
 
         mockRepo = mock(Repository.class);
+        objectDatabase = new HeapObjectDatabse();
+        when(mockRepo.objectDatabase()).thenReturn(objectDatabase);
+
+        Mockito.doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                objectDatabase.open();
+                return null;
+            }
+        }).when(mockRepo).open();
 
         workingDir = tempFolder.getRoot();
 
@@ -133,13 +153,16 @@ public class InitOpTest {
         verify(mockUpdateRef, times(1)).setName(eq(Ref.MASTER));
         verify(mockUpdateRef, times(1)).setName(eq(Ref.WORK_HEAD));
         verify(mockUpdateRef, times(1)).setName(eq(Ref.STAGE_HEAD));
-        verify(mockUpdateRef, times(3)).setNewValue(eq(ObjectId.NULL));
+        verify(mockUpdateRef, times(1)).setNewValue(eq(ObjectId.NULL));
+        verify(mockUpdateRef, times(2)).setNewValue(eq(RevTree.EMPTY_TREE_ID));
         verify(mockUpdateRef, times(3)).setReason(anyString());
         verify(mockUpdateRef, times(3)).call();
 
         verify(mockUpdateSymRef, times(1)).setName(eq(Ref.HEAD));
         verify(mockUpdateSymRef, times(1)).setNewValue(eq(Ref.MASTER));
         verify(mockUpdateSymRef, times(1)).call();
+        
+        assertEquals(RevTree.EMPTY, objectDatabase.get(RevTree.EMPTY_TREE_ID));
     }
 
     @Test
@@ -174,6 +197,8 @@ public class InitOpTest {
 
         verify(injector, never()).command(eq(UpdateRef.class));
         verify(injector, never()).command(eq(UpdateSymRef.class));
+
+        assertEquals(RevTree.EMPTY, objectDatabase.get(RevTree.EMPTY_TREE_ID));
     }
 
     @Test
