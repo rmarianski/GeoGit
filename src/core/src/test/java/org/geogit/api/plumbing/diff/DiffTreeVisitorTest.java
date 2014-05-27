@@ -112,6 +112,7 @@ public class DiffTreeVisitorTest {
         assertEquals(lNode, leftNode.getValue());
         assertEquals(rNode, rightNode.getValue());
 
+        verify(consumer, times(1)).endTree(leftNode.capture(), rightNode.capture());
         verifyNoMoreInteractions(consumer);
     }
 
@@ -145,6 +146,7 @@ public class DiffTreeVisitorTest {
         assertTrue(rarg.getAllValues().contains(n1));
         assertTrue(rarg.getAllValues().contains(n2));
 
+        verify(consumer, times(1)).endTree(eq(lroot), eq(rroot));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -178,6 +180,7 @@ public class DiffTreeVisitorTest {
         assertTrue(larg.getAllValues().contains(n1));
         assertTrue(larg.getAllValues().contains(n2));
 
+        verify(consumer, times(1)).endTree(eq(lroot), eq(rroot));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -216,6 +219,8 @@ public class DiffTreeVisitorTest {
         assertNotNull(rarg.getAllValues().get(1));
 
         verify(consumer, times(100)).feature((Node) isNull(), any(Node.class));
+
+        verify(consumer, times(2)).endTree(any(Node.class), any(Node.class));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -244,6 +249,7 @@ public class DiffTreeVisitorTest {
 
         // but no calls to feature() as we returned false on the second call to tree()
         verify(consumer, times(0)).feature(any(Node.class), any(Node.class));
+        verify(consumer, times(2)).endTree(any(Node.class), any(Node.class));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -279,6 +285,9 @@ public class DiffTreeVisitorTest {
         // point to leaf trees)
         verify(consumer, times(0)).feature(any(Node.class), any(Node.class));
 
+        verify(consumer, times(32))
+                .endBucket(anyInt(), eq(0), any(Bucket.class), any(Bucket.class));
+        verify(consumer, times(1)).endTree(eq(lroot), eq(rroot));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -307,6 +316,7 @@ public class DiffTreeVisitorTest {
 
         // but no calls to feature() as we returned false on the second call to tree()
         verify(consumer, times(0)).feature(any(Node.class), any(Node.class));
+        verify(consumer, times(2)).endTree(any(Node.class), any(Node.class));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -352,6 +362,7 @@ public class DiffTreeVisitorTest {
         assertTrue(rarg.getAllValues().contains(nodeChange1));
         assertTrue(rarg.getAllValues().contains(nodeChange2));
 
+        verify(consumer, times(1)).endTree(any(Node.class), any(Node.class));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -374,6 +385,8 @@ public class DiffTreeVisitorTest {
         verify(consumer, times(1)).bucket(anyInt(), eq(0), any(Bucket.class), any(Bucket.class));
         verify(consumer, times(1)).feature((Node) isNull(), any(Node.class));
 
+        verify(consumer, times(1)).endTree(any(Node.class), any(Node.class));
+        verify(consumer, times(1)).endBucket(anyInt(), eq(0), any(Bucket.class), any(Bucket.class));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -400,6 +413,9 @@ public class DiffTreeVisitorTest {
 
         verify(consumer, times(1)).feature((Node) isNull(), any(Node.class));
 
+        verify(consumer, times(1)).endBucket(anyInt(), eq(0), any(Bucket.class), any(Bucket.class));
+        verify(consumer, times(1)).endBucket(anyInt(), eq(1), any(Bucket.class), any(Bucket.class));
+        verify(consumer, times(1)).endTree(any(Node.class), any(Node.class));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -430,6 +446,9 @@ public class DiffTreeVisitorTest {
 
         verify(consumer, times(leftsize - 1)).feature(any(Node.class), (Node) isNull());
 
+        verify(consumer, times(expectedBucketCalls)).endBucket(anyInt(), eq(0), any(Bucket.class),
+                any(Bucket.class));
+        verify(consumer, times(1)).endTree(any(Node.class), any(Node.class));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -460,6 +479,9 @@ public class DiffTreeVisitorTest {
 
         verify(consumer, times(rightsize - 1)).feature((Node) isNull(), any(Node.class));
 
+        verify(consumer, times(expectedBucketCalls)).endBucket(anyInt(), eq(0), any(Bucket.class),
+                any(Bucket.class));
+        verify(consumer, times(1)).endTree(any(Node.class), any(Node.class));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -619,6 +641,16 @@ public class DiffTreeVisitorTest {
                                                                         // zero-based level index
                 return true;
             }
+
+            @Override
+            public void endTree(Node left, Node right) {
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void endBucket(int bucketIndex, int bucketDepth, Bucket left, Bucket right) {
+                // TODO Auto-generated method stub
+            }
         });
         return maxDepth.get();
     }
@@ -650,6 +682,9 @@ public class DiffTreeVisitorTest {
 
         verify(consumer, times(leftsize - 1)).feature(any(Node.class), (Node) isNull());
 
+        verify(consumer, times(expectedBucketCalls)).endBucket(anyInt(), eq(0), any(Bucket.class),
+                any(Bucket.class));
+        verify(consumer, times(1)).endTree(any(Node.class), any(Node.class));
         verifyNoMoreInteractions(consumer);
     }
 
@@ -680,6 +715,16 @@ public class DiffTreeVisitorTest {
                 System.out.print('\t');
             }
             System.out.printf(format + "\n", args);
+        }
+
+        @Override
+        public void endTree(Node left, Node right) {
+            // nothing to do
+        }
+
+        @Override
+        public void endBucket(int bucketIndex, int bucketDepth, Bucket left, Bucket right) {
+            // nothing to do
         }
 
     };

@@ -107,11 +107,10 @@ public class DiffTreeVisitor {
         Envelope rbounds = SpatialOps.boundsOf(right);
         Node rnode = Node.create(NodeRef.ROOT, right.getId(), ObjectId.NULL, TYPE.TREE, rbounds);
 
-        if (!consumer.tree(lnode, rnode)) {
-            return;
+        if (consumer.tree(lnode, rnode)) {
+            traverseTree(consumer, left, right, 0);
         }
-
-        traverseTree(consumer, left, right, 0);
+        consumer.endTree(lnode, rnode);
     }
 
     /**
@@ -211,14 +210,15 @@ public class DiffTreeVisitor {
             consumer.feature(left, right);
         } else {
             checkState(TYPE.TREE.equals(type));
-            if (!consumer.tree(left, right)) {
-                return;
+            if (consumer.tree(left, right)) {
+                RevTree leftTree;
+                RevTree rightTree;
+                leftTree = left == null ? RevTree.EMPTY : leftSource.getTree(left.getObjectId());
+                rightTree = right == null ? RevTree.EMPTY : rightSource
+                        .getTree(right.getObjectId());
+                traverseTree(consumer, leftTree, rightTree, 0);
             }
-            RevTree leftTree;
-            RevTree rightTree;
-            leftTree = left == null ? RevTree.EMPTY : leftSource.getTree(left.getObjectId());
-            rightTree = right == null ? RevTree.EMPTY : rightSource.getTree(right.getObjectId());
-            traverseTree(consumer, leftTree, rightTree, 0);
+            consumer.endTree(left, right);
         }
     }
 
@@ -254,6 +254,7 @@ public class DiffTreeVisitor {
                 if (consumer.bucket(bucketIndex, bucketDepth, leftBucket, null)) {
                     traverseBucketBucket(consumer, leftBucket, null, bucketDepth);
                 }
+                consumer.endBucket(bucketIndex, bucketDepth, leftBucket, null);
             } else {
                 RevTree leftTree = leftSource.getTree(leftBucket.id());
                 if (leftTree.buckets().isPresent()) {
@@ -297,6 +298,7 @@ public class DiffTreeVisitor {
                 if (consumer.bucket(bucketIndex, bucketDepth, null, rightBucket)) {
                     traverseBucketBucket(consumer, null, rightBucket, bucketDepth);
                 }
+                consumer.endBucket(bucketIndex, bucketDepth, null, rightBucket);
             } else {
                 RevTree rightTree = rightSource.getTree(rightBucket.id());
                 if (rightTree.buckets().isPresent()) {
@@ -395,6 +397,7 @@ public class DiffTreeVisitor {
                 RevTree rtree = rbucket == null ? RevTree.EMPTY : rightSource.getTree(rbucket.id());
                 traverseTree(consumer, ltree, rtree, bucketDepth + 1);
             }
+            consumer.endBucket(index.intValue(), bucketDepth, lbucket, rbucket);
         }
     }
 
@@ -454,6 +457,11 @@ public class DiffTreeVisitor {
         public abstract boolean tree(@Nullable final Node left, @Nullable final Node right);
 
         /**
+         * Called once done with a {@link #tree}, regardless of the returned value
+         */
+        public abstract void endTree(@Nullable final Node left, @Nullable final Node right);
+
+        /**
          * Called when the traversal finds either a bucket at both sides of the traversal with same
          * depth an index that have changed, or just one at either side of the comparison with no
          * node at the other side that would fall into that bucket if it existed.
@@ -492,5 +500,49 @@ public class DiffTreeVisitor {
          */
         public abstract boolean bucket(final int bucketIndex, final int bucketDepth,
                 @Nullable final Bucket left, @Nullable final Bucket right);
+
+        /**
+         * Called once done with a {@link #bucket}, regardless of the returned value
+         */
+        public abstract void endBucket(final int bucketIndex, final int bucketDepth,
+                @Nullable final Bucket left, @Nullable final Bucket right);
+    }
+
+    /**
+     * Template class for consumer decorators, forwards all event calls to the provided consumer;
+     * concrete subclasses shall override the event methods of their interest.
+     */
+    public static abstract class ForwardingConsumer implements Consumer {
+
+        private Consumer delegate;
+
+        public ForwardingConsumer(final Consumer delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void feature(Node left, Node right) {
+            delegate.feature(left, right);
+        }
+
+        @Override
+        public boolean tree(Node left, Node right) {
+            return delegate.tree(left, right);
+        }
+
+        @Override
+        public void endTree(Node left, Node right) {
+            delegate.endTree(left, right);
+        }
+
+        @Override
+        public boolean bucket(int bucketIndex, int bucketDepth, Bucket left, Bucket right) {
+            return delegate.bucket(bucketIndex, bucketDepth, left, right);
+        }
+
+        @Override
+        public void endBucket(int bucketIndex, int bucketDepth, Bucket left, Bucket right) {
+            delegate.endBucket(bucketIndex, bucketDepth, left, right);
+        }
     }
 }
