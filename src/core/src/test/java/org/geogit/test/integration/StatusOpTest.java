@@ -29,7 +29,7 @@ public class StatusOpTest extends RepositoryTestCase {
         }
         StatusSummary summary = geogit.command(StatusOp.class).call();
         assertAllFieldsNotNull(summary);
-        assertEquals(1, summary.getCountUnstaged());
+        assertEquals(2, summary.getCountUnstaged());
     }
 
     @Test
@@ -41,7 +41,7 @@ public class StatusOpTest extends RepositoryTestCase {
         }
         StatusSummary summary = geogit.command(StatusOp.class).call();
         assertAllFieldsNotNull(summary);
-        assertEquals(1, summary.getCountStaged());
+        assertEquals(2, summary.getCountStaged());
     }
 
     @Test
@@ -54,7 +54,7 @@ public class StatusOpTest extends RepositoryTestCase {
         }
         StatusSummary summary = geogit.command(StatusOp.class).call();
         assertAllFieldsNotNull(summary);
-        assertEquals(2, summary.getCountStaged());
+        assertEquals(3, summary.getCountStaged());
     }
 
     private void assertAllFieldsNotNull(StatusSummary summary) {

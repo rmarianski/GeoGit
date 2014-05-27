@@ -300,7 +300,7 @@ public class Index implements StagingArea {
     @Override
     public DiffObjectCount countStaged(final @Nullable List<String> pathFilters) {
         DiffObjectCount count = context.command(DiffCount.class).setOldVersion(Ref.HEAD)
-                .setNewVersion(Ref.STAGE_HEAD).setReportTrees(true).setFilter(pathFilters).call();
+                .setNewVersion(Ref.STAGE_HEAD).setFilter(pathFilters).call();
 
         return count;
     }

@@ -40,8 +40,6 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
 
     private String newRefSpec;
 
-    private boolean reportTrees;
-
     public DiffCount setOldVersion(@Nullable String refSpec) {
         this.oldRefSpec = refSpec;
         return this;
@@ -76,7 +74,7 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
     }
 
     @Override
-    protected  DiffObjectCount _call() {
+    protected DiffObjectCount _call() {
         checkState(oldRefSpec != null, "old ref spec not provided");
         checkState(newRefSpec != null, "new ref spec not provided");
 
@@ -96,7 +94,7 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
                 treeWalk.addFilter(path);
             }
 
-            treeWalk.setReportTrees(reportTrees);
+            treeWalk.setReportTrees(true);
             Iterator<DiffEntry> iterator = treeWalk.get();
             long featureCount = 0;
             long treeCount = 0;
@@ -120,25 +118,16 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
      */
     private RevTree getTree(String refSpec) {
 
-        Optional<ObjectId> resolved = command(ResolveTreeish.class).setTreeish(refSpec).call();
-        if (!resolved.isPresent()) {
-            return RevTree.EMPTY;
-        }
-        ObjectId headTreeId = resolved.get();
         final RevTree headTree;
-        if (headTreeId.isNull()) {
-            headTree = RevTree.EMPTY;
-        } else {
+        Optional<ObjectId> resolved = command(ResolveTreeish.class).setTreeish(refSpec).call();
+        if (resolved.isPresent()) {
+            ObjectId headTreeId = resolved.get();
             headTree = command(RevObjectParse.class).setObjectId(headTreeId).call(RevTree.class)
                     .get();
+        } else {
+            headTree = RevTree.EMPTY;
         }
-
         return headTree;
-    }
-
-    public DiffCount setReportTrees(boolean reportTrees) {
-        this.reportTrees = reportTrees;
-        return this;
     }
 
 }
