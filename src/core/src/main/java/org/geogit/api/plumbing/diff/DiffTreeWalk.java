@@ -5,6 +5,7 @@
 package org.geogit.api.plumbing.diff;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -61,7 +62,7 @@ public class DiffTreeWalk {
     }
 
     public void addFilter(final String pathPrefix) {
-        if (pathPrefix != null && !pathPrefix.isEmpty()) {
+        if (!isNullOrEmpty(pathPrefix)) {
             this.pathFilter.add(pathPrefix);
         }
     }

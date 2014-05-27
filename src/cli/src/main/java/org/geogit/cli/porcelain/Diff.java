@@ -13,8 +13,11 @@ import jline.console.ConsoleReader;
 
 import org.fusesource.jansi.Ansi;
 import org.geogit.api.GeoGIT;
+import org.geogit.api.Ref;
 import org.geogit.api.plumbing.DiffBounds;
+import org.geogit.api.plumbing.DiffCount;
 import org.geogit.api.plumbing.diff.DiffEntry;
+import org.geogit.api.plumbing.diff.DiffObjectCount;
 import org.geogit.api.porcelain.DiffOp;
 import org.geogit.cli.AbstractCommand;
 import org.geogit.cli.AnsiDecorator;
@@ -65,6 +68,9 @@ public class Diff extends AbstractCommand implements CLICommand {
     @Parameter(names = "--bounds", description = "Show only the bounds of the difference between the two trees")
     private boolean bounds;
 
+    @Parameter(names = "--count", description = "Only count the number of changes between the two trees")
+    private boolean count;
+
     /**
      * Executes the diff command with the specified options.
      */
@@ -72,6 +78,9 @@ public class Diff extends AbstractCommand implements CLICommand {
     protected void runInternal(GeogitCLI cli) throws IOException {
         checkParameter(refSpec.size() <= 2, "Commit list is too long :%s", refSpec);
         checkParameter(!(nogeom && summary), "Only one printing mode allowed");
+        checkParameter(!(bounds && count), "Only one of --bounds or --count is allowed");
+        checkParameter(!(cached && refSpec.size() > 1),
+                "--cached allows zero or one ref specs to compare the index with.");
 
         GeoGIT geogit = cli.getGeogit();
 
@@ -83,6 +92,23 @@ public class Diff extends AbstractCommand implements CLICommand {
                     .setNewVersion(newVersion).setCompareIndex(cached);
             Envelope diffBounds = diff.call();
             BoundsDiffPrinter.print(geogit, cli.getConsole(), diffBounds);
+            return;
+        }
+        if (count) {
+            if (oldVersion == null) {
+                oldVersion = Ref.HEAD;
+            }
+            if (newVersion == null) {
+                newVersion = cached ? Ref.STAGE_HEAD : Ref.WORK_HEAD;
+            }
+            DiffCount cdiff = geogit.command(DiffCount.class).setOldVersion(oldVersion)
+                    .setNewVersion(newVersion);
+            cdiff.setFilter(paths);
+            DiffObjectCount count = cdiff.call();
+            ConsoleReader console = cli.getConsole();
+            console.println(String.format("Trees changed: %d, features changed: %,d",
+                    count.getTreesCount(), count.getFeaturesCount()));
+            console.flush();
             return;
         }
 

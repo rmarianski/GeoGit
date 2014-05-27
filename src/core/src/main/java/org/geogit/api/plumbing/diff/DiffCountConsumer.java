@@ -74,4 +74,14 @@ public class DiffCountConsumer implements DiffTreeVisitor.Consumer {
         int numTrees = tree.numTrees();
         return numTrees > 0;
     }
+
+    @Override
+    public void endTree(Node left, Node right) {
+        // no need to do anything
+    }
+
+    @Override
+    public void endBucket(int bucketIndex, int bucketDepth, Bucket left, Bucket right) {
+        // no need to do anything
+    }
 }

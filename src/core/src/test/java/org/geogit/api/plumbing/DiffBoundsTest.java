@@ -143,5 +143,15 @@ public class DiffBoundsTest extends RepositoryTestCase {
             }
         }
 
+        @Override
+        public void endTree(Node left, Node right) {
+            // nothing to do
+        }
+
+        @Override
+        public void endBucket(int bucketIndex, int bucketDepth, Bucket left, Bucket right) {
+            // nothing to do
+        }
+
     }
 }

@@ -7,20 +7,18 @@ package org.geogit.api.plumbing;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.ObjectId;
-import org.geogit.api.RevObject.TYPE;
 import org.geogit.api.RevTree;
 import org.geogit.api.plumbing.diff.DiffCountConsumer;
-import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffObjectCount;
 import org.geogit.api.plumbing.diff.DiffTreeVisitor;
 import org.geogit.api.plumbing.diff.DiffTreeWalk;
+import org.geogit.api.plumbing.diff.PathFilteringDiffConsumer;
 import org.geogit.storage.StagingDatabase;
 
 import com.google.common.base.Optional;
@@ -83,33 +81,16 @@ public class DiffCount extends AbstractGeoGitOp<DiffObjectCount> {
 
         DiffObjectCount diffCount;
         StagingDatabase index = stagingDatabase();
-        if (pathFilters.isEmpty()) {
-            DiffTreeVisitor visitor = new DiffTreeVisitor(oldTree, newTree, index, index);
-            DiffCountConsumer counter = new DiffCountConsumer(index);
-            visitor.walk(counter);
-            diffCount = counter.get();
-        } else {
-            DiffTreeWalk treeWalk = new DiffTreeWalk(index, oldTree, newTree);
-            for (String path : pathFilters) {
-                treeWalk.addFilter(path);
-            }
+        DiffTreeVisitor visitor = new DiffTreeVisitor(oldTree, newTree, index, index);
 
-            treeWalk.setReportTrees(true);
-            Iterator<DiffEntry> iterator = treeWalk.get();
-            long featureCount = 0;
-            long treeCount = 0;
-            while (iterator.hasNext()) {
-                DiffEntry diff = iterator.next();
-                TYPE type = diff.getNewObject() != null ? diff.getNewObject().getType() : diff
-                        .getOldObject().getType();
-                if (type.equals(TYPE.TREE)) {
-                    treeCount++;
-                } else {
-                    featureCount++;
-                }
-            }
-            diffCount = new DiffObjectCount(treeCount, featureCount);
+        DiffCountConsumer counter = new DiffCountConsumer(index);
+        DiffTreeVisitor.Consumer filter = counter;
+        if (!pathFilters.isEmpty()) {
+            filter = new PathFilteringDiffConsumer(pathFilters, counter);
         }
+        visitor.walk(filter);
+        diffCount = counter.get();
+
         return diffCount;
     }
 
