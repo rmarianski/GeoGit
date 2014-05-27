@@ -8,7 +8,15 @@ geogit-diff documentation
 
 SYNOPSIS
 ********
-geogit diff [<commit> [<commit>]] [--cached] [--summary|--nogeom|--count] [-- <path>[ <path>]...] 
+geogit diff [<commit> [<commit>]] [--cached] [-- <path>[ <path>]...] 
+
+geogit diff [<commit> [<commit>]] [--cached] --nogeom  [-- <path>[ <path>]...] 
+
+geogit diff [<commit> [<commit>]] [--cached] --summary [-- <path>[ <path>]...] 
+
+geogit diff [<commit> [<commit>]] [--cached] --count [-- <path>[ <path>]...] 
+
+geogit diff [<commit> [<commit>]] [--cached] --bounds [--crs EPSG:<number>] [-- <path>[ <path>]...] 
 
 
 DESCRIPTION
@@ -32,6 +40,18 @@ OPTIONS
 --summary	List only summary of changes. It will only show which features have changed, but not give details about the changes in each of them.
 
 --count		Print the total number of trees and features affected by the diff instead.
+
+--bounds	Print the spatial bounds of the changes between the two trees being compared instead of the actual diff. At least otherwise specified through the --crs parameter, the output is in EPSG:4326 lon/lat coordinate reference system. The output is four lines specifying the changed bounds at the left side of the comparison, at the right side, the merged bounds, and the output CRS. For example: 
+
+::
+
+	left:  -127.203597,58.217228,-126.687105,58.293822
+	right: <empty>
+	both:  -127.203597,58.217228,-126.687105,58.293822
+	CRS:   EPSG:4326
+
+
+--crs 		Specifies a different output coordinate reference system for the bounding boxes computed by the --bounds parameter. For example: EPSG:3857, etc.  
 
 SEE ALSO
 ********

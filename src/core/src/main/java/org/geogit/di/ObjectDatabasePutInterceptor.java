@@ -77,15 +77,22 @@ class ObjectDatabasePutInterceptor implements Decorator {
         @Override
         public void putAll(Iterator<? extends RevObject> objects, BulkOpListener listener) {
 
-            final List<RevCommit> addedCommits = Lists.newLinkedList();
+            //final List<RevCommit> addedCommits = Lists.newLinkedList();
 
             final Iterator<? extends RevObject> collectingIterator = Iterators.transform(objects,
                     new Function<RevObject, RevObject>() {
 
+                        private final GraphDatabase graphDatabase = graphDb.get();
+
                         @Override
                         public RevObject apply(RevObject input) {
                             if (input instanceof RevCommit) {
-                                addedCommits.add((RevCommit) input);
+                                RevCommit commit = (RevCommit) input;
+                                ObjectId commitId = commit.getId();
+                                ImmutableList<ObjectId> parentIds = commit.getParentIds();
+                                graphDatabase.put(commitId, parentIds);
+
+                                // addedCommits.add((RevCommit) input);
                             }
                             return input;
                         }
@@ -93,14 +100,14 @@ class ObjectDatabasePutInterceptor implements Decorator {
 
             super.putAll(collectingIterator, listener);
 
-            if (!addedCommits.isEmpty()) {
-                GraphDatabase graphDatabase = graphDb.get();
-                for (RevCommit commit : addedCommits) {
-                    ObjectId commitId = commit.getId();
-                    ImmutableList<ObjectId> parentIds = commit.getParentIds();
-                    graphDatabase.put(commitId, parentIds);
-                }
-            }
+//            if (!addedCommits.isEmpty()) {
+//                GraphDatabase graphDatabase = graphDb.get();
+//                for (RevCommit commit : addedCommits) {
+//                    ObjectId commitId = commit.getId();
+//                    ImmutableList<ObjectId> parentIds = commit.getParentIds();
+//                    graphDatabase.put(commitId, parentIds);
+//                }
+//            }
         }
 
     }

@@ -9,6 +9,7 @@ import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -16,16 +17,30 @@ import org.geogit.api.AbstractGeoGitOp;
 import org.geogit.api.Bounded;
 import org.geogit.api.Bucket;
 import org.geogit.api.Node;
+import org.geogit.api.NodeRef;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
+import org.geogit.api.RevFeatureType;
 import org.geogit.api.RevTree;
+import org.geogit.api.plumbing.diff.DiffSummary;
 import org.geogit.api.plumbing.diff.DiffTreeVisitor;
 import org.geogit.api.plumbing.diff.PathFilteringDiffConsumer;
 import org.geogit.storage.ObjectDatabase;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
+import org.opengis.feature.type.FeatureType;
+import org.opengis.geometry.BoundingBox;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.TransformException;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
@@ -33,7 +48,7 @@ import com.vividsolutions.jts.geom.Envelope;
  * 
  */
 
-public class DiffBounds extends AbstractGeoGitOp<Envelope> {
+public class DiffBounds extends AbstractGeoGitOp<DiffSummary<BoundingBox, BoundingBox>> {
 
     private String oldVersion;
 
@@ -42,6 +57,8 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
     private boolean cached;
 
     private List<String> pathFilters;
+
+    private CoordinateReferenceSystem crs;
 
     public DiffBounds setOldVersion(String oldVersion) {
         this.oldVersion = oldVersion;
@@ -68,8 +85,17 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
         return this;
     }
 
+    /**
+     * @param crs the CRS to compute the bounds in. Defaults to {@code EPSG:4326} with long/lat axis
+     *        order if not set.
+     */
+    public DiffBounds setCRS(@Nullable CoordinateReferenceSystem crs) {
+        this.crs = crs;
+        return this;
+    }
+
     @Override
-    protected Envelope _call() {
+    protected DiffSummary<BoundingBox, BoundingBox> _call() {
         checkArgument(cached && oldVersion == null || !cached, String.format(
                 "compare index allows only one revision to check against, got %s / %s", oldVersion,
                 newVersion));
@@ -87,14 +113,28 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
         ObjectDatabase leftSource = resolveSafeDb(leftRefSpec);
         ObjectDatabase rightSource = resolveSafeDb(rightRefSpec);
         DiffTreeVisitor visitor = new DiffTreeVisitor(left, right, leftSource, rightSource);
-        BoundsWalk walk = new BoundsWalk();
+        CoordinateReferenceSystem crs = resolveCrs();
+        BoundsWalk walk = new BoundsWalk(crs, stagingDatabase());
         DiffTreeVisitor.Consumer consumer = walk;
         if (!pathFilters.isEmpty()) {
             consumer = new PathFilteringDiffConsumer(pathFilters, walk);
         }
         visitor.walk(consumer);
-        Envelope diffBounds = walk.result;
+        DiffSummary<BoundingBox, BoundingBox> diffBounds = walk.getResult();
         return diffBounds;
+    }
+
+    private CoordinateReferenceSystem resolveCrs() {
+        if (this.crs != null) {
+            return this.crs;
+        }
+        CoordinateReferenceSystem defaultCrs;
+        try {
+            defaultCrs = CRS.decode("EPSG:4326", true);
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+        return defaultCrs;
     }
 
     /**
@@ -120,74 +160,177 @@ public class DiffBounds extends AbstractGeoGitOp<Envelope> {
 
     private static class BoundsWalk implements DiffTreeVisitor.Consumer {
 
-        Envelope result = new Envelope();
+        private DiffSummary<BoundingBox, BoundingBox> result;
 
-        private Envelope leftEnv = new Envelope();
+        private ReferencedEnvelope leftEnv;
 
-        private Envelope rightEnv = new Envelope();
+        private ReferencedEnvelope rightEnv;
+
+        private final CoordinateReferenceSystem crs;
+
+        private final ReferencedEnvelope leftHelper, rightHelper;
+
+        private final ObjectDatabase source;
+
+        private final Map<ObjectId, MathTransform> transformsByMetadataId;
+
+        private Optional<ObjectId> currentDefaultLefMetadataId = Optional.absent();
+
+        private Optional<ObjectId> currentDefaultRightMetadataId = Optional.absent();
+
+        public BoundsWalk(CoordinateReferenceSystem crs, ObjectDatabase source) {
+            this.crs = crs;
+            this.source = source;
+            this.transformsByMetadataId = Maps.newHashMap();
+            leftEnv = new ReferencedEnvelope(this.crs);
+            rightEnv = new ReferencedEnvelope(this.crs);
+            leftHelper = new ReferencedEnvelope(this.crs);
+            rightHelper = new ReferencedEnvelope(this.crs);
+        }
 
         @Override
         public void feature(@Nullable Node left, @Nullable Node right) {
-            setEnv(left, leftEnv);
-            setEnv(right, rightEnv);
-            if (!leftEnv.equals(rightEnv)) {
-                result.expandToInclude(leftEnv);
-                result.expandToInclude(rightEnv);
+            setEnv(left, leftHelper, md(left).or(currentDefaultLefMetadataId));
+            setEnv(right, rightHelper, md(right).or(currentDefaultRightMetadataId));
+            if (!leftHelper.equals(rightHelper)) {
+                leftEnv.expandToInclude(leftHelper);
+                rightEnv.expandToInclude(rightHelper);
             }
         }
 
         @Override
         public boolean tree(@Nullable Node left, @Nullable Node right) {
-            setEnv(left, leftEnv);
-            setEnv(right, rightEnv);
-            if (leftEnv.isNull() && rightEnv.isNull()) {
+            Optional<ObjectId> leftMd = md(left);
+            Optional<ObjectId> rightMd = md(right);
+            if (leftMd.isPresent()) {
+                currentDefaultLefMetadataId = leftMd;
+            }
+            if (rightMd.isPresent()) {
+                currentDefaultRightMetadataId = rightMd;
+            }
+            setEnv(left, leftHelper, leftMd.or(leftMd));
+            setEnv(right, rightHelper, rightMd.or(rightMd));
+            if (leftHelper.isNull() && rightHelper.isNull()) {
                 return false;
             }
 
-            if (leftEnv.isNull()) {
-                result.expandToInclude(rightEnv);
+            if (leftHelper.isNull()) {
+                rightEnv.expandToInclude(rightHelper);
                 return false;
-            } else if (rightEnv.isNull()) {
-                result.expandToInclude(leftEnv);
+            } else if (rightHelper.isNull()) {
+                leftEnv.expandToInclude(leftHelper);
                 return false;
             }
             return true;
+        }
+
+        private Optional<ObjectId> md(@Nullable Node node) {
+            return null == node ? Optional.<ObjectId> absent() : node.getMetadataId();
         }
 
         @Override
         public boolean bucket(final int bucketIndex, final int bucketDepth, @Nullable Bucket left,
                 @Nullable Bucket right) {
-            setEnv(left, leftEnv);
-            setEnv(right, rightEnv);
-            if (leftEnv.isNull() && rightEnv.isNull()) {
+            setEnv(left, leftHelper, currentDefaultLefMetadataId);
+            setEnv(right, rightHelper, currentDefaultRightMetadataId);
+            if (leftHelper.isNull() && rightHelper.isNull()) {
                 return false;
             }
 
-            if (leftEnv.isNull()) {
-                result.expandToInclude(rightEnv);
+            if (leftHelper.isNull()) {
+                rightEnv.expandToInclude(rightHelper);
                 return false;
-            } else if (rightEnv.isNull()) {
-                result.expandToInclude(leftEnv);
+            } else if (rightHelper.isNull()) {
+                leftEnv.expandToInclude(leftHelper);
                 return false;
             }
             return true;
         }
 
-        private void setEnv(@Nullable Bounded bounded, Envelope env) {
+        private void setEnv(@Nullable Bounded bounded, ReferencedEnvelope env,
+                Optional<ObjectId> metadataId) {
             env.setToNull();
-            if (bounded != null) {
-                bounded.expand(env);
+            if (bounded == null) {
+                return;
             }
+            bounded.expand(env);
+            if (env.isNull()) {
+                return;
+            }
+            ObjectId mdid;
+            if (metadataId.isPresent()) {
+                mdid = metadataId.get();
+                MathTransform transform = getMathTransform(mdid);
+                if (transform.isIdentity()) {
+                    return;
+                }
+                Envelope targetEnvelope = new ReferencedEnvelope(crs);
+                try {
+                    int densifyPoints = isPoint(env) ? 1 : 5;
+                    JTS.transform(env, targetEnvelope, transform, densifyPoints);
+                    env.init(targetEnvelope);
+                } catch (TransformException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        }
+
+        private boolean isPoint(Envelope env) {
+            return env.getWidth() == 0D && env.getHeight() == 0D;
+        }
+
+        private MathTransform getMathTransform(ObjectId mdid) {
+            MathTransform transform = this.transformsByMetadataId.get(mdid);
+            if (transform == null) {
+                RevFeatureType revtype = source.getFeatureType(mdid);
+                FeatureType type = revtype.type();
+                CoordinateReferenceSystem sourceCrs = type.getCoordinateReferenceSystem();
+                CoordinateReferenceSystem targetCrs = this.crs;
+                if (sourceCrs == null) {
+                    sourceCrs = targetCrs;
+                }
+                try {
+                    boolean lenient = true;
+                    transform = CRS.findMathTransform(sourceCrs, targetCrs, lenient);
+                } catch (FactoryException e) {
+                    throw Throwables.propagate(e);
+                }
+                this.transformsByMetadataId.put(mdid, transform);
+            }
+            return transform;
         }
 
         @Override
         public void endTree(Node left, Node right) {
-            // nothing to do
+            String name = left == null ? right.getName() : left.getName();
+            if (NodeRef.ROOT.equals(name)) {
+                BoundingBox lbounds = new ReferencedEnvelope(this.leftEnv);
+                BoundingBox rbounds = new ReferencedEnvelope(this.rightEnv);
+                BoundingBox merged;
+                if (lbounds.isEmpty()) {
+                    merged = rbounds;
+                } else if (rbounds.isEmpty()) {
+                    merged = lbounds;
+                } else {
+                    merged = new ReferencedEnvelope(lbounds);
+                    merged.include(rbounds);
+                }
+                this.result = new DiffSummary<BoundingBox, BoundingBox>(lbounds, rbounds, merged);
+            }
         }
 
         @Override
         public void endBucket(int bucketIndex, int bucketDepth, Bucket left, Bucket right) {
             // nothing to do
+        }
+
+        public DiffSummary<BoundingBox, BoundingBox> getResult() {
+            DiffSummary<BoundingBox, BoundingBox> r = this.result;
+            if (r == null) {
+                BoundingBox empty = new ReferencedEnvelope(crs);
+                r = new DiffSummary<BoundingBox, BoundingBox>(empty, empty, empty);
+            }
+            return r;
         }
 
     }

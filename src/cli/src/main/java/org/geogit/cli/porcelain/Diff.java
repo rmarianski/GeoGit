@@ -20,18 +20,25 @@ import org.geogit.api.plumbing.DiffBounds;
 import org.geogit.api.plumbing.DiffCount;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffObjectCount;
+import org.geogit.api.plumbing.diff.DiffSummary;
 import org.geogit.api.porcelain.DiffOp;
 import org.geogit.cli.AbstractCommand;
 import org.geogit.cli.AnsiDecorator;
 import org.geogit.cli.CLICommand;
 import org.geogit.cli.GeogitCLI;
+import org.geogit.cli.InvalidParameterException;
 import org.geogit.cli.annotation.ReadOnly;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
+import org.opengis.geometry.BoundingBox;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Envelope;
 
 /**
  * Shows changes between commits, commits and working tree, etc.
@@ -70,6 +77,9 @@ public class Diff extends AbstractCommand implements CLICommand {
     @Parameter(names = "--bounds", description = "Show only the bounds of the difference between the two trees")
     private boolean bounds;
 
+    @Parameter(names = "--crs", description = "Coordinate reference system for --bounds (defaults to EPSG:4326 with lon/lat axis order)")
+    private String boundsCrs;
+
     @Parameter(names = "--count", description = "Only count the number of changes between the two trees")
     private boolean count;
 
@@ -89,11 +99,16 @@ public class Diff extends AbstractCommand implements CLICommand {
         String oldVersion = resolveOldVersion();
         String newVersion = resolveNewVersion();
 
+        List<String> paths = removeEmptyPaths();
         if (bounds) {
             DiffBounds diff = geogit.command(DiffBounds.class).setOldVersion(oldVersion)
                     .setNewVersion(newVersion).setCompareIndex(cached);
             diff.setPathFilters(paths);
-            Envelope diffBounds = diff.call();
+            CoordinateReferenceSystem crs = parseCrs();
+            if (crs != null) {
+                diff.setCRS(crs);
+            }
+            DiffSummary<BoundingBox, BoundingBox> diffBounds = diff.call();
             BoundsDiffPrinter.print(geogit, cli.getConsole(), diffBounds);
             return;
         }
@@ -149,6 +164,27 @@ public class Diff extends AbstractCommand implements CLICommand {
         }
     }
 
+    private List<String> removeEmptyPaths() {
+        List<String> paths = Lists.newLinkedList(this.paths);
+        for (Iterator<String> it = paths.iterator(); it.hasNext();) {
+            if (Strings.isNullOrEmpty(it.next())) {
+                it.remove();
+            }
+        }
+        return paths;
+    }
+
+    private CoordinateReferenceSystem parseCrs() {
+        if (boundsCrs == null) {
+            return null;
+        }
+        try {
+            return CRS.decode(boundsCrs, true);
+        } catch (Exception e) {
+            throw new InvalidParameterException(String.format("Unrecognized CRS: '%s'", boundsCrs));
+        }
+    }
+
     @Nullable
     private String resolveOldVersion() {
         return refSpec.size() > 0 ? refSpec.get(0) : null;
@@ -161,19 +197,32 @@ public class Diff extends AbstractCommand implements CLICommand {
 
     private static final class BoundsDiffPrinter {
 
-        public static void print(GeoGIT geogit, ConsoleReader console, Envelope envelope)
-                throws IOException {
+        public static void print(GeoGIT geogit, ConsoleReader console,
+                DiffSummary<BoundingBox, BoundingBox> diffBounds) throws IOException {
+
+            BoundingBox left = diffBounds.getLeft();
+            BoundingBox right = diffBounds.getRight();
+            Optional<BoundingBox> mergedResult = diffBounds.getMergedResult();
+            BoundingBox both = new ReferencedEnvelope();
+            if (mergedResult.isPresent()) {
+                both = mergedResult.get();
+            }
 
             Ansi ansi = AnsiDecorator.newAnsi(console.getTerminal().isAnsiSupported());
 
-            if (envelope.isNull()) {
-                ansi.a("No differences found.");
-            } else {
-                ansi.a(envelope.getMinX() + ", " + envelope.getMaxX() + ", " + envelope.getMinY()
-                        + ", " + envelope.getMaxY());
-            }
+            ansi.a("left:  ").a(bounds(left)).newline();
+            ansi.a("right: ").a(bounds(right)).newline();
+            ansi.a("both:  ").a(bounds(both)).newline();
+            ansi.a("CRS:   ").a(CRS.toSRS(left.getCoordinateReferenceSystem())).newline();
 
-            console.println(ansi.toString());
+            console.print(ansi.toString());
+        }
+
+        private static CharSequence bounds(BoundingBox b) {
+            if (b.isEmpty()) {
+                return "<empty>";
+            }
+            return String.format("%f,%f,%f,%f", b.getMinX(), b.getMinY(), b.getMaxX(), b.getMaxY());
         }
 
     }
