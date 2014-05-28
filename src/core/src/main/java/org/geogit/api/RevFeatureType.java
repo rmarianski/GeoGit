@@ -5,11 +5,24 @@
 package org.geogit.api;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.geogit.api.plumbing.HashObject;
+import org.geotools.feature.simple.SimpleFeatureTypeImpl;
+import org.geotools.feature.type.GeometryDescriptorImpl;
+import org.geotools.feature.type.GeometryTypeImpl;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.feature.type.GeometryType;
 import org.opengis.feature.type.Name;
 import org.opengis.feature.type.PropertyDescriptor;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -47,10 +60,56 @@ public class RevFeatureType extends AbstractRevObject {
      */
     public RevFeatureType(ObjectId id, FeatureType featureType) {
         super(id);
-        this.featureType = featureType;
-        ArrayList<PropertyDescriptor> descriptors = Lists.newArrayList(this.featureType
-                .getDescriptors());
-        sortedDescriptors = ImmutableList.copyOf(descriptors);
+        SimpleFeatureType sft = (SimpleFeatureType) featureType;
+        List<AttributeDescriptor> descriptors = Lists.newArrayList();
+        for (AttributeDescriptor descriptor : sft.getAttributeDescriptors()) {
+            if (descriptor instanceof GeometryDescriptor
+                    && ((GeometryDescriptor) descriptor).getCoordinateReferenceSystem() == DefaultGeographicCRS.WGS84) {
+                // GeoTools treats DefaultGeographic.WGS84 as a special case when calling the
+                // CRS.toSRS() method, and that causes inconsistent behaviour. To compensate that,
+                // we replace any instance of it with a CRS built using the EPSG:4326 authority,
+                // which works consistently when storing it and later recovering it from the
+                // database.
+                try {
+                    CoordinateReferenceSystem crs = CRS.decode("EPSG:4326", true);
+                    GeometryDescriptor gd = ((GeometryDescriptor) descriptor);
+                    GeometryType type = gd.getType();
+                    GeometryType newType = new GeometryTypeImpl(type.getName(), type.getBinding(),
+                            crs, type.isIdentified(), type.isAbstract(), type.getRestrictions(),
+                            type.getSuper(), type.getDescription());
+                    GeometryDescriptor newDescriptor = new GeometryDescriptorImpl(newType,
+                            gd.getName(), gd.getMinOccurs(), gd.getMaxOccurs(), gd.isNillable(),
+                            gd.getDefaultValue());
+                    descriptors.add(newDescriptor);
+                } catch (NoSuchAuthorityCodeException e) {
+                } catch (FactoryException e) {
+                }
+            } else {
+                descriptors.add(descriptor);
+            }
+        }
+        GeometryDescriptor gd = featureType.getGeometryDescriptor();
+        if (gd.getCoordinateReferenceSystem() == DefaultGeographicCRS.WGS84) {
+            try {
+                CoordinateReferenceSystem crs = CRS.decode("EPSG:4326", true);
+                GeometryType type = gd.getType();
+                GeometryType newType = new GeometryTypeImpl(type.getName(), type.getBinding(), crs,
+                        type.isIdentified(), type.isAbstract(), type.getRestrictions(),
+                        type.getSuper(), type.getDescription());
+                gd = new GeometryDescriptorImpl(newType, gd.getName(), gd.getMinOccurs(),
+                        gd.getMaxOccurs(), gd.isNillable(), gd.getDefaultValue());
+            } catch (NoSuchAuthorityCodeException e) {
+            } catch (FactoryException e) {
+            }
+        }
+        this.featureType = new SimpleFeatureTypeImpl(featureType.getName(), descriptors, gd,
+                featureType.isAbstract(), featureType.getRestrictions(), featureType.getSuper(),
+                featureType.getDescription());
+        ArrayList<PropertyDescriptor> propertyDescriptors = Lists.newArrayList();
+        for (AttributeDescriptor descriptor : descriptors) {
+            propertyDescriptors.add(descriptor);
+        }
+        sortedDescriptors = ImmutableList.copyOf(propertyDescriptors);
 
     }
 
