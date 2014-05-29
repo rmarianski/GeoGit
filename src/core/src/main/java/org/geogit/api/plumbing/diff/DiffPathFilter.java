@@ -5,6 +5,7 @@
 package org.geogit.api.plumbing.diff;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -35,6 +37,13 @@ final class DiffPathFilter {
         Preconditions.checkNotNull(filters, "filter list is null");
         Preconditions.checkArgument(!filters.isEmpty(), "Don't use an empty filter list");
         this.pathFilters = new ArrayList<String>(new HashSet<String>(filters));
+        for (String s : this.pathFilters) {
+            if (Strings.isNullOrEmpty(s)) {
+                throw new IllegalArgumentException(String.format(
+                        "Empty or null filters not allowed: %s",
+                        Arrays.toString(this.pathFilters.toArray())));
+            }
+        }
     }
 
     public String name(Node left, Node right) {
@@ -102,6 +111,10 @@ final class DiffPathFilter {
             filter = pathFilters.get(i);
             if (filter.equals(treePath)) {
                 // all buckets apply
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Filter: '{}', tree: '{}', depth: {}, bucket idx {}, applies: {}",
+                            filter, treePath, bucketDepth, bucketIndex, true);
+                }
                 return true;
             }
             boolean filterIsChildOfTree = NodeRef.isChild(treePath, filter);
@@ -115,13 +128,16 @@ final class DiffPathFilter {
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace(
-                            "Filter: '{}', tree: '{}', depth: {}, bucket idx {}, child bucket: {}, applies: {}",
-                            filter, treePath, bucketDepth, bucketIndex, childBucket, applies);
+                            "Filter: '{}', tree: '{}', depth: {}, bucket idx {}, child bucket: {}, child name: '{}', applies: {}",
+                            filter, treePath, bucketDepth, bucketIndex, childBucket, childName,
+                            applies);
                 }
-                return applies;
+                if (applies) {
+                    return true;
+                }
             }
         }
-        throw new IllegalStateException("Shouldn't reach here. Empty filter list not allowed");
+        return false;
     }
 
     /**
