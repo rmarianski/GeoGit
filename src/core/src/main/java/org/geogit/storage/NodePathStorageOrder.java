@@ -11,6 +11,7 @@ import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
 import org.geogit.api.RevTree;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 import com.google.common.hash.HashCode;
@@ -178,8 +179,8 @@ public final class NodePathStorageOrder extends Ordering<String> implements Seri
 
         @Override
         public int compare(String p1, String p2) {
-            HashCode h1 = hasher.hashString(p1);
-            HashCode h2 = hasher.hashString(p2);
+            HashCode h1 = hasher.hashString(p1, Charsets.UTF_8);
+            HashCode h2 = hasher.hashString(p2, Charsets.UTF_8);
             return ObjectId.compare(h1.asBytes(), h2.asBytes());
         }
 
@@ -190,7 +191,7 @@ public final class NodePathStorageOrder extends Ordering<String> implements Seri
          */
         @Override
         public int byteN(final String nodeName, final int depth) {
-            byte[] hashCode = hasher.hashString(nodeName).asBytes();
+            byte[] hashCode = hasher.hashString(nodeName, Charsets.UTF_8).asBytes();
             final int byteN = (byte) hashCode[depth] & 0xFF;
             return byteN;
         }

@@ -118,8 +118,10 @@ class HashObjectFunnels {
         }
     };
 
-    private static final Funnel<CharSequence> NullableStringFunnel = NullableFunnel.of(Funnels
-            .stringFunnel());
+    private static final Funnel<CharSequence> StringFunnel = Funnels.unencodedCharsFunnel();
+
+    private static final Funnel<CharSequence> NullableStringFunnel = NullableFunnel
+            .of(StringFunnel);
 
     private static final Funnel<RevObject.TYPE> RevObjectTypeFunnel = new Funnel<RevObject.TYPE>() {
 
@@ -223,8 +225,7 @@ class HashObjectFunnels {
             ImmutableSet<PropertyDescriptor> featureTypeProperties = new DescribeFeatureType()
                     .setFeatureType(from).call();
 
-            NullableStringFunnel.funnel(from.getName().getNamespaceURI(), into);
-            Funnels.stringFunnel().funnel(from.getName().getLocalPart(), into);
+            NameFunnel.funnel(from.getName(), into);
 
             for (PropertyDescriptor descriptor : featureTypeProperties) {
                 PropertyDescriptorFunnel.funnel(descriptor, into);
@@ -242,8 +243,8 @@ class HashObjectFunnels {
         public void funnel(RevTag from, PrimitiveSink into) {
             RevObjectTypeFunnel.funnel(TYPE.TAG, into);
             ObjectIdFunnel.funnel(from.getCommitId(), into);
-            Funnels.stringFunnel().funnel(from.getName(), into);
-            Funnels.stringFunnel().funnel(from.getMessage(), into);
+            StringFunnel.funnel((CharSequence) from.getName(), into);
+            StringFunnel.funnel((CharSequence) from.getMessage(), into);
             PersonFunnel.funnel(from.getTagger(), into);
         }
     };
@@ -267,7 +268,7 @@ class HashObjectFunnels {
         @Override
         public void funnel(Node ref, PrimitiveSink into) {
             RevObjectTypeFunnel.funnel(ref.getType(), into);
-            Funnels.stringFunnel().funnel(ref.getName(), into);
+            StringFunnel.funnel((CharSequence) ref.getName(), into);
             ObjectIdFunnel.funnel(ref.getObjectId(), into);
             ObjectIdFunnel.funnel(ref.getMetadataId().or(ObjectId.NULL), into);
         }
@@ -281,7 +282,7 @@ class HashObjectFunnels {
             if (value == null) {
                 NullFunnel.funnel(value, into);
             } else if (value instanceof String) {
-                Funnels.stringFunnel().funnel((CharSequence) value, into);
+                StringFunnel.funnel((CharSequence) value, into);
             } else if (value instanceof Boolean) {
                 into.putBoolean(((Boolean) value).booleanValue());
             } else if (value instanceof Byte) {
@@ -290,7 +291,7 @@ class HashObjectFunnels {
                 into.putDouble(((Double) value).doubleValue());
             } else if (value instanceof BigDecimal) {
                 String bdString = ((BigDecimal) value).toEngineeringString();
-                into.putString(bdString);
+                StringFunnel.funnel(bdString, into);
             } else if (value instanceof Float) {
                 into.putFloat(((Float) value).floatValue());
             } else if (value instanceof Integer) {
@@ -326,8 +327,8 @@ class HashObjectFunnels {
                     throw Throwables.propagate(shouldntHappen);
                 }
             } else {
-                Funnels.stringFunnel().funnel(value.getClass().getName(), into);
-                Funnels.stringFunnel().funnel(value.toString(), into);
+                StringFunnel.funnel((CharSequence) value.getClass().getName(), into);
+                StringFunnel.funnel((CharSequence) value.toString(), into);
             }
         }
     };
@@ -363,7 +364,7 @@ class HashObjectFunnels {
         @Override
         public void funnel(Name from, PrimitiveSink into) {
             NullableStringFunnel.funnel(from.getNamespaceURI(), into);
-            Funnels.stringFunnel().funnel(from.getLocalPart(), into);
+            StringFunnel.funnel((CharSequence) from.getLocalPart(), into);
         }
     };
 

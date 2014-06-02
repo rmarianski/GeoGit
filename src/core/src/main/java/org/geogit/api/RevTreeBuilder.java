@@ -31,7 +31,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -221,7 +220,7 @@ public class RevTreeBuilder {
      * only entries or subtrees
      */
     private RevTree normalize() {
-        Stopwatch sw = new Stopwatch().start();
+        Stopwatch sw = Stopwatch.createStarted();
         RevTree unnamedTree;
 
         final int numPendingChanges = numPendingChanges();
@@ -251,7 +250,7 @@ public class RevTreeBuilder {
             LOGGER.debug("calling db.putAll for {} buckets because {}...", pendingWritesCache
                     .size(), (topLevelTree ? "writing top level tree" : "there are "
                     + pendingWritesCache.size() + " pending bucket writes"));
-            Stopwatch sw2 = new Stopwatch().start();
+            Stopwatch sw2 = Stopwatch.createStarted();
             db.putAll(pendingWritesCache.values().iterator());
             pendingWritesCache.clear();
             LOGGER.debug("done in {}", sw2.stop());

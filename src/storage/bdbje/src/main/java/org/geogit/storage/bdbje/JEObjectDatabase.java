@@ -577,7 +577,7 @@ public class JEObjectDatabase extends AbstractObjectDatabase implements ObjectDa
 
                     @Override
                     public void run() {
-                        Stopwatch sw = new Stopwatch().start();
+                        Stopwatch sw = Stopwatch.createStarted();
                         if (objectDb.getConfig().getDeferredWrite()) {
                             objectDb.sync();
                             env.evictMemory();
