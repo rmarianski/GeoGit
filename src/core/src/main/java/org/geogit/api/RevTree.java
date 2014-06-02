@@ -37,9 +37,9 @@ public interface RevTree extends RevObject {
      */
     public static final int NORMALIZED_SIZE_LIMIT = 512;
 
-    public static RevTree EMPTY = RevTreeBuilder.empty();
+    public static final RevTree EMPTY = RevTreeBuilder.empty();
 
-    public static ObjectId EMPTY_TREE_ID = EMPTY.getId();
+    public static final ObjectId EMPTY_TREE_ID = EMPTY.getId();
 
     /**
      * @return total number of features, including size nested trees
