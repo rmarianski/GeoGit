@@ -1,15 +1,15 @@
 package org.geogit.cli.test;
 
-import static org.geogit.cli.test.functional.GlobalState.geogitCLI;
-import static org.geogit.cli.test.functional.GlobalState.insert;
-import static org.geogit.cli.test.functional.GlobalState.platform;
-import static org.geogit.cli.test.functional.GlobalState.setupGeogit;
-import static org.geogit.cli.test.functional.GlobalState.tempFolder;
-import static org.geogit.cli.test.functional.TestFeatures.points1;
-import static org.geogit.cli.test.functional.TestFeatures.points1_modified;
-import static org.geogit.cli.test.functional.TestFeatures.points2;
-import static org.geogit.cli.test.functional.TestFeatures.points3;
-import static org.geogit.cli.test.functional.TestFeatures.setupFeatures;
+import static org.geogit.cli.test.functional.general.GlobalState.geogitCLI;
+import static org.geogit.cli.test.functional.general.GlobalState.insert;
+import static org.geogit.cli.test.functional.general.GlobalState.platform;
+import static org.geogit.cli.test.functional.general.GlobalState.setupGeogit;
+import static org.geogit.cli.test.functional.general.GlobalState.tempFolder;
+import static org.geogit.cli.test.functional.general.TestFeatures.points1;
+import static org.geogit.cli.test.functional.general.TestFeatures.points1_modified;
+import static org.geogit.cli.test.functional.general.TestFeatures.points2;
+import static org.geogit.cli.test.functional.general.TestFeatures.points3;
+import static org.geogit.cli.test.functional.general.TestFeatures.setupFeatures;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -20,8 +20,8 @@ import org.geogit.api.TestPlatform;
 import org.geogit.api.porcelain.AddOp;
 import org.geogit.api.porcelain.CommitOp;
 import org.geogit.cli.GeogitPy4JEntryPoint;
-import org.geogit.cli.test.functional.CLITestContextBuilder;
-import org.geogit.cli.test.functional.GlobalState;
+import org.geogit.cli.test.functional.general.CLITestContextBuilder;
+import org.geogit.cli.test.functional.general.GlobalState;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;

@@ -3,7 +3,7 @@
  * application directory.
  */
 
-package org.geogit.cli.test.functional;
+package org.geogit.cli.test.functional.general;
 
 import org.geogit.api.Platform;
 

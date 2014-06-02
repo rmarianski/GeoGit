@@ -2,7 +2,7 @@
  * This code is licensed under the BSD New License, available at the root
  * application directory.
  */
-package org.geogit.cli.test.functional;
+package org.geogit.cli.test.functional.general;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;

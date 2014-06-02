@@ -4,7 +4,7 @@
  */
 package org.geogit.geotools.cli.test.sqlserver.functional;
 
-import static org.geogit.cli.test.functional.GlobalState.runCommand;
+import static org.geogit.cli.test.functional.general.GlobalState.runCommand;
 import cucumber.annotation.en.When;
 import cucumber.runtime.java.StepDefAnnotation;
 

@@ -20,7 +20,7 @@ import org.geogit.api.porcelain.ConfigOp;
 import org.geogit.api.porcelain.ConfigOp.ConfigAction;
 import org.geogit.api.porcelain.InitOp;
 import org.geogit.api.porcelain.LogOp;
-import org.geogit.cli.test.functional.CLITestContextBuilder;
+import org.geogit.cli.test.functional.general.CLITestContextBuilder;
 import org.geogit.geotools.data.GeoGitDataStore;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.DefaultTransaction;

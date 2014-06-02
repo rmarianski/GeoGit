@@ -2,7 +2,7 @@
  * This code is licensed under the BSD New License, available at the root
  * application directory.
  */
-package org.geogit.cli.test.functional;
+package org.geogit.cli.test.functional.general;
 
 import org.geogit.api.Context;
 import org.geogit.api.ContextBuilder;

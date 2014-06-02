@@ -2,15 +2,15 @@
  * This code is licensed under the BSD New License, available at the root
  * application directory.
  */
-package org.geogit.cli.test.functional;
+package org.geogit.cli.test.functional.general;
 
-import static org.geogit.cli.test.functional.TestFeatures.lines1;
-import static org.geogit.cli.test.functional.TestFeatures.lines2;
-import static org.geogit.cli.test.functional.TestFeatures.lines3;
-import static org.geogit.cli.test.functional.TestFeatures.points1;
-import static org.geogit.cli.test.functional.TestFeatures.points1_FTmodified;
-import static org.geogit.cli.test.functional.TestFeatures.points2;
-import static org.geogit.cli.test.functional.TestFeatures.points3;
+import static org.geogit.cli.test.functional.general.TestFeatures.lines1;
+import static org.geogit.cli.test.functional.general.TestFeatures.lines2;
+import static org.geogit.cli.test.functional.general.TestFeatures.lines3;
+import static org.geogit.cli.test.functional.general.TestFeatures.points1;
+import static org.geogit.cli.test.functional.general.TestFeatures.points1_FTmodified;
+import static org.geogit.cli.test.functional.general.TestFeatures.points2;
+import static org.geogit.cli.test.functional.general.TestFeatures.points3;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
@@ -24,10 +24,10 @@ import java.util.List;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 
-import org.geogit.api.GeoGIT;
-import org.geogit.api.GlobalContextBuilder;
 import org.geogit.api.Context;
 import org.geogit.api.ContextBuilder;
+import org.geogit.api.GeoGIT;
+import org.geogit.api.GlobalContextBuilder;
 import org.geogit.api.Node;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Platform;

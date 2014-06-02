@@ -23,7 +23,7 @@ import org.geogit.api.plumbing.LsTreeOp;
 import org.geogit.api.plumbing.ResolveFeatureType;
 import org.geogit.api.plumbing.RevObjectParse;
 import org.geogit.cli.GeogitCLI;
-import org.geogit.cli.test.functional.CLITestContextBuilder;
+import org.geogit.cli.test.functional.general.CLITestContextBuilder;
 import org.geogit.osm.internal.OSMImportOp;
 import org.junit.Assert;
 import org.junit.Before;

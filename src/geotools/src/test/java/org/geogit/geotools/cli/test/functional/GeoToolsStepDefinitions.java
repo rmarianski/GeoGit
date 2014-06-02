@@ -4,14 +4,14 @@
  */
 package org.geogit.geotools.cli.test.functional;
 
-import static org.geogit.cli.test.functional.GlobalState.insertAndAdd;
-import static org.geogit.cli.test.functional.GlobalState.runCommand;
-import static org.geogit.cli.test.functional.TestFeatures.lines1;
-import static org.geogit.cli.test.functional.TestFeatures.lines2;
-import static org.geogit.cli.test.functional.TestFeatures.lines3;
-import static org.geogit.cli.test.functional.TestFeatures.points1_FTmodified;
-import static org.geogit.cli.test.functional.TestFeatures.points2;
-import static org.geogit.cli.test.functional.TestFeatures.points3;
+import static org.geogit.cli.test.functional.general.GlobalState.insertAndAdd;
+import static org.geogit.cli.test.functional.general.GlobalState.runCommand;
+import static org.geogit.cli.test.functional.general.TestFeatures.lines1;
+import static org.geogit.cli.test.functional.general.TestFeatures.lines2;
+import static org.geogit.cli.test.functional.general.TestFeatures.lines3;
+import static org.geogit.cli.test.functional.general.TestFeatures.points1_FTmodified;
+import static org.geogit.cli.test.functional.general.TestFeatures.points2;
+import static org.geogit.cli.test.functional.general.TestFeatures.points3;
 import cucumber.annotation.en.Given;
 import cucumber.annotation.en.When;
 import cucumber.runtime.java.StepDefAnnotation;

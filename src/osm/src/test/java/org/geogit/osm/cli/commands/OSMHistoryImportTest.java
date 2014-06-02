@@ -22,7 +22,7 @@ import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffEntry.ChangeType;
 import org.geogit.api.porcelain.DiffOp;
 import org.geogit.cli.GeogitCLI;
-import org.geogit.cli.test.functional.CLITestContextBuilder;
+import org.geogit.cli.test.functional.general.CLITestContextBuilder;
 import org.geotools.referencing.CRS;
 import org.junit.After;
 import org.junit.Assert;

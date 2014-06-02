@@ -21,7 +21,7 @@ import org.geogit.api.plumbing.RevParse;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.porcelain.DiffOp;
 import org.geogit.cli.GeogitCLI;
-import org.geogit.cli.test.functional.CLITestContextBuilder;
+import org.geogit.cli.test.functional.general.CLITestContextBuilder;
 import org.geogit.osm.internal.OSMImportOp;
 import org.junit.Assert;
 import org.junit.Before;
