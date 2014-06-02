@@ -173,6 +173,7 @@
                 </goals>
                 <configuration>
                   <skip>false</skip>
+                  <forkCount>1</forkCount> <!-- avoid forks for the sqlserver tests, they all hit the same db -->
                   <excludes>
                     <exclude>${online.skip.pattern}</exclude>
                   </excludes>
@@ -224,6 +225,7 @@
                 </goals>
                 <configuration>
                   <skip>false</skip>
+                  <forkCount>1</forkCount> <!-- avoid forks for the oracle tests, they all hit the same db -->
                   <excludes>
                     <exclude>${online.skip.pattern}</exclude>
                   </excludes>
