@@ -470,7 +470,7 @@ public class WorkingTree {
 
         listener.started();
 
-        Stopwatch sw = new Stopwatch().start();
+        Stopwatch sw = Stopwatch.createStarted();
 
         final RevTree origTree = indexDatabase.getTree(treeRef.objectId());
         RevTreeBuilder2 builder = new RevTreeBuilder2(indexDatabase, origTree,
@@ -730,7 +730,7 @@ public class WorkingTree {
 
             listener.setDescription("Building trees for "
                     + new TreeSet<String>(insertHelper.getTreeNames()));
-            Stopwatch sw = new Stopwatch().start();
+            Stopwatch sw = Stopwatch.createStarted();
 
             Map<NodeRef, RevTree> trees = insertHelper.buildTrees();
 

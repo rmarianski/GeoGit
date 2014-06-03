@@ -96,7 +96,7 @@ class RevTreeBuilder2 {
             return original.builder(db).build();
         }
 
-        Stopwatch sw = new Stopwatch().start();
+        Stopwatch sw = Stopwatch.createStarted();
         RevTreeBuilder builder;
         try {
             builder = new RevTreeBuilder(db, original);

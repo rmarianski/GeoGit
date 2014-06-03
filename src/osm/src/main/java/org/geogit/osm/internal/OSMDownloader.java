@@ -104,7 +104,7 @@ public class OSMDownloader {
             try {
                 super.close();
             } finally {
-                Closeables.closeQuietly(out);
+                Closeables.close(out, true);
             }
         }
 
