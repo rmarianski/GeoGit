@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -6,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>Rebasing &mdash; GeoGit 0.8.0 User Manual</title>
+  <title>Rebasing &mdash; GeoGit 0.9.0 User Manual</title>
   <link rel="stylesheet" href="../_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="../_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -18,12 +17,12 @@
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.8.0',
+        VERSION:     '0.9.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
-      <link rel="top" title="GeoGit 0.8.0 User Manual" href="../index.html" />
+      <link rel="top" title="GeoGit 0.9.0 User Manual" href="../index.html" />
       <link rel="up" title="Data and commits" href="index.html" />
       <link rel="next" title="Referencing a GeoGit element" href="referencing.html" />
       <link rel="prev" title="Cherry-picking commits" href="picking.html" />
@@ -79,7 +78,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="../index.html">GeoGit 0.8.0 User Manual</a> &raquo;</li>
+  <li><a href="../index.html">GeoGit 0.9.0 User Manual</a> &raquo;</li>
   <li><a href="index.html" accesskey="U">Data and commits</a> &raquo;</li>
   <li>Rebasing</li>
 </ul>
@@ -101,13 +100,14 @@
 <p>As you see, the commits from the branch that is combined with the current branch are not put on top of that, but on top of the common ancestor of both branches instead. The commits that were made to the current branch before the other branch was created are then added on top of that already merged branch.</p>
 <p>GeoGit rewinds the current HEAD to the ancestor point, then adds the commits in the branch that is to be combined with the current one, and then does the same with the commits that were &#8216;rewinded&#8217;. The first set of comments will not cause any conflict, but when adding the second set of them, conflicts might arise. As in the case of a merge operation, this conflicts appear when the same element has been merged in a way that it is not compatible with a change introduced by one of the commits already merged, causing a situation that GeoGit cannot automatically solve.</p>
 <p>When a rebase cannot be finished cleanly due to conflicts, GeoGit will stop and tell you to fix the conflict before continuing.</p>
-<div class="highlight-python"><pre>$geogit rebase branch1
+<div class="highlight-python"><div class="highlight"><pre>$geogit rebase branch1
 Error: could not apply 0b0e33b Changed units in area field
 CONFLICT: conflict in parks/5
 
-When you have fixed this conflicts, run 'geogit rebase --continue' to continue rebasing.
-If you would prefer to skip this commit, instead run 'geogit rebase --skip.
-To check out the original branch and stop rebasing, run 'geogit rebase --abort'</pre>
+When you have fixed this conflicts, run &#39;geogit rebase --continue&#39; to continue rebasing.
+If you would prefer to skip this commit, instead run &#39;geogit rebase --skip.
+To check out the original branch and stop rebasing, run &#39;geogit rebase --abort&#39;
+</pre></div>
 </div>
 <p>As you can see in the example above, the particular commit that caused the conflict is shown by GeoGit in the message it displays to inform about the conflicted situation. The ID of the commit, its commit message and the elements that are in conflict are shown.</p>
 <p>Conflict are solved in the same way as in the case of a merge conflict. Conflicted elements are marked as such in the index, and you have to use the GeoGit tools and command to set all of them as not-conflicted and select the versions to use in each case.</p>
@@ -119,7 +119,8 @@ To check out the original branch and stop rebasing, run 'geogit rebase --abort'<
 <h2>Squashing commits<a class="headerlink" href="#squashing-commits" title="Permalink to this headline">¶</a></h2>
 <p>You can use the rebase operation to put several commits into just one, in what is known as &#8220;squashing&#8221; commits. When you perform a rebase and squash your commits, all the commits that are rewinded are not applied afterwards. Instead, one single commit is created, which includes all the changes from those commits. Instead of using the commit message of any of the squashed commits, you have to provide a new message.</p>
 <p>To squash the commits applied in the rebase operation, you must use <tt class="docutils literal"><span class="pre">geogit</span> <span class="pre">rebase</span> <span class="pre">--squash</span> <span class="pre">&lt;commit_message&gt;</span></tt>. For instance, if you have a New York dataset in your repo and a branch where you have been adding streets corresponding to the Manhattan area, you can rebase and bring in all the changes from the master branch and at the same time put all the commits you have made to add those streets into a single one, using the following command line:</p>
-<div class="highlight-python"><pre>$ geogit rebase master --squash "Added Manhattan streets"</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ geogit rebase master --squash &quot;Added Manhattan streets&quot;
+</pre></div>
 </div>
 <p>Apart from that, the process is identical, and conflicts might arise as well. They should be solved in the same way as a normal rebase.</p>
 </div>

@@ -17,11 +17,30 @@ Combining different feature types
 
 We have assumed that the new features to import have the same feature type as the ones already in the import path, but, as we know, features under the same path do not have to necessarily share the same feature type. In the case of shapefiles, several shapefiles containing features with different feature types can be imported to the same path. In the case of importing from a database, several tables can be imported into the same path in the GeoGit repository.
 
-Imagine that you already imported a shapefile containing polygons with a given set of attributes, and now you want to import into the same path another shapefile with polygons, which contain the same attributes but with an extra one containing the area of each polygon. In that case, feature types do not match, and the situation is different, but GeoGit provide tools to solve it. Apart from the ``--add`` option, an additional option is available to control how the import command should behave when importing features with a feature type different to the default feature type of the specified path: ``--alter``. 
+Imagine that you already imported a shapefile containing polygons with a given set of attributes, and now you want to import into the same path another shapefile with polygons, which contain the same attributes but with an extra one containing the area of each polygon. In that case, feature types do not match, and the situation is different, but GeoGit provide tools to solve it. 
 
-If none of these modifiers is used, GeoGit will import features overwriting the features that already existed. In that case, unmatching feature types are not a problem, since we are just going to remove the previous ones and replace them with the content of the new shapefile. 
+By default, GeoGit will not let you import into an existing tree if the feature type of the data to import is not the same one as the feature type of the existing tree. This is to prevent trees with mixed feature types to appear, so in case you want taht to happen, you have to explicitly tell GeoGit to do it.
 
-If ``--add`` is used, features are imported, regardless of their feature type. The default feature type remains unchanged and the tree will contain features of several different feature types.
+If the feature type is different, GeoGit will try to match it to the default existing feature type before aborting the iport operation. This is done to allow using different data formats to be used seamlessly, since they might store a given feature type differently. Let's see an example.
+
+Let's say that you have imported a shapefile with an attribute called ``Area``. Your feature type will be like this
+
+``the_geom``: MULTIPOLYGON
+``Area``: DOUBLE
+
+Image that youo export it to a GeoJSON file, make some changes and then reimport it. The feature type of the data to import is like this.
+
+``Area`` : DOUBLE
+``geom`` : MULTIPOLYGON
+
+Although the feature type is the same, the GeoTools library used by GeoGit understands the file to import in a different way, putting the geometry field as the last one instead of the first one, and using a different name. GeoGit wil, however, understand that the feature type is the same one as the existing one, and will correctly set that existing feature type as the feature type of the imported features.
+
+If you do not use the "--add" option, the full destination tree is removed before importing and the new imported data is used to replace the previous data. Trees with mixed feature types cannot appear in this case, but GeoGit will not let you importing a layer with a different feature type anyway. This is done to prevent unchanged features to be reported as changed, just because the feature type (although being the same) has a different definition, as in the example above. If you really want to impor something with a different feature type (like in the shapefile example mentioned about, in which a new area field is added), you must use the ``--force-featuretype`` switch.
+
+If ``--add`` and ``--force-featuretype`` are used, features are imported, regardless of their feature type. The default feature type remains unchanged and the tree will contain features of several different feature types.
+
+Apart from these options, an additional option is available to control how the import command should behave when importing features with a feature type different to the default feature type of the specified path: ``--alter``. 
+
 
 If ``--alter`` is used, the feature type of the features to import will be set as the new default feature type of the destination tree. All the features that already existed in it will be modified to match that feature type. After this type of import operation, all features in the destination path will have the path's default feature type. If the new imported features have extra attributes, the features already in the repository will have null values for those fields. If attributes in the features already in the repository do not exist in the new imported attributes, they will be deleted. 
 

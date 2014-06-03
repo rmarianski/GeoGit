@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -6,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>GeoGit for developers &mdash; GeoGit 0.8.0 Technical Manual</title>
+  <title>GeoGit for developers &mdash; GeoGit 0.9.0 Technical Manual</title>
   <link rel="stylesheet" href="_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -17,14 +16,14 @@
   <link rel="stylesheet" href="_static/offcanvas.css" type="text/css" />
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '0.8.0',
+        URL_ROOT:    './',
+        VERSION:     '0.9.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
   <link rel="shortcut icon" href="_static/favicon.ico"/>
-      <link rel="top" title="GeoGit 0.8.0 Technical Manual" href="index.html" />
+      <link rel="top" title="GeoGit 0.9.0 Technical Manual" href="index.html" />
       <link rel="next" title="GeoGit merge conflicts strategy" href="geogit-merge-conflicts.html" />
       <link rel="prev" title="Plumbing commands" href="plumbing_commands.html" />
 </head>
@@ -79,7 +78,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="index.html">GeoGit 0.8.0 Technical Manual</a> &raquo;</li>
+  <li><a href="index.html">GeoGit 0.9.0 Technical Manual</a> &raquo;</li>
   <li>GeoGit for developers</li>
 </ul>
 <ul id="relatedlinks" class="selfclear">
@@ -103,7 +102,8 @@
 <ul class="simple">
 <li>Clone the GeoGit source code repository. To do so, create a new folder where you want the GeoGit source code to be kept, open a console and move to that folder. Now type the following.</li>
 </ul>
-<div class="highlight-python"><pre>$git clone http://github.com/opengeo/GeoGit.git</pre>
+<div class="highlight-python"><div class="highlight"><pre>$git clone http://github.com/opengeo/GeoGit.git
+</pre></div>
 </div>
 <ul>
 <li><p class="first">Install the software needed to build GeoGit (you can skip one or both of the steps below in case you have Java and/or Maven already installed in your system)</p>
@@ -117,13 +117,14 @@
 <li><p class="first">Move to the <tt class="docutils literal"><span class="pre">src/parent</span></tt> folder under the folder where you have cloned the GeoGit source code, and type the following.</p>
 </li>
 </ul>
-<div class="highlight-python"><pre>$mvn clean install</pre>
+<div class="highlight-python"><div class="highlight"><pre>$mvn clean install
+</pre></div>
 </div>
 <ul class="simple">
 <li>GeoGit should now be built, and scripts ready to be run should be available in the <tt class="docutils literal"><span class="pre">src/cli-app/target/geogit/bin</span></tt> folder. Add that folders to your <tt class="docutils literal"><span class="pre">PATH</span></tt> environment variable, so your system can find it and you can call GeoGit from the console.</li>
 <li>To test that GeoGit is ready to be used, open a console and type <tt class="docutils literal"><span class="pre">geogit</span> <span class="pre">help</span></tt>. You should see a list of available commands like the one shown below.</li>
 </ul>
-<div class="highlight-python"><pre>usage: geogit &lt;command&gt; [&lt;args&gt;]
+<div class="highlight-python"><div class="highlight"><pre>usage: geogit &lt;command&gt; [&lt;args&gt;]
 
 The most commonly used geogit commands are:
 --help          Print this help message, or provide a command name to get help for
@@ -139,7 +140,8 @@ commit          Record staged changes to the repository
 config          Get and set repository or global options
 conflicts       Shows existing conflicts
 diff            Show changes between commits, commit and working tree, etc
-[...]</pre>
+[...]
+</pre></div>
 </div>
 </div>
 <div class="section" id="working-with-eclipse">
@@ -148,7 +150,8 @@ diff            Show changes between commits, commit and working tree, etc
 <ul class="simple">
 <li>Move to the <tt class="docutils literal"><span class="pre">src/parent</span></tt> folder and type the following to build the corresponding eclipse projects:</li>
 </ul>
-<div class="highlight-python"><pre>$mvn eclipse:eclipse</pre>
+<div class="highlight-python"><div class="highlight"><pre>$mvn eclipse:eclipse
+</pre></div>
 </div>
 <ul>
 <li><p class="first">Open Eclipse and create a new workspace</p>
@@ -196,8 +199,9 @@ diff            Show changes between commits, commit and working tree, etc
 </li>
 <li><p class="first">Cobertura is configured for a test coverage report:</p>
 <blockquote>
-<div><div class="highlight-python"><pre>mvn cobertura:cobertura
-open target/site/cobertura/index.html</pre>
+<div><div class="highlight-python"><div class="highlight"><pre>mvn cobertura:cobertura
+open target/site/cobertura/index.html
+</pre></div>
 </div>
 </div></blockquote>
 </li>

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -6,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>Plumbing commands &mdash; GeoGit 0.8.0 Technical Manual</title>
+  <title>Plumbing commands &mdash; GeoGit 0.9.0 Technical Manual</title>
   <link rel="stylesheet" href="_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -17,14 +16,14 @@
   <link rel="stylesheet" href="_static/offcanvas.css" type="text/css" />
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '0.8.0',
+        URL_ROOT:    './',
+        VERSION:     '0.9.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
   <link rel="shortcut icon" href="_static/favicon.ico"/>
-      <link rel="top" title="GeoGit 0.8.0 Technical Manual" href="index.html" />
+      <link rel="top" title="GeoGit 0.9.0 Technical Manual" href="index.html" />
       <link rel="next" title="GeoGit for developers" href="developers.html" />
       <link rel="prev" title="GeoGit Network Synchronization" href="geogit-network-sync.html" />
 </head>
@@ -79,7 +78,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="index.html">GeoGit 0.8.0 Technical Manual</a> &raquo;</li>
+  <li><a href="index.html">GeoGit 0.9.0 Technical Manual</a> &raquo;</li>
   <li>Plumbing commands</li>
 </ul>
 <ul id="relatedlinks" class="selfclear">
@@ -106,13 +105,14 @@
 <li>If the &#8211;verbose option is not used, then it prints outs a list of element paths, separated by line breaks. There is no information printed about whether the path corresponds to a tree or to a feature</li>
 <li>If the &#8211;verbose option is used, each line correponding to an element has this format:</li>
 </ul>
-<div class="highlight-python"><pre>&lt;feature_type_id&gt; &lt;blank_space&gt; &lt;element_type&lt;feature|tree&gt;&gt; &lt;object_id&gt; &lt;blank_space&gt; &lt;path&gt; &lt;blank_space&gt; &lt;xmin;xmax;ymin;ymax&gt; [&lt;blank_space&gt; &lt;size&gt; &lt;blank_space&gt; num_trees]</pre>
+<div class="highlight-python"><div class="highlight"><pre>&lt;feature_type_id&gt; &lt;blank_space&gt; &lt;element_type&lt;feature|tree&gt;&gt; &lt;object_id&gt; &lt;blank_space&gt; &lt;path&gt; &lt;blank_space&gt; &lt;xmin;xmax;ymin;ymax&gt; [&lt;blank_space&gt; &lt;size&gt; &lt;blank_space&gt; num_trees]
+</pre></div>
 </div>
 <p>Size and number of trees are only printed if the eeent described is a tree</p>
 <p>Paths are absolute paths to the tree. Elements are shown in depthfirst order, so elements under a given tree will appear inmediatly after it.</p>
 <p>The <tt class="docutils literal"><span class="pre">verbose</span></tt>, <tt class="docutils literal"><span class="pre">-r</span></tt>, <tt class="docutils literal"><span class="pre">-d</span></tt> and <tt class="docutils literal"><span class="pre">-t</span></tt> options are available, with the same effect as in the case of using the <tt class="docutils literal"><span class="pre">ls</span></tt> commands.</p>
 <p>The following are some examples of the output produced by the <tt class="docutils literal"><span class="pre">ls-tree</span></tt> command</p>
-<div class="highlight-python"><pre>$geogit ls-tree -v parks
+<div class="highlight-python"><div class="highlight"><pre>$geogit ls-tree -v parks
 6beb800506a526e151e8f77c422c111cd54bcf7e tree 292f917fbd5153fcfb3def60f5cc57f628ae1252 elevation 18.666297912597656;18.715967178344727;45.776702880859375;45.811668395996094 2 0
 1e6988eab76ab6b9da5da4d174278cca26049ab8 tree 3a2530e0818647b70afc17d09b1d56201aeb6fd3 landuse 18.66728973388672;18.71497344970703;45.77732849121094;45.811126708984375 3 0
 
@@ -130,17 +130,19 @@ elevation/1
 elevation/1
 landuse/1
 landuse/2
-landuse/3</pre>
+landuse/3
+</pre></div>
 </div>
 </div>
 <div class="section" id="diff-tree">
 <h2>diff-tree<a class="headerlink" href="#diff-tree" title="Permalink to this headline">¶</a></h2>
 <p>The <tt class="docutils literal"><span class="pre">diff-tree</span></tt> command shows a list of differences between two commits. It uses the same syntax of the <tt class="docutils literal"><span class="pre">diff</span></tt> command and its ouput is a list of lines with the following formt</p>
-<div class="highlight-python"><pre>&lt;path&gt; &lt;blank_space&gt; &lt;old_objectid&gt; &lt;blank_space&gt; &lt;new_object_id&gt;</pre>
+<div class="highlight-python"><div class="highlight"><pre>&lt;path&gt; &lt;blank_space&gt; &lt;old_objectid&gt; &lt;blank_space&gt; &lt;new_object_id&gt;
+</pre></div>
 </div>
 <p>And additional <tt class="docutils literal"><span class="pre">--describe</span></tt> switch is available, which causes the output to contain the values of fields in the affected paths</p>
 <p>Output format is as follows</p>
-<div class="highlight-python"><pre>&lt;path&gt;
+<div class="highlight-python"><div class="highlight"><pre>&lt;path&gt;
 &lt;change_type&gt;&lt;blank_space&gt;&lt;field_name1&gt;
 [&lt;old_value_of_field_1&gt;]
 [&lt;new_value_of_field_1&gt;]
@@ -149,7 +151,8 @@ landuse/3</pre>
 [&lt;new_value_of_field_2&gt;]
 .
 .
-.</pre>
+.
+</pre></div>
 </div>
 <p>Change type is a single character: A (added), M (modified), R (remove) or U (unchanged)</p>
 <p>both old and new values for a given field appear only if the field has been modified (M). Otherwise, a single value is found, with a meaning according to the type of change.</p>
@@ -159,26 +162,28 @@ landuse/3</pre>
 <h2>rev-list<a class="headerlink" href="#rev-list" title="Permalink to this headline">¶</a></h2>
 <p>The <tt class="docutils literal"><span class="pre">rev-list</span></tt> command is the plumbing equivalent to the <tt class="docutils literal"><span class="pre">log</span></tt> porcelain command.</p>
 <p>The output of rev-list is a list of commits separated by blank lines, with the following format</p>
-<div class="highlight-python"><pre>"commit" + &lt;blank_space&gt; + &lt;id_of_commit&gt;
-"tree" + &lt;blank_space&gt; + &lt;id_of_tree&gt;
-"author" + &lt;blank_space&gt; + &lt;author_name&gt; + &lt;blank_space&gt; + &lt;author_email&gt; + &lt;blank_space&gt; + &lt;timestamp&gt; + &lt;blank_space&gt; + &lt;timezon_offset&gt; + "\n"
-"committer" + &lt;blank_space&gt; + &lt;commiter_name&gt; + &lt;blank_space&gt; + &lt;commiter_email&gt; + &lt;blank_space&gt; + &lt;timestamp&gt; + &lt;blank_space&gt; + &lt;timezone_offset&gt; + "\n"
-"parent" + &lt;blank_space&gt; + &lt;id_of_parent&gt; + "\n"
-"message" + "\n"
-"\t" + &lt;commit_message&gt;</pre>
+<div class="highlight-python"><div class="highlight"><pre>&quot;commit&quot; + &lt;blank_space&gt; + &lt;id_of_commit&gt;
+&quot;tree&quot; + &lt;blank_space&gt; + &lt;id_of_tree&gt;
+&quot;author&quot; + &lt;blank_space&gt; + &lt;author_name&gt; + &lt;blank_space&gt; + &lt;author_email&gt; + &lt;blank_space&gt; + &lt;timestamp&gt; + &lt;blank_space&gt; + &lt;timezon_offset&gt; + &quot;\n&quot;
+&quot;committer&quot; + &lt;blank_space&gt; + &lt;commiter_name&gt; + &lt;blank_space&gt; + &lt;commiter_email&gt; + &lt;blank_space&gt; + &lt;timestamp&gt; + &lt;blank_space&gt; + &lt;timezone_offset&gt; + &quot;\n&quot;
+&quot;parent&quot; + &lt;blank_space&gt; + &lt;id_of_parent&gt; + &quot;\n&quot;
+&quot;message&quot; + &quot;\n&quot;
+&quot;\t&quot; + &lt;commit_message&gt;
+</pre></div>
 </div>
 <p>If several parents exist, the line starting with &#8220;parent&#8221; will appear repeated.</p>
 <p>If the commit message contains line breaks, all lines will appear indented, with a tab character starting each line.</p>
 <p>In case of using the <tt class="docutils literal"><span class="pre">--changed</span></tt> option, the format is as follows:</p>
-<div class="highlight-python"><pre>"commit" + &lt;blank_space&gt; + &lt;id_of_commit&gt;
-"tree" + &lt;blank_space&gt; + &lt;id_of_tree&gt;
-"author" + &lt;blank_space&gt; + &lt;author_name&gt; + &lt;blank_space&gt; + &lt;author_email&gt; + &lt;blank_space&gt; + &lt;timestamp&gt; + &lt;blank_space&gt; + &lt;timezon_offset&gt; + "\n"
-"committer" + &lt;blank_space&gt; + &lt;commiter_name&gt; + &lt;blank_space&gt; + &lt;commiter_email&gt; + &lt;blank_space&gt; + &lt;timestamp&gt; + &lt;blank_space&gt; + &lt;timezone_offset&gt; + "\n"
-"parent" + &lt;blank_space&gt; + &lt;id_of_parent&gt; + "\n"
-"message" + "\n"
-"\t" + &lt;commit_message&gt;
-"changes" + "\n"
-"\t"  + &lt;path&gt; + &lt;blank_space&gt; + &lt;id_of_old_version&gt; + &lt;blank_space&gt; + &lt;id_of_new_version&gt; + "\n"</pre>
+<div class="highlight-python"><div class="highlight"><pre>&quot;commit&quot; + &lt;blank_space&gt; + &lt;id_of_commit&gt;
+&quot;tree&quot; + &lt;blank_space&gt; + &lt;id_of_tree&gt;
+&quot;author&quot; + &lt;blank_space&gt; + &lt;author_name&gt; + &lt;blank_space&gt; + &lt;author_email&gt; + &lt;blank_space&gt; + &lt;timestamp&gt; + &lt;blank_space&gt; + &lt;timezon_offset&gt; + &quot;\n&quot;
+&quot;committer&quot; + &lt;blank_space&gt; + &lt;commiter_name&gt; + &lt;blank_space&gt; + &lt;commiter_email&gt; + &lt;blank_space&gt; + &lt;timestamp&gt; + &lt;blank_space&gt; + &lt;timezone_offset&gt; + &quot;\n&quot;
+&quot;parent&quot; + &lt;blank_space&gt; + &lt;id_of_parent&gt; + &quot;\n&quot;
+&quot;message&quot; + &quot;\n&quot;
+&quot;\t&quot; + &lt;commit_message&gt;
+&quot;changes&quot; + &quot;\n&quot;
+&quot;\t&quot;  + &lt;path&gt; + &lt;blank_space&gt; + &lt;id_of_old_version&gt; + &lt;blank_space&gt; + &lt;id_of_new_version&gt; + &quot;\n&quot;
+</pre></div>
 </div>
 <p>The last line is repeated as many times as affected features are found.</p>
 </div>
@@ -187,36 +192,39 @@ landuse/3</pre>
 <p>The <tt class="docutils literal"><span class="pre">cat</span></tt> command replaces the <tt class="docutils literal"><span class="pre">show</span></tt> command produces a text description of elements in a GeoGit repository. The format for the different types of objects is as follows. An example has been added in each case.</p>
 <div class="section" id="commit">
 <h3>Commit<a class="headerlink" href="#commit" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><pre>"id" + "\t" + &lt;commit_id&gt; + "\n"
-"COMMIT"\n
-"tree" + "\t" +  &lt;tree id&gt; + "\n"
-"parents" + "\t" +  &lt;parent id&gt; [+ " " + &lt;parent id&gt;...]  + "\n"
-"author" + "\t" +  &lt;author name&gt;  + " " + &lt;author email&gt;  + "\t" + &lt;author_timestamp&gt; + "\t" + &lt;author_timezone_offset&gt; + "\n"
-"committer" + "\t" +  &lt;committer name&gt;  + " " + &lt;committer email&gt;  + "\t" + &lt;committer_timestamp&gt; + "\t" + &lt;committer_timezone_offset&gt; + "\n"
-"message" + "\t" +  &lt;message&gt; + "\n"</pre>
+<div class="highlight-python"><div class="highlight"><pre>&quot;id&quot; + &quot;\t&quot; + &lt;commit_id&gt; + &quot;\n&quot;
+&quot;COMMIT&quot;\n
+&quot;tree&quot; + &quot;\t&quot; +  &lt;tree id&gt; + &quot;\n&quot;
+&quot;parents&quot; + &quot;\t&quot; +  &lt;parent id&gt; [+ &quot; &quot; + &lt;parent id&gt;...]  + &quot;\n&quot;
+&quot;author&quot; + &quot;\t&quot; +  &lt;author name&gt;  + &quot; &quot; + &lt;author email&gt;  + &quot;\t&quot; + &lt;author_timestamp&gt; + &quot;\t&quot; + &lt;author_timezone_offset&gt; + &quot;\n&quot;
+&quot;committer&quot; + &quot;\t&quot; +  &lt;committer name&gt;  + &quot; &quot; + &lt;committer email&gt;  + &quot;\t&quot; + &lt;committer_timestamp&gt; + &quot;\t&quot; + &lt;committer_timezone_offset&gt; + &quot;\n&quot;
+&quot;message&quot; + &quot;\t&quot; +  &lt;message&gt; + &quot;\n&quot;
+</pre></div>
 </div>
-<div class="highlight-python"><pre>id    509a481257c5791f50f5a35087e432247f9dc8b7
+<div class="highlight-python"><div class="highlight"><pre>id    509a481257c5791f50f5a35087e432247f9dc8b7
 COMMIT
 tree    6bc0644ba38372860254c61a62009448ebd8c1e0
 parents    8c08469ffc54f6cc9132855f0415c79cf3fc7785
 author    volaya    volaya@opengeo.org    1358773135891    3600000
 committer    volaya    volaya@opengeo.org    1358773135891    3600000
-message    Updated geometry</pre>
+message    Updated geometry
+</pre></div>
 </div>
 </div>
 <div class="section" id="tree">
 <h3>Tree<a class="headerlink" href="#tree" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><pre>"id" + "\t" + &lt;tree_id&gt; + "\n"
+<div class="highlight-python"><div class="highlight"><pre>&quot;id&quot; + &quot;\t&quot; + &lt;tree_id&gt; + &quot;\n&quot;
 TREE\n
-"size" + "\t" +  &lt;size&gt; + "\n"
-"numtrees" + "\t" +  &lt;numtrees&gt; + "\n"
-"BUCKET" + "\t" +  &lt;bucket_idx&gt; + "\t" + &lt;ObjectId&gt; + "\t" + &lt;bounds&gt; + "\n"
+&quot;size&quot; + &quot;\t&quot; +  &lt;size&gt; + &quot;\n&quot;
+&quot;numtrees&quot; + &quot;\t&quot; +  &lt;numtrees&gt; + &quot;\n&quot;
+&quot;BUCKET&quot; + &quot;\t&quot; +  &lt;bucket_idx&gt; + &quot;\t&quot; + &lt;ObjectId&gt; + &quot;\t&quot; + &lt;bounds&gt; + &quot;\n&quot;
 or
-"REF" + "\t" +  &lt;ref_type&gt; + "\t" + &lt;ref_name&gt; + "\t" + &lt;ObjectId&gt; + "\t" + &lt;MetadataId&gt; + "\t" + &lt;bounds&gt; + "\n"
+&quot;REF&quot; + &quot;\t&quot; +  &lt;ref_type&gt; + &quot;\t&quot; + &lt;ref_name&gt; + &quot;\t&quot; + &lt;ObjectId&gt; + &quot;\t&quot; + &lt;MetadataId&gt; + &quot;\t&quot; + &lt;bounds&gt; + &quot;\n&quot;
 .
-.</pre>
+.
+</pre></div>
 </div>
-<div class="highlight-python"><pre>id    0bbed3603377adfbd3b32afce4d36c2c2e59d9d4
+<div class="highlight-python"><div class="highlight"><pre>id    0bbed3603377adfbd3b32afce4d36c2c2e59d9d4
 TREE
 size    50
 numtrees    0
@@ -225,24 +233,26 @@ REF    FEATURE    parks.13    b734bc70a8061966e15502c7a0399df61b884dc4    6350a6
 REF    FEATURE    parks.42    eef727418a6cd64960eee0a4e54325e284174218    6350a6955b124119850f5a6906f70dc02ebb31c9    -122.85186496040123;-122.85030419922936;42.3158100546772;42.317125842793224;EPSG:4326
 .
 .
-.</pre>
+.
+</pre></div>
 </div>
 </div>
 <div class="section" id="feature">
 <h3>Feature<a class="headerlink" href="#feature" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><pre>"id" + "\t" + &lt;feature_id&gt; + "\n"
-"FEATURE\n"
-&lt;attribute_type_1&gt; + "\t" +  &lt;attribute_value_1&gt; + "\n"
+<div class="highlight-python"><div class="highlight"><pre>&quot;id&quot; + &quot;\t&quot; + &lt;feature_id&gt; + &quot;\n&quot;
+&quot;FEATURE\n&quot;
+&lt;attribute_type_1&gt; + &quot;\t&quot; +  &lt;attribute_value_1&gt; + &quot;\n&quot;
 .
 .
 .
-&lt;attribute_class_n&gt; + "\t" +  &lt;attribute_value_n&gt; + "\n"
+&lt;attribute_class_n&gt; + &quot;\t&quot; +  &lt;attribute_value_n&gt; + &quot;\n&quot;
 
 Attribute type can be one of the following strings: ``NULL, BOOLEAN, BYTE, SHORT, INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN_ARRAY, BYTE_ARRAY, SHORT_ARRAY, INTEGER_ARRAY, LONG_ARRAY, FLOAT_ARRAY, DOUBLE_ARRAY, STRING_ARRAY, POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRYCOLLECTION, GEOMETRY, UUID, BIG_INTEGER, BIG_DECIMAL, DATETIME, DATE, TIME, TIMESTAMP``
 
-[TODO: detail format of some of these data types]</pre>
+[TODO: detail format of some of these data types]
+</pre></div>
 </div>
-<div class="highlight-python"><pre>id    ff51bfc2a36d02a3a51d72eef3e7f44de9c4e231
+<div class="highlight-python"><div class="highlight"><pre>id    ff51bfc2a36d02a3a51d72eef3e7f44de9c4e231
 FEATURE
 STRING    Medford School District
 DOUBLE    636382.400857
@@ -252,17 +262,18 @@ LONG    4
 STRING    Medford School District
 STRING    School Field
 MULTIPOLYGON    MULTIPOLYGON (((-122.83646412838807 42.36016644633764, -122.83706843181271 42.36018038487805, -122.83740062537728 42.360187694790284, -122.83773129525122 42.36019528458837, -122.83795404148778 42.36020136945975, -122.83819236923999 42.36020660256662, -122.83846546872873 42.360518040102995, -122.83876233613934 42.36084768643743, -122.83979986790222 42.361999744796655, -122.83876583032126 42.36206395843249, -122.8387666181915 42.36241475445113, -122.8350544594257 42.362400655348836, -122.83505311158638 42.36190072779918, -122.8352814492704 42.36189781560542, -122.83546514962634 42.36183970799634, -122.8355995051357 42.361675638841625, -122.83649163970789 42.36166473464665, -122.83646412838807 42.36016644633764)))
-STRING    Public</pre>
+STRING    Public
+</pre></div>
 </div>
 <p>For array types, values are written as a space-separated list of single values, enclosed between square brackets</p>
 </div>
 <div class="section" id="feature-type">
 <h3>Feature type<a class="headerlink" href="#feature-type" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><pre>       "id" + "\t" + &lt;feature_type_id&gt; + "\n"
-       "FEATURETYPE\n"
-       "name" + "\t" +  &lt;feature_type_name&gt; + "\n"
-       &lt;attribute_name&gt; + "\t" +  &lt;attribute_type&gt; + "\t" + &lt;min_occur&gt; + "\t" + &lt;max_occur&gt; +  "\t" + &lt;nillable &lt;true|false&gt;&gt; + "\n"
-       &lt;attribute_name&gt; + "\t" +  &lt;attribute_type&gt; + "\t" + &lt;min_occur&gt; + "\t" + &lt;max_occur&gt; +  "\t" + &lt;nillable &lt;true|false&gt;&gt; + "\n"
+<div class="highlight-python"><div class="highlight"><pre>       &quot;id&quot; + &quot;\t&quot; + &lt;feature_type_id&gt; + &quot;\n&quot;
+       &quot;FEATURETYPE\n&quot;
+       &quot;name&quot; + &quot;\t&quot; +  &lt;feature_type_name&gt; + &quot;\n&quot;
+       &lt;attribute_name&gt; + &quot;\t&quot; +  &lt;attribute_type&gt; + &quot;\t&quot; + &lt;min_occur&gt; + &quot;\t&quot; + &lt;max_occur&gt; +  &quot;\t&quot; + &lt;nillable &lt;true|false&gt;&gt; + &quot;\n&quot;
+       &lt;attribute_name&gt; + &quot;\t&quot; +  &lt;attribute_type&gt; + &quot;\t&quot; + &lt;min_occur&gt; + &quot;\t&quot; + &lt;max_occur&gt; +  &quot;\t&quot; + &lt;nillable &lt;true|false&gt;&gt; + &quot;\n&quot;
        .
        .
        .
@@ -281,24 +292,27 @@ For geometry attributes, and additional substring is added at the end of the cor
        usage    STRING    0    1    true
        parktype    STRING    0    1    true
        area    DOUBLE    0    1    true
-       perimeter    DOUBLE    0    1    true</pre>
+       perimeter    DOUBLE    0    1    true
+</pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="blame">
 <h2>blame<a class="headerlink" href="#blame" title="Permalink to this headline">¶</a></h2>
 <p>The blame command has a <tt class="docutils literal"><span class="pre">--porcelain</span></tt> option that generates machine-readable output with the following format:</p>
-<div class="highlight-python"><pre>&lt;name_of_field&gt; &lt;blank_space&gt; &lt;commit_id&gt; &lt;blank_space&gt; &lt;committer_name&gt; &lt;blank_space&gt; &lt;commiter_email&gt; &lt;blank_space&gt; &lt;commit_timestamp&gt; &lt;blank_space&gt; &lt;commit_timezone_offset&gt;</pre>
+<div class="highlight-python"><div class="highlight"><pre>&lt;name_of_field&gt; &lt;blank_space&gt; &lt;commit_id&gt; &lt;blank_space&gt; &lt;committer_name&gt; &lt;blank_space&gt; &lt;commiter_email&gt; &lt;blank_space&gt; &lt;commit_timestamp&gt; &lt;blank_space&gt; &lt;commit_timezone_offset&gt;
+</pre></div>
 </div>
 <p>The following is an example of the porcelain output of the <tt class="docutils literal"><span class="pre">blame</span></tt> command</p>
-<div class="highlight-python"><pre>parktype 2d132099c2ede0c9ea2306317cfba4796a62abeb volaya volaya@opengeo.org 1367236628965 7200000
+<div class="highlight-python"><div class="highlight"><pre>parktype 2d132099c2ede0c9ea2306317cfba4796a62abeb volaya volaya@opengeo.org 1367236628965 7200000
 area 2d132099c2ede0c9ea2306317cfba4796a62abeb volaya volaya@opengeo.org 1367236628965 7200000
 perimeter 2d132099c2ede0c9ea2306317cfba4796a62abeb volaya volaya@opengeo.org 1367236628965 7200000
 the_geom 2d132099c2ede0c9ea2306317cfba4796a62abeb volaya volaya@opengeo.org 1367236628965 7200000
 name 2d132099c2ede0c9ea2306317cfba4796a62abeb volaya volaya@opengeo.org 1367236628965 7200000
 owner 2d132099c2ede0c9ea2306317cfba4796a62abeb volaya volaya@opengeo.org 1367236628965 7200000
 usage a1d6e2c8d377ea90c7639b3834d7ece3ad161d91 volaya volaya@opengeo.org 1367236528690 7200000
-agency 2d132099c2ede0c9ea2306317cfba4796a62abeb volaya volaya@opengeo.org 1367236628965 7200000</pre>
+agency 2d132099c2ede0c9ea2306317cfba4796a62abeb volaya volaya@opengeo.org 1367236628965 7200000
+</pre></div>
 </div>
 </div>
 </div>

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -6,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>Web-Api Documentation &mdash; GeoGit 0.8.0 User Manual</title>
+  <title>Web-Api Documentation &mdash; GeoGit 0.9.0 User Manual</title>
   <link rel="stylesheet" href="../_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="../_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -18,12 +17,12 @@
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.8.0',
+        VERSION:     '0.9.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
-      <link rel="top" title="GeoGit 0.8.0 User Manual" href="../index.html" />
+      <link rel="top" title="GeoGit 0.9.0 User Manual" href="../index.html" />
       <link rel="up" title="Other ways to interact with GeoGit" href="index.html" />
       <link rel="next" title="Using GeoGit with OpenStreetMap data" href="osm.html" />
       <link rel="prev" title="GeoGit Networking" href="networking.html" />
@@ -79,7 +78,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="../index.html">GeoGit 0.8.0 User Manual</a> &raquo;</li>
+  <li><a href="../index.html">GeoGit 0.9.0 User Manual</a> &raquo;</li>
   <li><a href="index.html" accesskey="U">Other ways to interact with GeoGit</a> &raquo;</li>
   <li>Web-Api Documentation</li>
 </ul>
@@ -125,10 +124,12 @@
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/add?path=tree/fid&amp;transactionId=id</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/add?path=tree/fid&amp;transactionId=id
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns whether or not the add succeeded or not.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns whether or not the add succeeded or not.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -152,10 +153,12 @@
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/blame?path=pathToFeature&amp;commit=commitId</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/blame?path=pathToFeature&amp;commit=commitId
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns all of the attribute values of a feature and the commit that they were last changed.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns all of the attribute values of a feature and the commit that they were last changed.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -179,10 +182,12 @@
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/branch?list=true&amp;remote=true</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/branch?list=true&amp;remote=true
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns a list of all the branches on the repo, if remote is specified it lists remote branches and the name of the remote they belong to.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns a list of all the branches on the repo, if remote is specified it lists remote branches and the name of the remote they belong to.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -218,11 +223,13 @@
 </ol>
 </div></blockquote>
 <p><strong>Examples:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/checkout?branch=master&amp;transactionId=id
-       localhost:8182/checkout?path=tree/fid&amp;ours=true&amp;transactionId=id</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/checkout?branch=master&amp;transactionId=id
+       localhost:8182/checkout?path=tree/fid&amp;ours=true&amp;transactionId=id
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the branch you were one and the branch you checked out, if path was specified it returns the path and the strategy chosen.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the branch you were one and the branch you checked out, if path was specified it returns the path and the strategy chosen.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -266,10 +273,12 @@
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/commit?authorName=John&amp;authorEmail=john@example.com&amp;message=something&amp;all=true&amp;transactionId=id</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/commit?authorName=John&amp;authorEmail=john@example.com&amp;message=something&amp;all=true&amp;transactionId=id
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the commit id and a count of the things that were added, changed and deleted.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the commit id and a count of the things that were added, changed and deleted.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -317,10 +326,12 @@
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/diff?oldRefSpec=commitId1&amp;newRefSpec=commitId2&amp;showGeometryChanges=true&amp;show=100</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/diff?oldRefSpec=commitId1&amp;newRefSpec=commitId2&amp;showGeometryChanges=true&amp;show=100
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the path of the feature before and after as well as the object id before and after, if showGeometryChanges is specified it will also return the geometry of the feature.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the path of the feature before and after as well as the object id before and after, if showGeometryChanges is specified it will also return the geometry of the feature.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -350,10 +361,12 @@
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/fetch?prune=true&amp;remote=origin</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/fetch?prune=true&amp;remote=origin
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the name of the remote, the branch name before and after and the value before and after.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the name of the remote, the branch name before and after and the value before and after.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -451,11 +464,13 @@
 </ol>
 </div></blockquote>
 <p><strong>Examples:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/log?path=treeName&amp;firstParentOnly=true
-localhost:8182/log?summary=true&amp;path=treeName&amp;output_format=csv</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/log?path=treeName&amp;firstParentOnly=true
+localhost:8182/log?summary=true&amp;path=treeName&amp;output_format=csv
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns a list of the commits with a given range, if countChanges is specified it also returns the number of adds, modifies and deletes for each commit, if summary with csv output_format specified it downloads a file in csv format of a summary of changes for each commit.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns a list of the commits with a given range, if countChanges is specified it also returns the number of adds, modifies and deletes for each commit, if summary with csv output_format specified it downloads a file in csv format of a summary of changes for each commit.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -499,10 +514,12 @@ localhost:8182/log?summary=true&amp;path=treeName&amp;output_format=csv</pre>
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/merge?commit=branch1&amp;noCommit=true&amp;transactionId=id</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/merge?commit=branch1&amp;noCommit=true&amp;transactionId=id
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the object id of both branches being merged and the common ancestor's id as well as the merge commit id if one was made, the number of conflicts there were if there were any, the list of changes that resulted from the merge.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the object id of both branches being merged and the common ancestor&#39;s id as well as the merge commit id if one was made, the number of conflicts there were if there were any, the list of changes that resulted from the merge.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -552,10 +569,12 @@ localhost:8182/log?summary=true&amp;path=treeName&amp;output_format=csv</pre>
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/pull?remoteName=origin&amp;all=true&amp;ref=master:master</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/pull?remoteName=origin&amp;all=true&amp;ref=master:master
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the result of Fetch, the remote name, the ref name, the number of adds, modifies and removes and the merge result if one was made.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the result of Fetch, the remote name, the ref name, the number of adds, modifies and removes and the merge result if one was made.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -593,10 +612,12 @@ localhost:8182/log?summary=true&amp;path=treeName&amp;output_format=csv</pre>
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/push?ref=master:master&amp;remoteName=origin</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/push?ref=master:master&amp;remoteName=origin
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns whether or not it succeeded in pushing data.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns whether or not it succeeded in pushing data.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -676,14 +697,16 @@ localhost:8182/log?summary=true&amp;path=treeName&amp;output_format=csv</pre>
 </ol>
 </div></blockquote>
 <p><strong>Examples:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/remote?list=true&amp;verbose=true
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/remote?list=true&amp;verbose=true
 localhost:8182/remote?remove=true&amp;remoteName=origin
 localhost:8182/remote?remoteName=origin&amp;remoteURL=urlToRepo.com
 localhost:8182/remote?ping=true&amp;remoteName=origin
-localhost:8182/remote?update=true&amp;newName=origin&amp;remoteName=remote1&amp;remoteURL=urlToRepo.com</pre>
+localhost:8182/remote?update=true&amp;newName=origin&amp;remoteName=remote1&amp;remoteURL=urlToRepo.com
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns a list of remotes, if verbose was specified it returns the remote url and username, if ping was specified it returns whether or not the ping was a success, if remove was specified it returns the name of the remote that was removed, if update was specified it returns the name of the remote that was updated, if a remote was created it returns the name of the new remote.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns a list of remotes, if verbose was specified it returns the remote url and username, if ping was specified it returns whether or not the ping was a success, if remove was specified it returns the name of the remote that was removed, if update was specified it returns the name of the remote that was updated, if a remote was created it returns the name of the new remote.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -707,11 +730,13 @@ localhost:8182/remote?update=true&amp;newName=origin&amp;remoteName=remote1&amp;
 </ol>
 </div></blockquote>
 <p><strong>Examples:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/remove?path=treeName/fid&amp;transactionId=id
-localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/remove?path=treeName/fid&amp;transactionId=id
+localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the path that was deleted.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the path that was deleted.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -735,10 +760,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/status?limit=100</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/status?limit=100
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the branch name of the currently checked out branch as well as a list of the staged, unstaged and unmerged features.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the branch name of the currently checked out branch as well as a list of the staged, unstaged and unmerged features.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -756,10 +783,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/tag?list=true</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/tag?list=true
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns a list of the tags.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns a list of the tags.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -770,10 +799,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 <div><p>none</p>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/version</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/version
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns all of the version information for your version of GeoGit.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns all of the version information for your version of GeoGit.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -789,10 +820,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 <div><p>none</p>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/beginTransaction</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/beginTransaction
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the id of the transaction that was started.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the id of the transaction that was started.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -810,10 +843,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/endTransaction?cancel=true&amp;transactionId=id</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/endTransaction?cancel=true&amp;transactionId=id
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns nothing if it succeeded or the transaction id if it failed.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns nothing if it succeeded or the transaction id if it failed.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -849,10 +884,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/featurediff?path=treeName/fid&amp;newTreeish=commitId1&amp;oldTreeish=commitId2</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/featurediff?path=treeName/fid&amp;newTreeish=commitId1&amp;oldTreeish=commitId2
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the list of attributes for that feature with the before and after values, the changetype and if it is the geometry it returns the CRS with it.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the list of attributes for that feature with the before and after values, the changetype and if it is the geometry it returns the CRS with it.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -902,10 +939,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/ls-tree?showTree=true&amp;recursive=true&amp;verbose=true</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/ls-tree?showTree=true&amp;recursive=true&amp;verbose=true
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the path to each node and if verbose is specified it returns the metadataId, type and objectId.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the path to each node and if verbose is specified it returns the metadataId, type and objectId.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -931,10 +970,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/rebuildgraph?quiet=true</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/rebuildgraph?quiet=true
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the number of updated graph elements, if quiet is not specified it returns the objectId of each updated node.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the number of updated graph elements, if quiet is not specified it returns the objectId of each updated node.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -952,10 +993,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/refparse?name=master</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/refparse?name=master
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the ref name and objectId, if it is a symbolic ref it returns the target as well.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the ref name and objectId, if it is a symbolic ref it returns the target as well.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -985,10 +1028,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/updateref?name=master&amp;newValue=branch1</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/updateref?name=master&amp;newValue=branch1
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the same things as Ref parse</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the same things as Ref parse
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -1037,10 +1082,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/getCommitGraph?show=100</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/getCommitGraph?show=100
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the same format as log.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the same format as log.
+</pre></div>
 </div>
 </div></blockquote>
 </div></blockquote>
@@ -1067,10 +1114,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/resolveconflict?path=pathToFeature&amp;objectid=featureObjectId</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/resolveconflict?path=pathToFeature&amp;objectid=featureObjectId
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns whether or not it resolved successfully.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns whether or not it resolved successfully.
+</pre></div>
 </div>
 </div></blockquote>
 </div></blockquote>
@@ -1127,10 +1176,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </ol>
 </div></blockquote>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/revertfeature?authorName=John&amp;authorEmail=John@example.com&amp;commitMessage="Reverted Feature"&amp;mergeMessage="Merge of reverted feature"&amp;newCommitId=commitId1&amp;oldCommitId=commitId2&amp;path=pathToFeature</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/revertfeature?authorName=John&amp;authorEmail=John@example.com&amp;commitMessage=&quot;Reverted Feature&quot;&amp;mergeMessage=&quot;Merge of reverted feature&quot;&amp;newCommitId=commitId1&amp;oldCommitId=commitId2&amp;path=pathToFeature
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the same format as Merge.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the same format as Merge.
+</pre></div>
 </div>
 </div></blockquote>
 </div></blockquote>
@@ -1169,10 +1220,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 </pre></div>
 </div>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/repo/mergefeature</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/repo/mergefeature
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the id of the merged feature.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the id of the merged feature.
+</pre></div>
 </div>
 </div></blockquote>
 </li>
@@ -1180,10 +1233,12 @@ localhost:8182/remove?path=treeName&amp;recursive=true&amp;transactionId=id</pre
 <blockquote>
 <div><p>This endpoint can be used to get a list of all refs in the repository and what they point to.  Similar to the Branch command with the list option from above.</p>
 <p><strong>Example:</strong></p>
-<div class="highlight-python"><pre>localhost:8182/repo/manifest</pre>
+<div class="highlight-python"><div class="highlight"><pre>localhost:8182/repo/manifest
+</pre></div>
 </div>
 <p><strong>Output:</strong></p>
-<div class="highlight-python"><pre>Returns the list of refs and the ids they point to.</pre>
+<div class="highlight-python"><div class="highlight"><pre>Returns the list of refs and the ids they point to.
+</pre></div>
 </div>
 </div></blockquote>
 </li>

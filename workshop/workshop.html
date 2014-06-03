@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -6,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>An Introduction to GeoGit &mdash; GeoGit 0.8 Workshop</title>
+  <title>An Introduction to GeoGit &mdash; GeoGit 0.9 Workshop</title>
   <link rel="stylesheet" href="_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -17,14 +16,14 @@
   <link rel="stylesheet" href="_static/offcanvas.css" type="text/css" />
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '0.8',
+        URL_ROOT:    './',
+        VERSION:     '0.9',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
   <link rel="shortcut icon" href="_static/favicon.ico"/>
-      <link rel="top" title="GeoGit 0.8 Workshop" href="index.html" />
+      <link rel="top" title="GeoGit 0.9 Workshop" href="index.html" />
       <link rel="prev" title="GeoGit Workshop" href="index.html" />
 </head>
 <body class="workshop">
@@ -78,7 +77,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="index.html">GeoGit 0.8 Workshop</a> &raquo;</li>
+  <li><a href="index.html">GeoGit 0.9 Workshop</a> &raquo;</li>
   <li>An Introduction to GeoGit</li>
 </ul>
 <ul id="relatedlinks" class="selfclear">
@@ -204,7 +203,8 @@
 <img alt="_images/sql_query.png" src="_images/sql_query.png" />
 </div>
 <p>Enter the following query into the query text field to load the PostGIS spatial extension:</p>
-<div class="highlight-python"><pre>CREATE EXTENSION postgis;</pre>
+<div class="highlight-python"><div class="highlight"><pre>CREATE EXTENSION postgis;
+</pre></div>
 </div>
 <p>Click the Play button in the toolbar (or press F5) to <em>Execute the query.</em></p>
 <p>The database is now created and we can already add data to it and create new tables in it.</p>
@@ -284,25 +284,28 @@
 <h2>Creating a GeoGit repository and importing data<a class="headerlink" href="#creating-a-geogit-repository-and-importing-data" title="Permalink to this headline">¶</a></h2>
 <p>The PostGIS database already contains the data we are going to work with, so we can now initialize a GeoGit repository where we will keep all the history and different version of that data. The PostGIS database will be the one we will work with to edit and extend the data it contains, and the GeoGit repository will store the history of that work.</p>
 <p>Open a console and move to a folder where you want to keep you geogit repo. Under it, create a folder named <tt class="docutils literal"><span class="pre">geogit_ethiopia</span></tt> and move into it.</p>
-<div class="highlight-python"><pre>$ mkdir geogit_ethiopia
-$ cd geogit_ethiopia</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ mkdir geogit_ethiopia
+$ cd geogit_ethiopia
+</pre></div>
 </div>
 <p>To initialize a GeoGit repository there, run the following command.</p>
-<div class="highlight-python"><pre>$ geogit init
-Initialized empty Geogit repository in [parent_folder]\geogit_ethiopia\.geogit</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ geogit init
+Initialized empty Geogit repository in [parent_folder]\geogit_ethiopia\.geogit
+</pre></div>
 </div>
 <p>If you look at the content of the folder now, you will see that a folder named <tt class="docutils literal"><span class="pre">.geogit</span></tt> has been created. That is where all the data of the repository will be stored.</p>
 <p>To import the data from the PostGIS database, run the following commands:</p>
-<div class="highlight-python"><pre>$ geogit pg import --database geogit_ethiopia --port 54321 --user geogit --password geogit --all</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ geogit pg import --database geogit_ethiopia --port 54321 --user geogit --password geogit --all
+</pre></div>
 </div>
 <p>This tells GeoGit that you want all tables in the geogit database, and uses the credentials of the <tt class="docutils literal"><span class="pre">geogit</span></tt> user that we created to connect to the database. For each table in the PostGIS database, it will create a new tree in the repository.</p>
 <p>Oonce imported, the data will be in the so called <em>working tree</em>. It is not yet stored in the repository database and it does not constitute a version of the data, but you can see that there are changes in the working tree by running the <tt class="docutils literal"><span class="pre">status</span></tt> command.</p>
-<div class="highlight-python"><pre>$ geogit status
+<div class="highlight-python"><div class="highlight"><pre>$ geogit status
 
 # On branch master
 # Changes not staged for commit:
-#   (use "geogit add &lt;path/to/fid&gt;..." to update what will be committed
-#   (use "geogit checkout -- &lt;path/to/fid&gt;..." to discard changes in working directory
+#   (use &quot;geogit add &lt;path/to/fid&gt;...&quot; to update what will be committed
+#   (use &quot;geogit checkout -- &lt;path/to/fid&gt;...&quot; to discard changes in working directory
 #
 #      added  points
 #      added  points/127
@@ -315,10 +318,11 @@ Initialized empty Geogit repository in [parent_folder]\geogit_ethiopia\.geogit</
 #      added  points/1931
 [...]
 #      added  points/1598
-# 92043 total.</pre>
+# 92043 total.
+</pre></div>
 </div>
 <p>There are 92043 new features in the working tree. To see how they are organized in the working tree, use the <tt class="docutils literal"><span class="pre">ls</span></tt> command</p>
-<div class="highlight-python"><pre>$ geogit ls
+<div class="highlight-python"><div class="highlight"><pre>$ geogit ls
 Root tree/
     points/
     landuse/
@@ -327,34 +331,38 @@ Root tree/
     natural/
     buildings/
     places/
-    roads/</pre>
+    roads/
+</pre></div>
 </div>
 <p>Each one of the trees above correspond to one of the tables that have been imported.</p>
 </div>
 <div class="section" id="creating-a-new-snapshot-in-the-repository">
 <h2>Creating a new snapshot in the repository<a class="headerlink" href="#creating-a-new-snapshot-in-the-repository" title="Permalink to this headline">¶</a></h2>
 <p>You can add the feature in the wroking tree to the staging area by using the <tt class="docutils literal"><span class="pre">add</span></tt> command. From there, they are ready to be used to create a new version.</p>
-<div class="highlight-python"><pre>$ geogit add
+<div class="highlight-python"><div class="highlight"><pre>$ geogit add
 Staging changes...
 100%
 92035 features and 8 trees staged for commit
-0 features and 0 trees not staged for commit</pre>
+0 features and 0 trees not staged for commit
+</pre></div>
 </div>
 <p>Creating a new snapshot is done with the <tt class="docutils literal"><span class="pre">commit</span></tt> command. Enter the following in the console.</p>
-<div class="highlight-python"><pre>$geogit commit -m "Initial add"
+<div class="highlight-python"><div class="highlight"><pre>$geogit commit -m &quot;Initial add&quot;
 [fc9e9e6d97e979293a028857d275eef31e8a0ce5] Initial add
-Committed, counting objects...92035 features added, 0 changed, 0 deleted.</pre>
+Committed, counting objects...92035 features added, 0 changed, 0 deleted.
+</pre></div>
 </div>
 <p>The new version is now created and is identified with the &#8220;Initial add&#8221; message.</p>
 </div>
 <div class="section" id="examining-the-log">
 <h2>Examining the log<a class="headerlink" href="#examining-the-log" title="Permalink to this headline">¶</a></h2>
 <p>You can explore the repository history using the <tt class="docutils literal"><span class="pre">log</span></tt> command.</p>
-<div class="highlight-python"><pre>$ geogit log
+<div class="highlight-python"><div class="highlight"><pre>$ geogit log
 Commit:  fc9e9e6d97e979293a028857d275eef31e8a0ce5
 Author:  volaya &lt;volaya@opengeo.org&gt;
 Date:    (9 minutes ago) 2013-10-31 10:57:02 +0100
-Subject: Initial add</pre>
+Subject: Initial add
+</pre></div>
 </div>
 <p>Right now, there is only one commit, but as we work on our data and create new snapshot, we will be adding more. Notice that each commit has a message that you define when running the <tt class="docutils literal"><span class="pre">commit</span></tt> command, but it is also identified with a unique 40-character string ((<tt class="docutils literal"><span class="pre">fc9e9e6d97e979293a028857d275eef31e8a0ce5</span></tt> in the example above but you will not have the same one, since it is computed based on the properties of the commit such as the commit date, which will be different in your case) . You can use these string to refer to all kinds of elements in a GeoGit repository, since all of them have one of such identifiers. We will see examples of that later on.</p>
 </div>
@@ -391,44 +399,48 @@ Subject: Initial add</pre>
 <h2>Commit changes from PostGIS to GeoGit repository<a class="headerlink" href="#commit-changes-from-postgis-to-geogit-repository" title="Permalink to this headline">¶</a></h2>
 <p>The database now contains different data to the one that we imported into Geogit and used to create the first snapshot. We can create a new snapshot by reimporting the modified database and following a process similar to the one we followed for the first import.</p>
 <p>First, import the data entering the following command ini the console.</p>
-<div class="highlight-python"><pre>$ geogit pg import --database geogit_ethiopia --user geogit --password geogit --table buildings --port 54321
+<div class="highlight-python"><div class="highlight"><pre>$ geogit pg import --database geogit_ethiopia --user geogit --password geogit --table buildings --port 54321
 Importing from database geogit_ethiopia
 
 Importing buildings        (1/1)...
 100%
-Import successful.</pre>
+Import successful.
+</pre></div>
 </div>
 <p>We have just modified the <em>buildings</em> table, so there is not need to reimport all the rest of tables. The <tt class="docutils literal"><span class="pre">--all</span></tt> argument has been replaced by <tt class="docutils literal"><span class="pre">--table</span> <span class="pre">buildings</span></tt> to indicate that we just want to import the <em>buildings</em> table.</p>
 <p>We can check that the imported table is different from the one in the repository, by running the <tt class="docutils literal"><span class="pre">status</span></tt> command.</p>
-<div class="highlight-python"><pre>$ geogit status
+<div class="highlight-python"><div class="highlight"><pre>$ geogit status
 # On branch master
 # Changes not staged for commit:
-#   (use "geogit add &lt;path/to/fid&gt;..." to update what will be committed
-#   (use "geogit checkout -- &lt;path/to/fid&gt;..." to discard changes in working directory
+#   (use &quot;geogit add &lt;path/to/fid&gt;...&quot; to update what will be committed
+#   (use &quot;geogit checkout -- &lt;path/to/fid&gt;...&quot; to discard changes in working directory
 #
 #      added  buildings/12976
-# 1 total.</pre>
+# 1 total.
+</pre></div>
 </div>
 <p>It reports that a new feature has been added.</p>
 <p>To put that new feature in the stagin area, run the <tt class="docutils literal"><span class="pre">add</span></tt> command.</p>
-<div class="highlight-python"><pre>$ geogit add
+<div class="highlight-python"><div class="highlight"><pre>$ geogit add
 Counting unstaged elements...1
 Staging changes...
 100%
 1 features and 0 trees staged for commit
-0 features and 0 trees not staged for commit</pre>
+0 features and 0 trees not staged for commit
+</pre></div>
 </div>
 <p>And then use the <tt class="docutils literal"><span class="pre">commit</span></tt> command to create a new snapshot.</p>
-<div class="highlight-python"><pre>$ geogit commit -m "Added building"
+<div class="highlight-python"><div class="highlight"><pre>$ geogit commit -m &quot;Added building&quot;
 100%
 [c1a072734c9de17dc98dfec74d8ce169b94b90c2] Added buildings
-Committed, counting objects...1 features added, 0 changed, 0 deleted.</pre>
+Committed, counting objects...1 features added, 0 changed, 0 deleted.
+</pre></div>
 </div>
 </div>
 <div class="section" id="inspecting-the-log-and-the-differences-between-snapshots">
 <h2>Inspecting the log and the differences between snapshots<a class="headerlink" href="#inspecting-the-log-and-the-differences-between-snapshots" title="Permalink to this headline">¶</a></h2>
 <p>The history of the repository now contains two different snapshots. The output of the <tt class="docutils literal"><span class="pre">log</span></tt> command will now show something like this:</p>
-<div class="highlight-python"><pre>$ geogit log
+<div class="highlight-python"><div class="highlight"><pre>$ geogit log
 Commit:  c1a072734c9de17dc98dfec74d8ce169b94b90c2
 Author:  volaya &lt;volaya@opengeo.org&gt;
 Date:    (1 minutes ago) 2013-10-31 11:45:07 +0100
@@ -437,28 +449,33 @@ Subject: Added building
 Commit:  fc9e9e6d97e979293a028857d275eef31e8a0ce5
 Author:  volaya &lt;volaya@opengeo.org&gt;
 Date:    (49 minutes ago) 2013-10-31 10:57:02 +0100
-Subject: Initial add</pre>
+Subject: Initial add
+</pre></div>
 </div>
 <p>The differences between any two commits can be inspected using the <tt class="docutils literal"><span class="pre">diff</span></tt> command and passing the identifiers of those commits. To see the difference between the two commits in out GeoGit repository, enter the following command in the console.</p>
-<div class="highlight-python"><pre>$ geogit diff fc9e9e6d97e979293a028857d275eef31e8a0ce5 c1a072734c9de17dc98dfec74d8ce169b94b90c2
+<div class="highlight-python"><div class="highlight"><pre>$ geogit diff fc9e9e6d97e979293a028857d275eef31e8a0ce5 c1a072734c9de17dc98dfec74d8ce169b94b90c2
 000000... 9efbde... 000000... e0c8d1...   A  buildings/12976
 geom    MULTIPOLYGON (((38.7636514300226 9.059704893617495, 38.764011782062425 9.059795013128007, 38.764053901132016 9.059554694383088, 38.7639837026827 9.059543140593222, 38.76399774237257 9.05946226405379, 38.763838625887445 9.059432224191653, 38.76382692614589 9.05950154694665, 38.76368652924725 9.059471507087796, 38.7636514300226 9.059704893617495)))
 osm_id
 name
-type</pre>
+type
+</pre></div>
 </div>
 <p>It reports that this commit introduced a new feature (<tt class="docutils literal"><span class="pre">building/12976</span></tt>), with the above attributes (which are empty except for the goemetry itself, since we did not specify them).</p>
 <p>There is actually no need to use the full identifiers of the commits. You can abbreviate them, for instance using the first five digits, as in the next example.</p>
-<div class="highlight-python"><pre>$ geogit diff fc9e9 c1a07</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ geogit diff fc9e9 c1a07
+</pre></div>
 </div>
 <p>If there is ambiguity and any of those shortened identifiers cannot be resolved to one and only one full identifier, GeoGit will tell you to enter a more detailed one.</p>
 <p>The first identifier is the original version, while the second one is the final version. Reversing them will give you the opposite difference</p>
-<div class="highlight-python"><pre>$ geogit diff c1a07 fc9e9
-9efbde... 000000... e0c8d1... 000000...   R  buildings/12976</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ geogit diff c1a07 fc9e9
+9efbde... 000000... e0c8d1... 000000...   R  buildings/12976
+</pre></div>
 </div>
 <p>Removals (<tt class="docutils literal"><span class="pre">R</span></tt>) are not detailed like in the case of additions (<tt class="docutils literal"><span class="pre">A</span></tt>). Just the name of the removed feature is shown instead.</p>
 <p>GeoGit support several syntaxes to specify the commits you want to compare with the <tt class="docutils literal"><span class="pre">diff</span></tt> command or any other command that takes a commit as input. The next line will produce the same output as the one using the full identifiers.</p>
-<div class="highlight-python"><pre>$ geogit diff HEAD~1 HEAD</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ geogit diff HEAD~1 HEAD
+</pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">HEAD</span></tt> refers to the current last commit in the history, while <tt class="docutils literal"><span class="pre">HEAD~1</span></tt> refers to its parent (the previous commit). This line will compare the two last commits, without having to know their identifiers.</p>
 </div>
@@ -466,14 +483,15 @@ type</pre>
 <h2>Cloning the repo from the filesystem<a class="headerlink" href="#cloning-the-repo-from-the-filesystem" title="Permalink to this headline">¶</a></h2>
 <p>One of the most important features of GeoGit is that data can be synchronized between repositories, so you can have several of them versioning the same data and share the changes made in each them with the other repositories.</p>
 <p>You can create a new local copy of your repository by running the <tt class="docutils literal"><span class="pre">clone</span></tt>. Move to the parent directory of your repository folder and enter this in the console:</p>
-<div class="highlight-python"><pre>$geogit clone ./geogit-ethiopia geogit-ethiopia-clone
-Cloning into 'geogit-ethiopia-clone'...
+<div class="highlight-python"><div class="highlight"><pre>$geogit clone ./geogit-ethiopia geogit-ethiopia-clone
+Cloning into &#39;geogit-ethiopia-clone&#39;...
 100%
-Done.</pre>
+Done.
+</pre></div>
 </div>
 <p>Now you should have two folders, <tt class="docutils literal"><span class="pre">geogit-ethiopia</span></tt> and <tt class="docutils literal"><span class="pre">geogit-ethiopia-clone</span></tt>, each of them corresponding to a GeoGit repository. If you change your current directory to one of them, the geogit commands that you run will apply to the repository contained in that folder.</p>
 <p>Right now, both repositories are identical. You can check that by moving into the <tt class="docutils literal"><span class="pre">geogit-ethiopia-clone</span></tt> folder and inspecting the log of the GeoGit repository it contains.</p>
-<div class="highlight-python"><pre>$ cd geogit-ethiopia-clone
+<div class="highlight-python"><div class="highlight"><pre>$ cd geogit-ethiopia-clone
 $ geogit log
 Commit:  c1a072734c9de17dc98dfec74d8ce169b94b90c2
 Author:  volaya &lt;volaya@opengeo.org&gt;
@@ -483,7 +501,8 @@ Subject: Added building
 Commit:  fc9e9e6d97e979293a028857d275eef31e8a0ce5
 Author:  volaya &lt;volaya@opengeo.org&gt;
 Date:    (49 minutes ago) 2013-10-31 10:57:02 +0100
-Subject: Initial add</pre>
+Subject: Initial add
+</pre></div>
 </div>
 <p>We will add more snapshots to the original repository and then see how to synchronize with the cloned one, so the cloned one gets the changes that we have introduced in the original repository.</p>
 </div>
@@ -496,12 +515,13 @@ Subject: Initial add</pre>
 <h2>Commiting edits to original GeoGit Repo<a class="headerlink" href="#commiting-edits-to-original-geogit-repo" title="Permalink to this headline">¶</a></h2>
 <p>Go to the console and create a new version by importing, adding and commiting your changes. Make sure you are under the <tt class="docutils literal"><span class="pre">geogit-ethiopia</span></tt> folder, so you are commiting to the original repository, not the cloned one.</p>
 <p>The commands are the same one that we used for creating our second commit, except for the commit message.</p>
-<div class="highlight-python"><pre>$ geogit pg import --database geogit_ethiopia --user geogit --password geogit --table buildings --port 54321
+<div class="highlight-python"><div class="highlight"><pre>$ geogit pg import --database geogit_ethiopia --user geogit --password geogit --table buildings --port 54321
 $ geogit add
-$ geogit commit -m "Added more buildings and corrected missing field value"</pre>
+$ geogit commit -m &quot;Added more buildings and corrected missing field value&quot;
+</pre></div>
 </div>
 <p>The differences between the two last commits now look like this.</p>
-<div class="highlight-python"><pre>$ geogit diff HEAD~1 HEAD
+<div class="highlight-python"><div class="highlight"><pre>$ geogit diff HEAD~1 HEAD
 9efbde... 9efbde... 546e31... 62c2e8...   M  buildings/8868
 type: [MISSING] -&gt; administrative
 
@@ -509,18 +529,20 @@ type: [MISSING] -&gt; administrative
 geom    MULTIPOLYGON (((38.75429818070351 9.061127964604221, 38.75435886071902 9.060998131885604, 38.7545105607578 9.061028093286371, 38.754490334085965 9.061147938864453, 38.75429818070351 9.061127964604221)))
 osm_id
 name
-type</pre>
+type
+</pre></div>
 </div>
 <p>It shows the modifications done to the attributes of a existing feature, and the description of a newly added feature.</p>
 </div>
 <div class="section" id="pulling-changes-into-the-cloned-repository">
 <h2>Pulling changes into the cloned repository<a class="headerlink" href="#pulling-changes-into-the-cloned-repository" title="Permalink to this headline">¶</a></h2>
 <p>If you move to the <tt class="docutils literal"><span class="pre">geogit-ethiopia</span></tt> folder and see the log of the repository, you will see that the last commit that we made is not here. Repositories are independent, and the changes were only commited to the original repository. However, we can bring those changes to the cloned repository, by using the <tt class="docutils literal"><span class="pre">pull</span></tt> command.</p>
-<div class="highlight-python"><pre>$ geogit pull
+<div class="highlight-python"><div class="highlight"><pre>$ geogit pull
 100%
 From [parentfolder]/geogit_ethiopia/
    c1a0727..82c4634     master -&gt; refs/heads/master
-Features Added: 1 Removed: 0 Modified: 1</pre>
+Features Added: 1 Removed: 0 Modified: 1
+</pre></div>
 </div>
 <p>If you now run the <tt class="docutils literal"><span class="pre">log</span></tt> command you will see that there are 3 commits in the cloned repository, and it has the same history as the original one.</p>
 <p>Running the <tt class="docutils literal"><span class="pre">diff</span></tt> command will also produce the same results as in the original repository.</p>
@@ -529,7 +551,8 @@ Features Added: 1 Removed: 0 Modified: 1</pre>
 <div class="section" id="expose-clone-with-webservices-using-geoserver">
 <h2>Expose Clone with Webservices using GeoServer<a class="headerlink" href="#expose-clone-with-webservices-using-geoserver" title="Permalink to this headline">¶</a></h2>
 <p>Add the clone as a remote to the original repo:</p>
-<div class="code highlight-python"><pre>geogit remote http://localhost:8080/geoserver/geogit/opengeo:ethiopia</pre>
+<div class="code highlight-python"><div class="highlight"><pre>geogit remote http://localhost:8080/geoserver/geogit/opengeo:ethiopia
+</pre></div>
 </div>
 <p>Make more Edits against PostGIS in QGIS:</p>
 <ol class="arabic simple">
@@ -540,9 +563,10 @@ Features Added: 1 Removed: 0 Modified: 1</pre>
 <li>End editing session and save</li>
 </ol>
 <p>Import Edits to original repo:</p>
-<div class="code highlight-python"><pre>geogit pg import
+<div class="code highlight-python"><div class="highlight"><pre>geogit pg import
 geogit add
-geogit commit -m "More building changes"</pre>
+geogit commit -m &quot;More building changes&quot;
+</pre></div>
 </div>
 </div>
 <div class="section" id="push-edits-to-clone-via-remote-api">
@@ -551,12 +575,14 @@ geogit commit -m "More building changes"</pre>
 <div><p>To pass changes from one repository, you can use the <tt class="docutils literal"><span class="pre">pull</span></tt> command as we have already seen, or you can <em>send</em> changes to a remote repository with the push command. Let&#8217;s see how to move the latest changes in the original repository, to the clone repository.</p>
 <p>the original repository doesn&#8217;t know anything about the clone one, so you have to add a reference to it, using the <tt class="docutils literal"><span class="pre">remote</span> <span class="pre">add</span></tt> command.</p>
 </div></blockquote>
-<div class="highlight-python"><pre>$ geogit remote add cloned http://localhost:8080/geoserver/geogit/opengeo:ethiopia</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ geogit remote add cloned http://localhost:8080/geoserver/geogit/opengeo:ethiopia
+</pre></div>
 </div>
 <p>You can check that the remote reference has been added, by listing all available remotes</p>
-<div class="highlight-python"><pre>$ geogit remote list -v
+<div class="highlight-python"><div class="highlight"><pre>$ geogit remote list -v
 clone http://localhost:8080/geoserver/geogit/opengeo:ethiopia (fetch)
-clone http://localhost:8080/geoserver/geogit/opengeo:ethiopia (push)</pre>
+clone http://localhost:8080/geoserver/geogit/opengeo:ethiopia (push)
+</pre></div>
 </div>
 </div>
 </div>

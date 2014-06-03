@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>geogit-sl-import documentation &mdash; GeoGit 0.9.0 Man Pages</title>
+  <title>geogit-osmimporthistory documentation &mdash; GeoGit 0.9.0 Man Pages</title>
   <link rel="stylesheet" href="_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -24,7 +24,7 @@
   </script>
       <link rel="top" title="GeoGit 0.9.0 Man Pages" href="index.html" />
 </head>
-<body class="slimport">
+<body class="osmimporthistory">
     <div id="blacktop"></div>
     <header id="masthead">
       <div class="navbar">
@@ -76,7 +76,7 @@
 <ul id="breadcrumbs">
   
   <li><a href="index.html">GeoGit 0.9.0 Man Pages</a> &raquo;</li>
-  <li>geogit-sl-import documentation</li>
+  <li>geogit-osmimporthistory documentation</li>
 </ul>
 <ul id="relatedlinks" class="selfclear">
   <li class="first">
@@ -84,15 +84,15 @@
        accesskey="I">index</a></li>
 </ul>
         
-  <div class="section" id="geogit-sl-import-documentation">
-<span id="geogit-sl-import"></span><h1>geogit-sl-import documentation<a class="headerlink" href="#geogit-sl-import-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="geogit-osmimporthistory-documentation">
+<span id="geogit-osm-import-history"></span><h1>geogit-osmimporthistory documentation<a class="headerlink" href="#geogit-osmimporthistory-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="synopsis">
 <h2>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
-<p>geogit sl import [options] [&#8211;all|-t &lt;table&gt;]</p>
+<p>geogit import-history [options] &lt;OSM api URL. eg: <a class="reference external" href="http://api.openstreetmap.org/api/0.6">http://api.openstreetmap.org/api/0.6</a>&gt;</p>
 </div>
 <div class="section" id="description">
 <h2>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>This command imports one or more tables from a SpatiaLite database into the GeoGit working tree.  Either <tt class="docutils literal"><span class="pre">-t</span></tt> or <tt class="docutils literal"><span class="pre">--all</span></tt> must be set for the import process to commence.  To see a list of available tables, use <tt class="docutils literal"><span class="pre">geogit</span> <span class="pre">sl</span> <span class="pre">list</span></tt>.</p>
+<p>Downloads OSM data from OSM planet, replicating its history in the local repo, adding a new commit for each original changeset.</p>
 </div>
 <div class="section" id="options">
 <h2>OPTIONS<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
@@ -101,33 +101,35 @@
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
-<kbd><span class="option">-t</span>, <span class="option">--table</span></kbd></td>
-<td>The table to import.</td></tr>
+<kbd><span class="option">--dev</span></kbd></td>
+<td>Use the development test api endpoint at <tt class="docutils literal"><span class="pre">http://api06.dev.openstreetmap.org/api/0.6</span></tt>. Notice that this does not contain the real OSM history, and it is just used for testing purposes.</td></tr>
 <tr><td class="option-group">
-<kbd><span class="option">--all</span></kbd></td>
-<td>Import all tables.</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--add</span></kbd></td>
-<td>Adds the imported feature to the corresponding tree without removing previous features in case the tree already exists</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--alter</span></kbd></td>
-<td>Same as the <tt class="docutils literal"><span class="pre">--add</span></tt> switch, but if the feature type of the imported features is different to that of the destination tree, the default feature type is changed and all previous features are modified to use that feature type</td></tr>
+<kbd><span class="option">--from <var>&lt;id&gt;</var></span></kbd></td>
+<td>If specified, instead of starting from the first changeset, start from this one</td></tr>
 <tr><td class="option-group" colspan="2">
-<kbd><span class="option">--force--featuretype</span></kbd></td>
+<kbd><span class="option">--keep-files</span>, <span class="option">-k</span></kbd></td>
 </tr>
-<tr><td>&nbsp;</td><td>Use the feature type of the features to import and do not try to adapt them to the default feature type of the destination tree</td></tr>
+<tr><td>&nbsp;</td><td>If specified, downloaded changeset files are kept in the &#8211;saveto folder</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--numthreads</span>, <span class="option">-t <var>&lt;n&gt;</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Number of threads to use to fetch changesets. Must be between 1 and 6</td></tr>
 <tr><td class="option-group">
-<kbd><span class="option">--database</span></kbd></td>
-<td>The database to connect to.  Default: database</td></tr>
+<kbd><span class="option">--Resume</span></kbd></td>
+<td>Resume import from last imported changeset on the current branch.</td></tr>
 <tr><td class="option-group">
-<kbd><span class="option">--user</span></kbd></td>
-<td>User name.  Default: user</td></tr>
+<kbd><span class="option">--saveto <var>&lt;dir&gt;</var></span></kbd></td>
+<td>Directory where to save the changesets. Defaults to $TMP/changesets.osm</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--to <var>&lt;id&gt;</var></span></kbd></td>
+<td>If specified, instead of downloading changesets until the last one, stop at this one</td></tr>
 </tbody>
 </table>
 </div>
 <div class="section" id="see-also">
 <h2>SEE ALSO<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="sllist.html#geogit-sl-list"><em>geogit-sl-list documentation</em></a></p>
+<p><a class="reference internal" href="osmdownload.html#geogit-osm-download"><em>geogit-osm-download documentation</em></a></p>
+<p><a class="reference internal" href="osmimport.html#geogit-osm-import"><em>geogit-osm-import documentation</em></a></p>
 </div>
 <div class="section" id="bugs">
 <h2>BUGS<a class="headerlink" href="#bugs" title="Permalink to this headline">¶</a></h2>
@@ -158,7 +160,7 @@
       </div>
       <h3 class="pngfix">Table Of Contents</h3>
         <ul>
-<li><a class="reference internal" href="#">geogit-sl-import documentation</a><ul>
+<li><a class="reference internal" href="#">geogit-osmimporthistory documentation</a><ul>
 <li><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
 <li><a class="reference internal" href="#description">DESCRIPTION</a></li>
 <li><a class="reference internal" href="#options">OPTIONS</a></li>
@@ -173,7 +175,7 @@
         <div class="section">
         <h3>This Page</h3>
         <ul class="this-page-menu">
-          <li><a href="_sources/slimport.txt">Show Source</a></li>
+          <li><a href="_sources/osmimporthistory.txt">Show Source</a></li>
         </ul>
         </div>
         <div class="section">

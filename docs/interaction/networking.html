@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -6,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1">
   
-  <title>GeoGit Networking &mdash; GeoGit 0.8.0 User Manual</title>
+  <title>GeoGit Networking &mdash; GeoGit 0.9.0 User Manual</title>
   <link rel="stylesheet" href="../_static/screen.css" type="text/css" media="screen, projection" />
   <link rel="stylesheet" href="../_static/print.css" type="text/css" media="print" /> 
   <!--[if IE]>
@@ -18,12 +17,12 @@
   <script type="text/javascript">
     var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.8.0',
+        VERSION:     '0.9.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html'
     };
   </script>
-      <link rel="top" title="GeoGit 0.8.0 User Manual" href="../index.html" />
+      <link rel="top" title="GeoGit 0.9.0 User Manual" href="../index.html" />
       <link rel="up" title="Other ways to interact with GeoGit" href="index.html" />
       <link rel="next" title="Web-Api Documentation" href="web-api.html" />
       <link rel="prev" title="The GeoGit Console" href="console.html" />
@@ -79,7 +78,7 @@
             </div>
 <ul id="breadcrumbs">
   
-  <li><a href="../index.html">GeoGit 0.8.0 User Manual</a> &raquo;</li>
+  <li><a href="../index.html">GeoGit 0.9.0 User Manual</a> &raquo;</li>
   <li><a href="index.html" accesskey="U">Other ways to interact with GeoGit</a> &raquo;</li>
   <li>GeoGit Networking</li>
 </ul>
@@ -103,10 +102,11 @@
 <div class="section" id="standalone-testing-server">
 <h1>Standalone Testing Server<a class="headerlink" href="#standalone-testing-server" title="Permalink to this headline">¶</a></h1>
 <p>To start the geogit network develoment server from a local clone of the GeoGit source tree in the src/parent directory:</p>
-<div class="highlight-python"><pre>mvn jetty:run -pl ../web/app -f pom.xml -Dorg.geogit.web.repository=/Users/jj0hns0n/data/gisdata-repo/</pre>
+<div class="highlight-python"><div class="highlight"><pre>mvn jetty:run -pl ../web/app -f pom.xml -Dorg.geogit.web.repository=/Users/jj0hns0n/data/gisdata-repo/
+</pre></div>
 </div>
 <p>Output similar to the following indicates everything is working correctly.</p>
-<div class="highlight-python"><pre>[INFO] --- jetty-maven-plugin:7.1.6.v20100715:run (default-cli) @ geogit-web-app ---
+<div class="highlight-python"><div class="highlight"><pre>[INFO] --- jetty-maven-plugin:7.1.6.v20100715:run (default-cli) @ geogit-web-app ---
 [INFO] Configuring Jetty for project: GeoGit WebApp
 [INFO] webAppSourceDirectory /Users/jj0hns0n/projects/geohub-dev/geogit/src/web/app/src/main/webapp does not exist. Defaulting to /Users/jj0hns0n/projects/geohub-dev/geogit/src/web/app/src/main/webapp
 [INFO] Reload Mechanic: automatic
@@ -122,13 +122,15 @@
 2013-05-27 13:36:46.553:INFO::No Transaction manager found - if your webapp requires one, please configure one.
 2013-05-27 13:36:46.663:INFO::Started SelectChannelConnector@0.0.0.0:8080
 [INFO] Started Jetty Server
-[INFO] Starting scanner at interval of 5 seconds.</pre>
+[INFO] Starting scanner at interval of 5 seconds.
+</pre></div>
 </div>
 <p>Test that the network service is working correctly by attempting to clone it.:</p>
-<div class="highlight-python"><pre>$ geogit clone http://localhost:8080/geogit/ gisdata-repo-clone</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ geogit clone http://localhost:8080/geogit/ gisdata-repo-clone
+</pre></div>
 </div>
 <p>Sample Log of the clone operation</p>
-<div class="highlight-python"><pre>2013-05-27 13:33:06.616:INFO:/:GeoGIT: [Restlet] Attaching application: org.geogit.web.Main@5fff83a9 to URI: /geogit null null
+<div class="highlight-python"><div class="highlight"><pre>2013-05-27 13:33:06.616:INFO:/:GeoGIT: [Restlet] Attaching application: org.geogit.web.Main@5fff83a9 to URI: /geogit null null
 May 27, 2013 1:33:06 PM org.restlet.engine.log.LogFilter afterHandle
 INFO: 2013-05-27    13:34:51    127.0.0.1   -   127.0.0.1   8080    GET /geogit/repo/getdepth   -   200 -http://localhost:8080  Java/1.6.0_45   -
 May 27, 2013 1:34:51 PM org.restlet.engine.log.LogFilter afterHandle
@@ -146,7 +148,8 @@ INFO: 2013-05-27    13:34:52    127.0.0.1   -   127.0.0.1   8080    GET /geogit/
 May 27, 2013 1:34:52 PM org.restlet.engine.log.LogFilter afterHandle
 INFO: 2013-05-27    13:34:52    127.0.0.1   -   127.0.0.1   8080    POST    /geogit/repo/batchobjects   -   200 -   192 34  http://localhost:8080   Java/1.6.0_45   -
 May 27, 2013 1:34:58 PM org.restlet.engine.log.LogFilter afterHandle
-INFO: 2013-05-27    13:34:58    127.0.0.1   -   127.0.0.1   8080    GET /geogit/repo/manifest   -   200 -http://localhost:8080  Java/1.6.0_45   -</pre>
+INFO: 2013-05-27    13:34:58    127.0.0.1   -   127.0.0.1   8080    GET /geogit/repo/manifest   -   200 -http://localhost:8080  Java/1.6.0_45   -
+</pre></div>
 </div>
 <p>The getdepth, manifest, getparents and batchobjects operations performed are described in more detail in the technical documentation.</p>
 </div>
@@ -156,7 +159,7 @@ INFO: 2013-05-27    13:34:58    127.0.0.1   -   127.0.0.1   8080    GET /geogit/
 <div class="section" id="building-geoserver-geotools-geogit-extension">
 <h2>Building GeoServer/GeoTools GeoGit Extension<a class="headerlink" href="#building-geoserver-geotools-geogit-extension" title="Permalink to this headline">¶</a></h2>
 <p>The GeoGit module is not currently included in GeoServers community extensions, so you must build in this support by using OpenGeo&#8217;s fork of GeoServer in the geogit branch <a class="reference external" href="https://github.com/opengeo/geoserver/tree/geogit">https://github.com/opengeo/geoserver/tree/geogit</a> or by adding the following dependencies to your own pom.xml:</p>
-<div class="highlight-python"><pre>&lt;dependencies&gt;
+<div class="highlight-python"><div class="highlight"><pre>&lt;dependencies&gt;
    &lt;dependency&gt;
      &lt;groupId&gt;org.geogit&lt;/groupId&gt;
      &lt;artifactId&gt;geogit-web-api&lt;/artifactId&gt;
@@ -172,10 +175,12 @@ INFO: 2013-05-27    13:34:58    127.0.0.1   -   127.0.0.1   8080    GET /geogit/
      &lt;artifactId&gt;geogit-geoserver&lt;/artifactId&gt;
      &lt;version&gt;0.3-SNAPSHOT&lt;/version&gt;
    &lt;/dependency&gt;
- &lt;/dependencies&gt;</pre>
+ &lt;/dependencies&gt;
+</pre></div>
 </div>
 <p>Include the plugin in your mvn build command:</p>
-<div class="highlight-python"><pre>mvn clean install -Pgeogit</pre>
+<div class="highlight-python"><div class="highlight"><pre>mvn clean install -Pgeogit
+</pre></div>
 </div>
 <p>Deploy the resulting war in a servlet container.</p>
 </div>
@@ -201,30 +206,35 @@ INFO: 2013-05-27    13:34:58    127.0.0.1   -   127.0.0.1   8080    GET /geogit/
 <div class="section" id="cloning-pushing-and-pulling">
 <h2>Cloning Pushing and Pulling<a class="headerlink" href="#cloning-pushing-and-pulling" title="Permalink to this headline">¶</a></h2>
 <p>Once GeoServer is configured with this repository, you can address it over the network at a URL path of the form:</p>
-<div class="highlight-python"><pre>http://&lt;host&gt;:&lt;port&gt;/geoserver/geogit/&lt;workspace&gt;:&lt;store&gt;</pre>
+<div class="highlight-python"><div class="highlight"><pre>http://&lt;host&gt;:&lt;port&gt;/geoserver/geogit/&lt;workspace&gt;:&lt;store&gt;
+</pre></div>
 </div>
 <p>A sample url as configured in the screenshots above:</p>
-<div class="highlight-python"><pre>http://localhost:8080/geoserver/geogit/topp:gisdata-repo</pre>
+<div class="highlight-python"><div class="highlight"><pre>http://localhost:8080/geoserver/geogit/topp:gisdata-repo
+</pre></div>
 </div>
 <p>It is then possible to clone this repository:</p>
-<div class="highlight-python"><pre>$ geogit clone http://localhost:8080/geoserver/geogit/topp:gisdata-repo gisdata-repo-clone</pre>
+<div class="highlight-python"><div class="highlight"><pre>$ geogit clone http://localhost:8080/geoserver/geogit/topp:gisdata-repo gisdata-repo-clone
+</pre></div>
 </div>
 <p>Your clone will be configured with the geoserver repository as a remote. This configuration is stored in .geogit/config in your clone:</p>
-<div class="highlight-python"><pre>[remote\origin]
+<div class="highlight-python"><div class="highlight"><pre>[remote\origin]
 url = http://localhost:8080/geoserver/geogit/topp:gisdata-repo
 fetch = +refs/heads/*:refs/remotes/origin/*
 
 [branches\master]
 remote = origin
-merge = refs/heads/master</pre>
+merge = refs/heads/master
+</pre></div>
 </div>
 <p>It is now possible to push and pull from this remote repository. You can verify this works by testing with the freshly cloned repo:</p>
-<div class="highlight-python"><pre>$ geogit push origin
+<div class="highlight-python"><div class="highlight"><pre>$ geogit push origin
 Nothing to push.
 
 $ geogit pull origin
 100%
-Already up to date.</pre>
+Already up to date.
+</pre></div>
 </div>
 </div>
 <div class="section" id="automated-repository-synchronization">
