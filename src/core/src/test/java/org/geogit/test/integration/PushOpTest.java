@@ -143,6 +143,12 @@ public class PushOpTest extends RemoteRepositoryTestCase {
         }
 
         assertEquals(expectedMaster, logged);
+
+        // verify that the local reference of the remote master is updated
+        Optional<Ref> ref = localGeogit.geogit.command(RefParse.class).setName("origin/master")
+                .call();
+        assertTrue(ref.isPresent());
+        assertEquals(logged.get(0).getId(), ref.get().getObjectId());
     }
 
     @Test
@@ -164,6 +170,13 @@ public class PushOpTest extends RemoteRepositoryTestCase {
         }
 
         assertEquals(expectedMaster, logged);
+
+        // verify that the local reference of the remote master is updated
+        Optional<Ref> ref = localGeogit.geogit.command(RefParse.class).setName("origin/master")
+                .call();
+        assertTrue(ref.isPresent());
+        assertEquals(logged.get(0).getId(), ref.get().getObjectId());
+
     }
 
     @Test
@@ -241,6 +254,12 @@ public class PushOpTest extends RemoteRepositoryTestCase {
         }
 
         assertEquals(expectedMaster, logged);
+
+        // verify that the local reference of the remote master is updated
+        Optional<Ref> ref = localGeogit.geogit.command(RefParse.class)
+                .setName("origin/NewRemoteBranch").call();
+        assertTrue(ref.isPresent());
+        assertEquals(logged.get(0).getId(), ref.get().getObjectId());
     }
 
     @Test

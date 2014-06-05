@@ -15,6 +15,7 @@ import org.geogit.api.Remote;
 import org.geogit.api.SymRef;
 import org.geogit.api.plumbing.ForEachRef;
 import org.geogit.api.plumbing.RefParse;
+import org.geogit.api.plumbing.UpdateRef;
 import org.geogit.api.porcelain.SynchronizationException.StatusCode;
 import org.geogit.remote.IRemoteRepo;
 import org.geogit.remote.RemoteUtils;
@@ -142,8 +143,16 @@ public class PushOp extends AbstractGeoGitOp<Boolean> {
                             final Optional<Ref> targetRef = command(RefParse.class).setName(
                                     headRef.getTarget()).call();
                             Preconditions.checkState(targetRef.isPresent());
-
                             remoteRepo.get().pushNewData(targetRef.get());
+                            this.command(UpdateRef.class)
+                                    .setNewValue(targetRef.get().getObjectId())
+                                    .setName(
+                                            pushRemote.get().getName() + "/"
+                                                    + targetRef.get().localName()).call();
+
+                            this.command(UpdateRef.class)
+                                    .setNewValue(targetRef.get().getObjectId())
+                                    .setName(currHead.get().getName());
                         }
                     } else {
                         Optional<Ref> localRef = command(RefParse.class).setName(localrefspec)
@@ -153,6 +162,9 @@ public class PushOp extends AbstractGeoGitOp<Boolean> {
                         // push the localref branch to the remoteref branch
                         try {
                             remoteRepo.get().pushNewData(localRef.get(), remoterefspec);
+                            command(UpdateRef.class).setNewValue(localRef.get().getObjectId())
+                                    .setName(pushRemote.get().getName() + "/" + remoterefspec)
+                                    .call();
                             dataPushed = true;
                         } catch (SynchronizationException e) {
                             if (e.statusCode != StatusCode.NOTHING_TO_PUSH) {
@@ -191,6 +203,8 @@ public class PushOp extends AbstractGeoGitOp<Boolean> {
                 for (Ref ref : refsToPush) {
                     try {
                         remoteRepo.get().pushNewData(ref);
+                        this.command(UpdateRef.class).setNewValue(ref.getObjectId())
+                                .setName(pushRemote.get().getName() + "/" + ref.localName()).call();
                         dataPushed = true;
                     } catch (SynchronizationException e) {
                         if (e.statusCode != StatusCode.NOTHING_TO_PUSH) {
