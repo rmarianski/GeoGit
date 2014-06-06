@@ -79,8 +79,7 @@ public class OSMExportShp extends AbstractShpCommand implements CLICommand {
 
         final Mapping mapping = Mapping.fromFile(mappingFile);
         List<MappingRule> rules = mapping.getRules();
-        checkParameter(!rules.isEmpty(),
-                "No rules are defined in the specified mapping");
+        checkParameter(!rules.isEmpty(), "No rules are defined in the specified mapping");
         Function<Feature, Optional<Feature>> function = new Function<Feature, Optional<Feature>>() {
 
             @Override

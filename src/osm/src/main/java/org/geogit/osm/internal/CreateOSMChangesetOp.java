@@ -107,7 +107,7 @@ public class CreateOSMChangesetOp extends AbstractGeoGitOp<Iterator<ChangeContai
      * @see DiffEntry
      */
     @Override
-    protected  Iterator<ChangeContainer> _call() {
+    protected Iterator<ChangeContainer> _call() {
 
         Iterator<DiffEntry> nodeIterator = command(DiffOp.class).setFilter(OSMUtils.NODE_TYPE_NAME)
                 .setNewVersion(newRefSpec).setOldVersion(oldRefSpec).setReportTrees(false).call();

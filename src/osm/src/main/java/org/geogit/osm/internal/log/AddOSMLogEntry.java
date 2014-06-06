@@ -30,7 +30,7 @@ public class AddOSMLogEntry extends AbstractGeoGitOp<Void> {
     }
 
     @Override
-    protected  Void _call() {
+    protected Void _call() {
         URL file = command(ResolveOSMLogfile.class).call();
         try {
             Files.append(entry.toString() + "\n", new File(file.getFile()), Charsets.UTF_8);

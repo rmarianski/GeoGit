@@ -47,9 +47,9 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
         WorkingTree workTree = geogit.getRepository().workingTree();
-        long unstaged = workTree.countUnstaged("node").getCount();
+        long unstaged = workTree.countUnstaged("node").count();
         assertTrue(unstaged > 0);
-        unstaged = workTree.countUnstaged("way").getCount();
+        unstaged = workTree.countUnstaged("way").count();
         assertTrue(unstaged > 0);
         geogit.command(AddOp.class).call();
         geogit.command(CommitOp.class).setMessage("msg").call();
@@ -144,9 +144,9 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
         WorkingTree workTree = geogit.getRepository().workingTree();
-        long unstaged = workTree.countUnstaged("way").getCount();
+        long unstaged = workTree.countUnstaged("way").count();
         assertTrue(unstaged > 0);
-        unstaged = workTree.countUnstaged("node").getCount();
+        unstaged = workTree.countUnstaged("node").count();
         assertTrue(unstaged > 0);
         geogit.command(AddOp.class).call();
         geogit.command(CommitOp.class).setMessage("msg").call();
@@ -360,9 +360,9 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         // modified
         geogit.command(OSMUnmapOp.class).setPath("busstops").call();
         WorkingTree workTree = geogit.getRepository().workingTree();
-        long unstaged = workTree.countUnstaged("way").getCount();
+        long unstaged = workTree.countUnstaged("way").count();
         assertEquals(0, unstaged);
-        unstaged = workTree.countUnstaged("node").getCount();
+        unstaged = workTree.countUnstaged("node").count();
         assertEquals(0, unstaged);
 
         // Modify a node
@@ -387,7 +387,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         // unmap
         geogit.command(OSMUnmapOp.class).setPath("busstops").call();
 
-        unstaged = workTree.countUnstaged("node").getFeaturesCount();
+        unstaged = workTree.countUnstaged("node").featureCount();
         assertEquals(1, unstaged);
 
         // check that the unmapped node has the changes we introduced
@@ -475,7 +475,7 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         geogit.command(OSMUnmapOp.class).setPath("busstops").call();
 
         WorkingTree workTree = geogit.getRepository().workingTree();
-        long unstaged = workTree.countUnstaged("node").getFeaturesCount();
+        long unstaged = workTree.countUnstaged("node").featureCount();
         assertEquals(1, unstaged);
 
         // check that the unmapped node has the changes we introduced
@@ -533,9 +533,9 @@ public class OSMUnmapOpTest extends RepositoryTestCase {
         // modified
         WorkingTree workTree = geogit.getRepository().workingTree();
         geogit.command(OSMUnmapOp.class)/* .setMapping(mapping) */.setPath("residential").call();
-        long unstaged = workTree.countUnstaged("way").getCount();
+        long unstaged = workTree.countUnstaged("way").count();
         assertEquals(0, unstaged);
-        unstaged = workTree.countUnstaged("node").getCount();
+        unstaged = workTree.countUnstaged("node").count();
         assertEquals(0, unstaged);
 
         // modify a mapped feature. We change the value of 'name_alias' tag to "newvalue"

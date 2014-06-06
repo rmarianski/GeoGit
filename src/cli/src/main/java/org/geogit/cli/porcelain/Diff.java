@@ -125,7 +125,7 @@ public class Diff extends AbstractCommand implements CLICommand {
             DiffObjectCount count = cdiff.call();
             ConsoleReader console = cli.getConsole();
             console.println(String.format("Trees changed: %d, features changed: %,d",
-                    count.getTreesCount(), count.getFeaturesCount()));
+                    count.treeCount(), count.featureCount()));
             console.flush();
             return;
         }

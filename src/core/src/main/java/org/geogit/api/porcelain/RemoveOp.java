@@ -85,7 +85,7 @@ public class RemoveOp extends AbstractGeoGitOp<WorkingTree> {
                 break;
             }
 
-            final long numChanges = workingTree().countUnstaged(pathToRemove).getCount();
+            final long numChanges = workingTree().countUnstaged(pathToRemove).count();
             Iterator<DiffEntry> unstaged = workingTree().getUnstaged(pathToRemove);
             index().stage(getProgressListener(), unstaged, numChanges);
         }

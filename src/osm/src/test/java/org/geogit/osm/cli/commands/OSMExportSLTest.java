@@ -61,7 +61,8 @@ public class OSMExportSLTest extends Assert {
             Class.forName("org.spatialite.JDBC");
             SQLiteConfig config = new SQLiteConfig();
             config.enableSpatiaLite(true);
-            connection = DriverManager.getConnection("jdbc:spatialite::memory:", config.toProperties());
+            connection = DriverManager.getConnection("jdbc:spatialite::memory:",
+                    config.toProperties());
             Statement statement = connection.createStatement();
             statement.execute("SELECT InitSpatialMetaData();");
         } catch (SQLException e) {
@@ -103,7 +104,7 @@ public class OSMExportSLTest extends Assert {
         cli.execute("sl", "import", "-t", "onewaystreets", "--database",
                 exportFile.getAbsolutePath());
         long unstaged = cli.getGeogit().getRepository().workingTree()
-                .countUnstaged("onewaystreets").getCount();
+                .countUnstaged("onewaystreets").count();
         assertTrue(unstaged > 0);
     }
 

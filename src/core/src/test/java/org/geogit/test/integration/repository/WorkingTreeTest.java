@@ -223,7 +223,7 @@ public class WorkingTreeTest extends RepositoryTestCase {
         String treePath = "target_typename";
         workTree.insert(treePath, source, Query.ALL, LISTENER);
 
-        assertEquals(3, workTree.countUnstaged(treePath).getFeaturesCount());
+        assertEquals(3, workTree.countUnstaged(treePath).featureCount());
 
     }
 
@@ -264,7 +264,7 @@ public class WorkingTreeTest extends RepositoryTestCase {
         String treePath = "target_typename";
         workTree.insert(treePath, source, Query.ALL, LISTENER);
 
-        assertEquals(3, workTree.countUnstaged(treePath).getFeaturesCount());
+        assertEquals(3, workTree.countUnstaged(treePath).featureCount());
     }
 
     @Test
@@ -525,8 +525,8 @@ public class WorkingTreeTest extends RepositoryTestCase {
 
         workTree.insert(pointsName, featureList.iterator(), LISTENER, null, 3);
 
-        assertEquals(3, workTree.countUnstaged(null).getFeaturesCount());
-        assertEquals(1, workTree.countUnstaged(null).getTreesCount());
+        assertEquals(3, workTree.countUnstaged(null).featureCount());
+        assertEquals(1, workTree.countUnstaged(null).treeCount());
 
         Iterator<DiffEntry> changes = workTree.getUnstaged(null);
 

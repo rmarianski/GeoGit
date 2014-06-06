@@ -10,70 +10,96 @@ package org.geogit.api.plumbing.diff;
  */
 public class DiffObjectCount {
 
-    private long featuresCount;
+    private long featuresAdded, featuresRemoved, featuresChanged;
 
-    private long treesCount;
+    private int treesAdded, treesRemoved, treesChanged;
 
-    public DiffObjectCount() {
-        this(0, 0);
-    }
-
-    public DiffObjectCount(long treesCount, long featuresCount) {
-        this.treesCount = treesCount;
-        this.featuresCount = featuresCount;
+    /**
+     * Returns the total count of modified elements (i.e. sum of added, changed, and removed trees
+     * and features)
+     */
+    public long count() {
+        return featureCount() + treeCount();
     }
 
     /**
-     * Returns the number of features modified
-     * 
-     * @return
+     * Returns the sum of added, modified, and removed features
      */
-    public long getFeaturesCount() {
-        return featuresCount;
+    public long featureCount() {
+        return featuresAdded + featuresChanged + featuresRemoved;
     }
 
     /**
-     * Returns the number of trees modified
-     * 
-     * @return
+     * Returns the sum of added, modified, and removed trees
      */
-    public long getTreesCount() {
-        return treesCount;
+    public int treeCount() {
+        return treesAdded + treesChanged + treesRemoved;
     }
 
     /**
-     * Adds the counts from another DiffObject count object to this one
-     * 
-     * @param toAdd
+     * Increases the number of added features by a given number
      */
-    void add(DiffObjectCount toAdd) {
-        treesCount += toAdd.getTreesCount();
-        featuresCount += toAdd.getFeaturesCount();
+    void addedFeatures(long count) {
+        featuresAdded += count;
     }
 
     /**
-     * Increases the number of modified features in this object by a given number
-     * 
-     * @param count the number to add to the current count
+     * Increases the number of removed features by a given number
      */
-    void addFeatures(long count) {
-        featuresCount += count;
+    void removedFeatures(long count) {
+        featuresRemoved += count;
     }
 
     /**
-     * Increases the number of modified features in this object by a given number
-     * 
-     * @param count the number to add to the current count
+     * Increases the number of changed features by a given number
      */
-    void addTrees(long count) {
-        treesCount += count;
+    void changedFeatures(long count) {
+        featuresChanged += count;
     }
 
     /**
-     * Returns the total count of modified elements
+     * Increases the number of added trees by a given number
      */
-    public long getCount() {
-        return treesCount + featuresCount;
+    void addedTrees(int count) {
+        treesAdded += count;
+    }
+
+    /**
+     * Increases the number of removed trees by a given number
+     */
+    void removedTrees(int count) {
+        treesRemoved += count;
+    }
+
+    /**
+     * Increases the number of changed trees by a given number
+     */
+    void changedTrees(int count) {
+        treesChanged += count;
+    }
+
+    public long getFeaturesAdded() {
+        return featuresAdded;
+    }
+
+    public long getFeaturesRemoved() {
+        return featuresRemoved;
+    }
+
+    public long getFeaturesChanged() {
+        return featuresChanged;
+    }
+
+    public int getTreesAdded() {
+        return treesAdded;
+    }
+
+    public int getTreesRemoved() {
+        return treesRemoved;
+    }
+
+    public int getTreesChanged() {
+        return treesChanged;
     }
 
 }

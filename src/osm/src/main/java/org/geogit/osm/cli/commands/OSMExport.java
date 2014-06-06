@@ -87,7 +87,8 @@ public class OSMExport extends AbstractCommand implements CLICommand {
             throw new CommandFailedException();
         }
 
-        checkParameter(bbox == null || bbox.size() == 4, "The specified bounding box is not correct");
+        checkParameter(bbox == null || bbox.size() == 4,
+                "The specified bounding box is not correct");
 
         geogit = cli.getGeogit();
 

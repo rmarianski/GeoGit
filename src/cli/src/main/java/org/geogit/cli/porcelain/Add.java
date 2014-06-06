@@ -85,14 +85,13 @@ public class Add extends AbstractCommand implements CLICommand {
         List<Conflict> conflicts = geogit.command(ConflictsReadOp.class).call();
 
         console.print("Counting unstaged elements...");
-        DiffObjectCount unstaged = geogit.getRepository().workingTree()
-                .countUnstaged(pathFilter);
-        if (0 == unstaged.getCount() && conflicts.isEmpty()) {
+        DiffObjectCount unstaged = geogit.getRepository().workingTree().countUnstaged(pathFilter);
+        if (0 == unstaged.count() && conflicts.isEmpty()) {
             console.println();
             console.println("No unstaged elements, exiting.");
             return;
         } else {
-            console.println(String.valueOf(unstaged.getCount()));
+            console.println(String.valueOf(unstaged.count()));
         }
 
         console.println("Staging changes...");
@@ -107,9 +106,9 @@ public class Add extends AbstractCommand implements CLICommand {
         DiffObjectCount staged = geogit.getRepository().index().countStaged(null);
         unstaged = workTree.countUnstaged(null);
 
-        console.println(staged.getFeaturesCount() + " features and " + staged.getTreesCount()
+        console.println(staged.featureCount() + " features and " + staged.treeCount()
                 + " trees staged for commit");
-        console.println(unstaged.getFeaturesCount() + " features and " + unstaged.getTreesCount()
+        console.println(unstaged.featureCount() + " features and " + unstaged.treeCount()
                 + " trees not staged for commit");
     }
 

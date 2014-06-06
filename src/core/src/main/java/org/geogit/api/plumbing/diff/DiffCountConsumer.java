@@ -36,25 +36,33 @@ public class DiffCountConsumer implements DiffTreeVisitor.Consumer {
 
     @Override
     public void feature(Node left, Node right) {
-        count.addFeatures(1L);
+        if (left == null) {
+            count.addedFeatures(1L);
+        } else if (right == null) {
+            count.removedFeatures(1L);
+        } else {
+            count.changedFeatures(1L);
+        }
     }
 
     @Override
     public boolean tree(Node left, Node right) {
-        Node node = left == null ? right : left;
+        final Node node = left == null ? right : left;
+        if (NodeRef.ROOT.equals(node.getName())) {
+            // ignore the call on the root tree and follow the traversal
+            return true;
+        }
         if (left == null || right == null) {
-            if (NodeRef.ROOT.equals(node.getName())) {
-                // ignore the call on the root tree and follow the traversal
-                return true;
+            addTreeFeatures(node.getObjectId(), left != null, right != null);
+            if (left == null) {
+                count.addedTrees(1);
+            } else {
+                count.removedTrees(1);
             }
-            count.addTrees(1L);
-            addTreeFeatures(node.getObjectId());
             return false;
         }
 
-        if (!NodeRef.ROOT.equals(node.getName())) {// ignore the root node
-            count.addTrees(1L);// the tree changed, or this method wouldn't have been called
-        }
+        count.changedTrees(1);// the tree changed, or this method wouldn't have been called
         return true;
     }
 
@@ -62,15 +70,23 @@ public class DiffCountConsumer implements DiffTreeVisitor.Consumer {
     public boolean bucket(int bucketIndex, int bucketDepth, Bucket left, Bucket right) {
         if (left == null || right == null) {
             Bucket bucket = left == null ? right : left;
-            addTreeFeatures(bucket.id());
+            addTreeFeatures(bucket.id(), left != null, right != null);
             return false;
         }
         return true;
     }
 
-    private boolean addTreeFeatures(ObjectId treeId) {
+    private boolean addTreeFeatures(ObjectId treeId, boolean leftPresent, boolean rightPresent) {
         RevTree tree = db.getTree(treeId);
-        count.addFeatures(tree.size());
+        long size = tree.size();
+        if (leftPresent && rightPresent) {
+            count.changedFeatures(size);
+        } else if (leftPresent) {
+            count.removedFeatures(size);
+        } else {
+            count.addedFeatures(size);
+        }
+
         int numTrees = tree.numTrees();
         return numTrees > 0;
     }

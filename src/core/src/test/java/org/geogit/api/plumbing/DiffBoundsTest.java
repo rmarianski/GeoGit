@@ -199,7 +199,7 @@ public class DiffBoundsTest extends RepositoryTestCase {
 
         {// sanity check
             long diffFeatures = geogit.command(DiffCount.class).setOldVersion("STAGE_HEAD")
-                    .setNewVersion("WORK_HEAD").call().getFeaturesCount();
+                    .setNewVersion("WORK_HEAD").call().featureCount();
             assertEquals(rightCount - leftCount, diffFeatures);
         }
 

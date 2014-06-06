@@ -5,7 +5,6 @@
 
 package org.geogit.osm.cli.commands;
 
-
 import java.io.File;
 
 import jline.UnsupportedTerminal;

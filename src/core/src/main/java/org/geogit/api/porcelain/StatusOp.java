@@ -78,8 +78,8 @@ public class StatusOp extends AbstractGeoGitOp<StatusOp.StatusSummary> {
 
         StatusSummary summary = new StatusSummary();
 
-        summary.countStaged = index.countStaged(null).getCount();
-        summary.countUnstaged = workTree.countUnstaged(null).getCount();
+        summary.countStaged = index.countStaged(null).count();
+        summary.countUnstaged = workTree.countUnstaged(null).count();
         summary.countConflicted = index.countConflicted(null);
 
         if (summary.countStaged > 0) {

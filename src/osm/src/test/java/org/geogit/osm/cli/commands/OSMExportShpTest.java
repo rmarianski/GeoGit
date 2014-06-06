@@ -71,7 +71,7 @@ public class OSMExportShpTest extends Assert {
         assertTrue(exportFile.exists());
         cli.execute("shp", "import", "-d", "mapped", exportFile.getAbsolutePath());
         long unstaged = cli.getGeogit().getRepository().workingTree().countUnstaged("mapped")
-                .getCount();
+                .count();
         assertTrue(unstaged > 0);
     }
 

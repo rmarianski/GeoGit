@@ -58,7 +58,7 @@ public class OSMApplyDiffTest extends Assert {
         File file = new File(filename);
         cli.execute("osm", "import", file.getAbsolutePath());
 
-        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").getCount();
+        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").count();
         assertTrue(unstaged > 0);
         Optional<RevFeature> revFeature = geogit.command(RevObjectParse.class)
                 .setRefSpec("WORK_HEAD:node/2059114068").call(RevFeature.class);

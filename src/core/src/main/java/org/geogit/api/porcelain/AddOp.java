@@ -95,7 +95,7 @@ public class AddOp extends AbstractGeoGitOp<WorkingTree> {
             return;
         }
 
-        final long numChanges = workingTree().countUnstaged(pathFilter).getCount();
+        final long numChanges = workingTree().countUnstaged(pathFilter).count();
 
         Iterator<DiffEntry> unstaged = workingTree().getUnstaged(pathFilter);
 

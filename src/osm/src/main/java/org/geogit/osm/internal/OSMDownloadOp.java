@@ -118,7 +118,7 @@ public class OSMDownloadOp extends AbstractGeoGitOp<Optional<OSMReport>> {
      * @return a {@link OSMDownloadReport} of the operation
      */
     @Override
-    protected  Optional<OSMReport> _call() {
+    protected Optional<OSMReport> _call() {
 
         Mapping mapping = null;
         if (mappingFile != null) {

@@ -124,8 +124,7 @@ class ChangesetScanner {
      * </code>
      * </pre>
      */
-    private static @Nullable
-    Envelope parseWGS84Bounds(XMLStreamReader reader) {
+    private static @Nullable Envelope parseWGS84Bounds(XMLStreamReader reader) {
 
         String minLat = reader.getAttributeValue(null, "min_lat");
         String minLon = reader.getAttributeValue(null, "min_lon");

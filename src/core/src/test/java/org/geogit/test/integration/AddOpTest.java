@@ -131,8 +131,8 @@ public class AddOpTest extends RepositoryTestCase {
         geogit.command(AddOp.class).call();
         List<DiffEntry> staged = toList(repo.index().getStaged(Lists.newArrayList(pointsName)));
         assertEquals(0, staged.size());
-        assertEquals(0, repo.index().countStaged(null).getFeaturesCount());
-        assertEquals(0, repo.index().countStaged(null).getTreesCount());
+        assertEquals(0, repo.index().countStaged(null).featureCount());
+        assertEquals(0, repo.index().countStaged(null).treeCount());
     }
 
     @Test

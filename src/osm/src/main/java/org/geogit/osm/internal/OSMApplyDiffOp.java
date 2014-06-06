@@ -71,7 +71,7 @@ public class OSMApplyDiffOp extends AbstractGeoGitOp<Optional<OSMReport>> {
 
     @SuppressWarnings("deprecation")
     @Override
-    protected  Optional<OSMReport> _call() {
+    protected Optional<OSMReport> _call() {
         checkNotNull(file);
         Preconditions.checkArgument(file.exists(), "File does not exist: " + file);
 
@@ -99,8 +99,8 @@ public class OSMApplyDiffOp extends AbstractGeoGitOp<Optional<OSMReport>> {
         XmlChangeReader reader = new XmlChangeReader(file, true, resolveCompressionMethod(file));
 
         ProgressListener progressListener = getProgressListener();
-        ConvertAndImportSink sink = new ConvertAndImportSink(target, context,
-                workingTree(), platform(), new SubProgressListener(progressListener, 100));
+        ConvertAndImportSink sink = new ConvertAndImportSink(target, context, workingTree(),
+                platform(), new SubProgressListener(progressListener, 100));
         reader.setChangeSink(sink);
 
         Thread readerThread = new Thread(reader, "osm-diff-reader-thread");

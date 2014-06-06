@@ -44,10 +44,9 @@ public class OSMImportOpTest extends RepositoryTestCase {
         String filename = getClass().getResource("ways.xml").getFile();
         File file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).call();
-        long unstaged = geogit.getRepository().workingTree().countUnstaged("node")
-                .getFeaturesCount();
+        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").featureCount();
         assertTrue(unstaged > 0);
-        unstaged = geogit.getRepository().workingTree().countUnstaged("way").getFeaturesCount();
+        unstaged = geogit.getRepository().workingTree().countUnstaged("way").featureCount();
         assertTrue(unstaged > 0);
     }
 
@@ -62,10 +61,9 @@ public class OSMImportOpTest extends RepositoryTestCase {
         file = new File(filename);
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).setAdd(true).call();
         // Check that the working tree contains elements from both imports
-        long unstaged = geogit.getRepository().workingTree().countUnstaged("node")
-                .getFeaturesCount();
+        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").featureCount();
         assertEquals(30, unstaged);
-        unstaged = geogit.getRepository().workingTree().countUnstaged("way").getFeaturesCount();
+        unstaged = geogit.getRepository().workingTree().countUnstaged("way").featureCount();
         assertEquals(4, unstaged);
     }
 
@@ -139,13 +137,12 @@ public class OSMImportOpTest extends RepositoryTestCase {
         // import with mapping and check import went ok and canonical folders were not created
         geogit.command(OSMImportOp.class).setDataSource(file.getAbsolutePath()).setMapping(mapping)
                 .setNoRaw(true).call();
-        long unstaged = geogit.getRepository().workingTree().countUnstaged("node")
-                .getFeaturesCount();
+        long unstaged = geogit.getRepository().workingTree().countUnstaged("node").featureCount();
         assertEquals(0, unstaged);
-        unstaged = geogit.getRepository().workingTree().countUnstaged("way").getFeaturesCount();
+        unstaged = geogit.getRepository().workingTree().countUnstaged("way").featureCount();
         assertEquals(0, unstaged);
         unstaged = geogit.getRepository().workingTree().countUnstaged("onewaystreets")
-                .getFeaturesCount();
+                .featureCount();
         assertEquals(2, unstaged);
         Optional<Node> feature = geogit.getRepository().workingTree()
                 .findUnstaged("onewaystreets/31045880");
