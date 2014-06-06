@@ -6,7 +6,6 @@
 package org.geogit.cli.porcelain;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 import jline.console.ConsoleReader;
@@ -14,9 +13,8 @@ import jline.console.ConsoleReader;
 import org.geogit.api.GeoGIT;
 import org.geogit.api.ObjectId;
 import org.geogit.api.Ref;
-import org.geogit.api.plumbing.diff.DiffEntry;
-import org.geogit.api.plumbing.diff.DiffEntry.ChangeType;
-import org.geogit.api.porcelain.DiffOp;
+import org.geogit.api.plumbing.DiffCount;
+import org.geogit.api.plumbing.diff.DiffObjectCount;
 import org.geogit.api.porcelain.FetchResult;
 import org.geogit.api.porcelain.PullOp;
 import org.geogit.api.porcelain.PullResult;
@@ -113,34 +111,25 @@ public class Pull extends AbstractCommand implements CLICommand {
                 name = Ref.localName(name);
                 console.println(name + " already up to date.");
             } else {
-                Iterator<DiffEntry> iter;
+                String oldTreeish;
+                String newTreeish = newRef.getObjectId().toString();
                 if (oldRef == null) {
                     console.println("From " + result.getRemoteName());
                     console.println(" * [new branch]     " + newRef.localName() + " -> "
                             + newRef.getName());
 
-                    iter = geogit.command(DiffOp.class).setNewVersion(newRef.getObjectId())
-                            .setOldVersion(ObjectId.NULL).call();
+                    oldTreeish = ObjectId.NULL.toString();
                 } else {
-                    iter = geogit.command(DiffOp.class).setNewVersion(newRef.getObjectId())
-                            .setOldVersion(oldRef.getObjectId()).call();
+                    oldTreeish = oldRef.getObjectId().toString();
                 }
 
-                int added = 0;
-                int removed = 0;
-                int modified = 0;
-                while (iter.hasNext()) {
-                    DiffEntry entry = iter.next();
-                    if (entry.changeType() == ChangeType.ADDED) {
-                        added++;
-                    } else if (entry.changeType() == ChangeType.MODIFIED) {
-                        modified++;
-                    } else if (entry.changeType() == ChangeType.REMOVED) {
-                        removed++;
-                    }
-                }
-                console.println("Features Added: " + added + " Removed: " + removed + " Modified: "
-                        + modified);
+                DiffObjectCount count = geogit.command(DiffCount.class).setOldVersion(oldTreeish)
+                        .setNewVersion(newTreeish).call();
+                long added = count.getFeaturesAdded();
+                long removed = count.getFeaturesRemoved();
+                long modified = count.getFeaturesChanged();
+                console.println(String.format("Features Added: %,d Removed: %,d Modified: %,d",
+                        added, removed, modified));
             }
         } catch (SynchronizationException e) {
             switch (e.statusCode) {
