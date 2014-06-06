@@ -25,7 +25,7 @@ public class PullResult {
         return remoteName;
     }
 
-    public void setRemoteName(String remoteName) {
+    void setRemoteName(String remoteName) {
         this.remoteName = remoteName;
     }
 
@@ -33,7 +33,7 @@ public class PullResult {
         return fetchResult;
     }
 
-    public void setFetchResult(FetchResult fetchResult) {
+    void setFetchResult(FetchResult fetchResult) {
         this.fetchResult = fetchResult;
     }
 
@@ -41,7 +41,7 @@ public class PullResult {
         return oldRef;
     }
 
-    public void setOldRef(Ref oldRef) {
+    void setOldRef(Ref oldRef) {
         this.oldRef = oldRef;
     }
 
@@ -49,7 +49,7 @@ public class PullResult {
         return newRef;
     }
 
-    public void setNewRef(Ref newRef) {
+    void setNewRef(Ref newRef) {
         this.newRef = newRef;
     }
 
@@ -57,7 +57,7 @@ public class PullResult {
         return mergeReport;
     }
 
-    public void setMergeReport(Optional<MergeReport> mergeReport) {
+    void setMergeReport(Optional<MergeReport> mergeReport) {
         this.mergeReport = mergeReport;
     }
 }

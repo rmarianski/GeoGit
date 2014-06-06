@@ -87,7 +87,7 @@ public class Checkout extends AbstractCommand implements CLICommand {
             case CHECKOUT_REMOTE_BRANCH:
                 console.println("Branch '" + result.getNewRef().localName()
                         + "' was set up to track remote branch '" + result.getNewRef().localName()
-                        + "from " + result.getRemoteName() + ".");
+                        + "' from " + result.getRemoteName() + ".");
                 console.println("Switched to a new branch '" + result.getNewRef().localName() + "'");
                 break;
             case UPDATE_OBJECTS:

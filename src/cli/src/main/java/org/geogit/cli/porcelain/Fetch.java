@@ -7,15 +7,11 @@ package org.geogit.cli.porcelain;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map.Entry;
 
 import jline.console.ConsoleReader;
 
-import org.geogit.api.Ref;
 import org.geogit.api.porcelain.FetchOp;
 import org.geogit.api.porcelain.FetchResult;
-import org.geogit.api.porcelain.FetchResult.ChangedRef;
-import org.geogit.api.porcelain.FetchResult.ChangedRef.ChangeTypes;
 import org.geogit.api.porcelain.SynchronizationException;
 import org.geogit.cli.AbstractCommand;
 import org.geogit.cli.CLICommand;
@@ -104,31 +100,10 @@ public class Fetch extends AbstractCommand implements CLICommand {
         }
 
         ConsoleReader console = cli.getConsole();
-        if (result.getChangedRefs().entrySet().size() > 0) {
-            for (Entry<String, List<ChangedRef>> entry : result.getChangedRefs().entrySet()) {
-                console.println("From " + entry.getKey());
-
-                for (ChangedRef ref : entry.getValue()) {
-                    String line;
-                    if (ref.getType() == ChangeTypes.CHANGED_REF) {
-                        line = "   " + ref.getOldRef().getObjectId().toString().substring(0, 7)
-                                + ".." + ref.getNewRef().getObjectId().toString().substring(0, 7)
-                                + "     " + ref.getOldRef().localName() + " -> "
-                                + ref.getOldRef().getName();
-                    } else if (ref.getType() == ChangeTypes.ADDED_REF) {
-                        String reftype = (ref.getNewRef().getName().startsWith(Ref.TAGS_PREFIX)) ? "tag" : "branch";
-                        line = " * [new " + reftype + "]     " + ref.getNewRef().localName() + " -> "
-                                + ref.getNewRef().getName();
-                    } else if (ref.getType() == ChangeTypes.REMOVED_REF) {
-                        line = " x [deleted]        (none) -> " + ref.getOldRef().getName();
-                    } else {
-                        line = "   [deepened]       " + ref.getNewRef().localName();
-                    }
-                    console.println(line);
-                }
-            }
-        } else {
+        if (result.getChangedRefs().isEmpty()) {
             console.println("Already up to date.");
+        } else {
+            FetchResultPrinter.print(result, console);
         }
     }
 }

@@ -8,16 +8,16 @@ package org.geogit.cli.porcelain;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 import jline.console.ConsoleReader;
 
+import org.geogit.api.GeoGIT;
 import org.geogit.api.ObjectId;
+import org.geogit.api.Ref;
 import org.geogit.api.plumbing.diff.DiffEntry;
 import org.geogit.api.plumbing.diff.DiffEntry.ChangeType;
 import org.geogit.api.porcelain.DiffOp;
-import org.geogit.api.porcelain.FetchResult.ChangedRef;
-import org.geogit.api.porcelain.FetchResult.ChangedRef.ChangeTypes;
+import org.geogit.api.porcelain.FetchResult;
 import org.geogit.api.porcelain.PullOp;
 import org.geogit.api.porcelain.PullResult;
 import org.geogit.api.porcelain.SynchronizationException;
@@ -26,10 +26,10 @@ import org.geogit.cli.CLICommand;
 import org.geogit.cli.CommandFailedException;
 import org.geogit.cli.GeogitCLI;
 import org.geogit.cli.annotation.RemotesReadOnly;
-import org.geogit.cli.annotation.StagingDatabaseReadOnly;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Objects;
 
 /**
  * Incorporates changes from a remote repository into the current branch.
@@ -74,14 +74,15 @@ public class Pull extends AbstractCommand implements CLICommand {
         checkParameter(depth > 0 ? !fulldepth : true,
                 "Cannot specify a depth and full depth.  Use --depth <depth> or --fulldepth.");
 
+        GeoGIT geogit = cli.getGeogit();
         if (depth > 0 || fulldepth) {
-            if (!cli.getGeogit().getRepository().getDepth().isPresent()) {
+            if (!geogit.getRepository().getDepth().isPresent()) {
                 throw new CommandFailedException(
                         "Depth operations can only be used on a shallow clone.");
             }
         }
 
-        PullOp pull = cli.getGeogit().command(PullOp.class);
+        PullOp pull = geogit.command(PullOp.class);
         pull.setProgressListener(cli.getProgressListener());
         pull.setAll(all).setRebase(rebase).setFullDepth(fulldepth);
         pull.setDepth(depth);
@@ -96,52 +97,33 @@ public class Pull extends AbstractCommand implements CLICommand {
         }
 
         try {
-            PullResult result = pull.call();
+            final PullResult result = pull.call();
 
             ConsoleReader console = cli.getConsole();
+            FetchResult fetchResult = result.getFetchResult();
+            FetchResultPrinter.print(fetchResult, console);
 
-            for (Entry<String, List<ChangedRef>> entry : result.getFetchResult().getChangedRefs()
-                    .entrySet()) {
-                console.println("From " + entry.getKey());
+            final Ref oldRef = result.getOldRef();
+            final Ref newRef = result.getNewRef();
 
-                for (ChangedRef ref : entry.getValue()) {
-                    String line;
-                    if (ref.getType() == ChangeTypes.CHANGED_REF) {
-                        line = "   " + ref.getOldRef().getObjectId().toString().substring(0, 7)
-                                + ".." + ref.getNewRef().getObjectId().toString().substring(0, 7)
-                                + "     " + ref.getNewRef().localName() + " -> "
-                                + ref.getNewRef().getName();
-                    } else if (ref.getType() == ChangeTypes.ADDED_REF) {
-                        line = " * [new branch]     " + ref.getNewRef().localName() + " -> "
-                                + ref.getNewRef().getName();
-                    } else if (ref.getType() == ChangeTypes.REMOVED_REF) {
-                        line = " x [deleted]        (none) -> " + ref.getOldRef().getName();
-                    } else {
-                        line = "   [deepened]       " + ref.getNewRef().localName();
-                    }
-                    console.println(line);
-                }
-            }
-
-            if (result.getOldRef() != null && result.getNewRef() != null
-                    && result.getOldRef().equals(result.getNewRef())) {
-                console.println("Already up to date.");
-            } else if (result.getOldRef() == null && result.getNewRef() == null) {
+            if (oldRef == null && newRef == null) {
                 console.println("Nothing to pull.");
+            } else if (Objects.equal(oldRef, newRef)) {
+                String name = oldRef == null ? newRef.getName() : oldRef.getName();
+                name = Ref.localName(name);
+                console.println(name + " already up to date.");
             } else {
                 Iterator<DiffEntry> iter;
-                if (result.getOldRef() == null) {
+                if (oldRef == null) {
                     console.println("From " + result.getRemoteName());
-                    console.println(" * [new branch]     " + result.getNewRef().localName()
-                            + " -> " + result.getNewRef().getName());
+                    console.println(" * [new branch]     " + newRef.localName() + " -> "
+                            + newRef.getName());
 
-                    iter = cli.getGeogit().command(DiffOp.class)
-                            .setNewVersion(result.getNewRef().getObjectId())
+                    iter = geogit.command(DiffOp.class).setNewVersion(newRef.getObjectId())
                             .setOldVersion(ObjectId.NULL).call();
                 } else {
-                    iter = cli.getGeogit().command(DiffOp.class)
-                            .setNewVersion(result.getNewRef().getObjectId())
-                            .setOldVersion(result.getOldRef().getObjectId()).call();
+                    iter = geogit.command(DiffOp.class).setNewVersion(newRef.getObjectId())
+                            .setOldVersion(oldRef.getObjectId()).call();
                 }
 
                 int added = 0;
