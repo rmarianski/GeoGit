@@ -55,7 +55,7 @@ public class LogOpPerformanceTest extends RepositoryTestCase {
         System.err.println("***********\nCreating " + numberFormat.format(numBranches)
                 + " branches with " + numberFormat.format(numCommits) + " commits each...");
 
-        Stopwatch sw = new Stopwatch().start();
+        Stopwatch sw = Stopwatch.createStarted();
         List<ObjectId> ids = createBranches(numBranches, numCommits);
         sw.stop();
         System.err.println(numberFormat.format(numBranches) + " branches with "
@@ -93,7 +93,7 @@ public class LogOpPerformanceTest extends RepositoryTestCase {
         System.err.println("***********\nCreating " + numberFormat.format(numCommits)
                 + " commits...");
 
-        Stopwatch sw = new Stopwatch().start();
+        Stopwatch sw = Stopwatch.createStarted();
         createCommits(numCommits, "");
         sw.stop();
         System.err.println(numberFormat.format(numCommits) + " created in " + sw.toString());
@@ -151,8 +151,7 @@ public class LogOpPerformanceTest extends RepositoryTestCase {
 
     private void benchmarkIteration(Iterator<RevCommit> commits) {
         NumberFormat numberFormat = NumberFormat.getInstance(Locale.ENGLISH);
-        Stopwatch sw = new Stopwatch();
-        sw.reset().start();
+        Stopwatch sw = Stopwatch.createStarted();
         int c = 0;
         while (commits.hasNext()) {
             c++;

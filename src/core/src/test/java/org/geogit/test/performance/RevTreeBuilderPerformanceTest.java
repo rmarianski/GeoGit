@@ -118,7 +118,7 @@ public class RevTreeBuilderPerformanceTest extends RepositoryTestCase {
                 partitionSize);
 
         RevTreeBuilder builder = new RevTreeBuilder(odb);
-        Stopwatch sw = new Stopwatch().start();
+        Stopwatch sw = Stopwatch.createStarted();
         while (partitions.hasNext()) {
             List<Node> partition = new ArrayList<Node>(partitions.next());
             Collections.sort(partition, new NodeStorageOrder());
@@ -158,7 +158,7 @@ public class RevTreeBuilderPerformanceTest extends RepositoryTestCase {
         if (buildTree) {
             System.err.printf("Creating treee with %d nodes...", numNodes);
         }
-        Stopwatch sw = new Stopwatch().start();
+        Stopwatch sw = Stopwatch.createStarted();
         for (Node n : nodes) {
             b.put(n);
         }

@@ -35,6 +35,7 @@ import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.feature.type.PropertyType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -119,7 +120,7 @@ class HashObjectFunnels {
     };
 
     private static final Funnel<CharSequence> NullableStringFunnel = NullableFunnel.of(Funnels
-            .stringFunnel());
+            .stringFunnel(Charsets.UTF_8));
 
     private static final Funnel<RevObject.TYPE> RevObjectTypeFunnel = new Funnel<RevObject.TYPE>() {
 
@@ -224,7 +225,7 @@ class HashObjectFunnels {
                     .setFeatureType(from).call();
 
             NullableStringFunnel.funnel(from.getName().getNamespaceURI(), into);
-            Funnels.stringFunnel().funnel(from.getName().getLocalPart(), into);
+            Funnels.stringFunnel(Charsets.UTF_8).funnel(from.getName().getLocalPart(), into);
 
             for (PropertyDescriptor descriptor : featureTypeProperties) {
                 PropertyDescriptorFunnel.funnel(descriptor, into);
@@ -242,8 +243,8 @@ class HashObjectFunnels {
         public void funnel(RevTag from, PrimitiveSink into) {
             RevObjectTypeFunnel.funnel(TYPE.TAG, into);
             ObjectIdFunnel.funnel(from.getCommitId(), into);
-            Funnels.stringFunnel().funnel(from.getName(), into);
-            Funnels.stringFunnel().funnel(from.getMessage(), into);
+            Funnels.stringFunnel(Charsets.UTF_8).funnel(from.getName(), into);
+            Funnels.stringFunnel(Charsets.UTF_8).funnel(from.getMessage(), into);
             PersonFunnel.funnel(from.getTagger(), into);
         }
     };
@@ -267,7 +268,7 @@ class HashObjectFunnels {
         @Override
         public void funnel(Node ref, PrimitiveSink into) {
             RevObjectTypeFunnel.funnel(ref.getType(), into);
-            Funnels.stringFunnel().funnel(ref.getName(), into);
+            Funnels.stringFunnel(Charsets.UTF_8).funnel(ref.getName(), into);
             ObjectIdFunnel.funnel(ref.getObjectId(), into);
             ObjectIdFunnel.funnel(ref.getMetadataId().or(ObjectId.NULL), into);
         }
@@ -281,7 +282,7 @@ class HashObjectFunnels {
             if (value == null) {
                 NullFunnel.funnel(value, into);
             } else if (value instanceof String) {
-                Funnels.stringFunnel().funnel((CharSequence) value, into);
+                Funnels.stringFunnel(Charsets.UTF_8).funnel((CharSequence) value, into);
             } else if (value instanceof Boolean) {
                 into.putBoolean(((Boolean) value).booleanValue());
             } else if (value instanceof Byte) {
@@ -290,7 +291,7 @@ class HashObjectFunnels {
                 into.putDouble(((Double) value).doubleValue());
             } else if (value instanceof BigDecimal) {
                 String bdString = ((BigDecimal) value).toEngineeringString();
-                into.putString(bdString);
+                into.putString(bdString, Charsets.UTF_8);
             } else if (value instanceof Float) {
                 into.putFloat(((Float) value).floatValue());
             } else if (value instanceof Integer) {
@@ -326,8 +327,8 @@ class HashObjectFunnels {
                     throw Throwables.propagate(shouldntHappen);
                 }
             } else {
-                Funnels.stringFunnel().funnel(value.getClass().getName(), into);
-                Funnels.stringFunnel().funnel(value.toString(), into);
+                Funnels.stringFunnel(Charsets.UTF_8).funnel(value.getClass().getName(), into);
+                Funnels.stringFunnel(Charsets.UTF_8).funnel(value.toString(), into);
             }
         }
     };
@@ -363,7 +364,7 @@ class HashObjectFunnels {
         @Override
         public void funnel(Name from, PrimitiveSink into) {
             NullableStringFunnel.funnel(from.getNamespaceURI(), into);
-            Funnels.stringFunnel().funnel(from.getLocalPart(), into);
+            Funnels.stringFunnel(Charsets.UTF_8).funnel(from.getLocalPart(), into);
         }
     };
 

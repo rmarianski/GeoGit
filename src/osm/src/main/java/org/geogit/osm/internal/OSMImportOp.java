@@ -402,7 +402,7 @@ public class OSMImportOp extends AbstractGeoGitOp<Optional<OSMReport>> {
             this.latestChangeset = 0;
             this.latestTimestamp = 0;
             this.pointCache = new BDBJEPointCache(platform);
-            this.sw = new Stopwatch().start();
+            this.sw = Stopwatch.createStarted();
         }
 
         public long getUnprocessedCount() {

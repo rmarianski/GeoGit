@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.geogit.api.Node;
 import org.geogit.api.NodeRef;
@@ -79,17 +80,17 @@ public class RevTreeBuilderTest extends RepositoryTestCase {
         ObjectId treeId;
 
         Stopwatch sw;
-        sw = new Stopwatch().start();
+        sw = Stopwatch.createStarted();
         treeId = createAndSaveTree(numEntries, true);
         sw.stop();
         System.err.println("Stored " + numEntries + " tree entries in " + sw + " ("
-                + Math.round(numEntries / (sw.elapsedMillis() / 1000D)) + "/s)");
+                + Math.round(numEntries / (sw.elapsed(TimeUnit.MILLISECONDS) / 1000D)) + "/s)");
 
-        sw = new Stopwatch().start();
+        sw = Stopwatch.createStarted();
         treeId = createAndSaveTree(numEntries, true);
         sw.stop();
         System.err.println("Stored " + numEntries + " tree entries in " + sw + " ("
-                + Math.round(numEntries / (sw.elapsedMillis() / 1000D)) + "/s)");
+                + Math.round(numEntries / (sw.elapsed(TimeUnit.MILLISECONDS) / 1000D)) + "/s)");
 
         sw.reset().start();
         final RevTree tree = odb.getTree(treeId);
@@ -110,7 +111,7 @@ public class RevTreeBuilderTest extends RepositoryTestCase {
         }
         sw.stop();
         System.err.println("\nTraversed " + counted + " in " + sw + " ("
-                + Math.round(counted / (sw.elapsedMillis() / 1000D)) + "/s)\n");
+                + Math.round(counted / (sw.elapsed(TimeUnit.MILLISECONDS) / 1000D)) + "/s)\n");
 
         System.err.println("traversing with DepthTreeIterator...");
         sw.reset().start();
@@ -126,7 +127,7 @@ public class RevTreeBuilderTest extends RepositoryTestCase {
         }
         sw.stop();
         System.err.println("\nTraversed " + counted + " in " + sw + " ("
-                + Math.round(counted / (sw.elapsedMillis() / 1000D)) + "/s)\n");
+                + Math.round(counted / (sw.elapsed(TimeUnit.MILLISECONDS) / 1000D)) + "/s)\n");
         assertEquals(numEntries, counted);
     }
 
@@ -136,11 +137,11 @@ public class RevTreeBuilderTest extends RepositoryTestCase {
         final ObjectId treeId;
 
         Stopwatch sw;
-        sw = new Stopwatch().start();
+        sw = Stopwatch.createStarted();
         treeId = createAndSaveTree(numEntries, true);
         sw.stop();
         System.err.println("Stored " + numEntries + " tree entries in " + sw + " ("
-                + Math.round(numEntries / (sw.elapsedMillis() / 1000D)) + "/s)");
+                + Math.round(numEntries / (sw.elapsed(TimeUnit.MILLISECONDS) / 1000D)) + "/s)");
 
         sw.reset().start();
         final RevTree tree = odb.getTree(treeId);
@@ -193,8 +194,8 @@ public class RevTreeBuilderTest extends RepositoryTestCase {
             // assertEquals(key, oid, ref.get().getObjectId());
         }
         sw.stop();
-        System.err.println("\nGot " + numEntries + " in " + sw.elapsedMillis() + "ms ("
-                + Math.round(numEntries / (sw.elapsedMillis() / 1000D)) + "/s)\n");
+        System.err.println("\nGot " + numEntries + " in " + sw.elapsed(TimeUnit.MILLISECONDS) + "ms ("
+                + Math.round(numEntries / (sw.elapsed(TimeUnit.MILLISECONDS) / 1000D)) + "/s)\n");
 
     }
 

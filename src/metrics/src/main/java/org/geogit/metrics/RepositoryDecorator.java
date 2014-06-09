@@ -33,12 +33,14 @@ class RepositoryDecorator implements Decorator {
 
                 @Override
                 public void opened(Repository repo) {
-                    service.startAndWait();
+                    service.startAsync();
+                    service.awaitRunning();
                 }
 
                 @Override
                 public void closed() {
-                    service.stop();
+                    service.stopAsync();
+                    service.awaitTerminated();
                 }
             };
             ((Repository) subject).addListener(listener);
